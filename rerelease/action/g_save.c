@@ -581,13 +581,6 @@ void InitGame( void )
 	am_team = gi.cvar("am_team", "0", 0);
 	zoom_comp = gi.cvar("zoom_comp", "0", 0);
 
-	// new AQtion Extension cvars
-#ifdef AQTION_EXTENSION
-	use_newirvision = gi.cvar("use_newirvision", "1", 0);
-	use_indicators = gi.cvar("use_indicators", "1", 0);
-	use_xerp = gi.cvar("use_xerp", "1", 0);
-#endif
-
 	// Discord SDK integration with Q2Pro
 	cl_discord = gi.cvar("cl_discord", "0", 0);
 	cl_discord_id = gi.cvar("cl_discord_id", "0", 0);
@@ -672,14 +665,6 @@ void InitGame( void )
 	gi.cvar_forceset("g_view_predict", "1");
 	gi.cvar_forceset("g_view_high", va("%d", STANDING_VIEWHEIGHT));
 	gi.cvar_forceset("g_view_low", va("%d", CROUCHING_VIEWHEIGHT));
-
-#ifdef AQTION_EXTENSION
-	CvarSync_Set(clcvar_cl_antilag, "cl_antilag", "1");
-	CvarSync_Set(clcvar_cl_indicators, "cl_indicators", "1");
-	CvarSync_Set(clcvar_cl_xerp, "cl_xerp", "0");
-	CvarSync_Set(clcvar_cl_spectatorhud, "cl_spectatorhud", "1");
-	CvarSync_Set(clcvar_cl_spectatorkillfeed, "cl_spectatorkillfeed", "0");
-#endif
 }
 
 //=========================================================

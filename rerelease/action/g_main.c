@@ -494,12 +494,6 @@ cvar_t *am_delay;  // Attract mode delay, unused at the moment
 cvar_t *am_team;  // Attract mode team, which team do you want the bots to join
 cvar_t *zoom_comp; // Compensates zoom-in frames with ping (high ping = fewer frames)
 
-#ifdef AQTION_EXTENSION
-cvar_t *use_newirvision;
-cvar_t *use_indicators;
-cvar_t *use_xerp;
-#endif
-
 // Discord SDK integration with Q2Pro
 cvar_t *cl_discord;
 cvar_t *cl_discord_id;
@@ -580,29 +574,6 @@ game_export_t *GetGameAPI (game_import_t * import)
 	globals.ServerCommand = ServerCommand;
 
 	globals.edict_size = sizeof (edict_t);
-
-
-#ifdef AQTION_EXTENSION
-	G_InitExtEntrypoints();
-	globals.FetchGameExtension = G_FetchGameExtension;
-
-	engine_Client_GetProtocol = gi.CheckForExtension("Client_GetProtocol");
-	engine_Client_GetVersion = gi.CheckForExtension("Client_GetVersion");
-
-	engine_Ghud_ClearForClient = gi.CheckForExtension("Ghud_ClearForClient");
-	engine_Ghud_NewElement = gi.CheckForExtension("Ghud_NewElement");
-	engine_Ghud_RemoveElement = gi.CheckForExtension("Ghud_RemoveElement");
-	engine_Ghud_SetFlags = gi.CheckForExtension("Ghud_SetFlags");
-	engine_Ghud_SetInt = gi.CheckForExtension("Ghud_SetInt");
-	engine_Ghud_SetText = gi.CheckForExtension("Ghud_SetText");
-	engine_Ghud_SetPosition = gi.CheckForExtension("Ghud_SetPosition");
-	engine_Ghud_SetAnchor = gi.CheckForExtension("Ghud_SetAnchor");
-	engine_Ghud_SetColor = gi.CheckForExtension("Ghud_SetColor");
-	engine_Ghud_SetSize = gi.CheckForExtension("Ghud_SetSize");
-
-	engine_CvarSync_Set = gi.CheckForExtension("CvarSync_Set");
-#endif
-
 
 	return &globals;
 }

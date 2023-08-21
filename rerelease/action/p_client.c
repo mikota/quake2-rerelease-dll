@@ -341,13 +341,6 @@ static void FreeClientEdicts(gclient_t *client)
 		client->ctf_grapple = NULL;
 	}
 
-#ifdef AQTION_EXTENSION
-	//remove arrow
-	if (client->arrow) {
-		G_FreeEdict(client->arrow);
-		client->arrow = NULL;
-	}
-#endif
 }
 
 void Announce_Reward(edict_t *ent, int rewardType){
@@ -2304,9 +2297,6 @@ void PutClientInServer(edict_t * ent)
 	client_persistant_t pers;
 	client_respawn_t resp;
 	gitem_t *item;
-#ifdef AQTION_EXTENSION
-	cvarsyncvalue_t cl_cvar[CVARSYNC_MAX];
-#endif
 
 	// find a spawn point
 	// do it before setting health back up, so farthest
@@ -2321,15 +2311,9 @@ void PutClientInServer(edict_t * ent)
 	// deathmatch wipes most client data every spawn
 	resp = client->resp;
 	pers = client->pers;
-#ifdef AQTION_EXTENSION
-	memcpy(cl_cvar, client->cl_cvar, sizeof(client->cl_cvar));
-#endif
 
 	memset(client, 0, sizeof(*client));
 
-#ifdef AQTION_EXTENSION
-	memcpy(client->cl_cvar, cl_cvar, sizeof(client->cl_cvar));
-#endif
 	client->pers = pers;
 	client->resp = resp;
 
@@ -2420,18 +2404,6 @@ void PutClientInServer(edict_t * ent)
 	ent->s.skinnum = ent - g_edicts - 1;
 	ent->s.modelindex = 255;	// will use the skin specified model
 
-#ifdef AQTION_EXTENSION
-	// teammate indicator arrows
-	if (use_indicators->value && teamplay->value && !client->arrow && client->resp.team)
-	{
-		client->arrow = G_Spawn();
-		client->arrow->solid = SOLID_NOT;
-		client->arrow->movetype = MOVETYPE_NOCLIP;
-		client->arrow->classname = "ind_arrow";
-		client->arrow->owner = ent;
-	}
-#endif
-
 	// zucc vwep
 	//ent->s.modelindex2 = 255;             // custom gun model
 	ShowGun(ent);
@@ -2471,17 +2443,9 @@ void PutClientInServer(edict_t * ent)
 		ent->svflags |= SVF_NOCLIENT;
 		ent->client->ps.gunindex = 0;
 
-#ifdef AQTION_EXTENSION
-		if (!ent->client->resp.team)
-			HUD_SetType(ent, 1);
-#endif
 		gi.linkentity(ent);
 		return;
 	}
-
-#ifdef AQTION_EXTENSION
-	HUD_SetType(ent, -1);
-#endif
 
 	if (!teamplay->value) {	// this handles telefrags...
 		KillBox(ent);
@@ -2545,17 +2509,6 @@ void ClientBeginDeathmatch(edict_t * ent)
 	ent->client->resp.enterframe = level.framenum;
 	ent->client->resp.gldynamic = 1;
 	
-#ifdef AQTION_EXTENSION
-	if (teamplay->value)
-	{
-		HUD_SetType(ent, 1);
-	}
-	else
-	{
-		HUD_SetType(ent, -1);
-	}
-#endif
-
 	if (!ent->client->pers.connected) {
 		ent->client->pers.connected = true;
 		ClientUserinfoChanged(ent, ent->client->pers.userinfo);
@@ -2752,65 +2705,6 @@ void ClientUserinfoChanged(edict_t *ent, char *userinfo)
 	} else {
 		client->pers.gender = GENDER_NEUTRAL;
 	}
-
-
-	// Reki - disable prediction on limping
-#ifdef AQTION_EXTENSION
-	if (Client_GetProtocol(ent) == 38) // if we're using AQTION protocol, we have limp prediction
-	{
-		client->pers.limp_nopred = 0;
-	}
-	else
-	{
-#endif
-		s = Info_ValueForKey(userinfo, "limp_nopred");
-		int limp = atoi(s);
-		if (limp == 1)
-			client->pers.limp_nopred = 1; // client explicity wants new behavior 
-		else if (s[0] == 0)
-			client->pers.limp_nopred = 2 | (client->pers.limp_nopred & 256); // client doesn't specify, so use auto threshold
-		else if (limp == 0)
-			client->pers.limp_nopred = 0; // client explicity wants old behavior
-#ifdef AQTION_EXTENSION
-	}
-#endif
-
-
-#ifdef AQTION_EXTENSION
-	if (!HAS_CVARSYNC(ent)) // only do these cl cvars if cvarsync isn't a thing, since it's much better than userinfo
-	{
-#endif
-		// Reki - spectator options, force team overlay/send easily parsable kill feed prints
-		s = Info_ValueForKey(userinfo, "cl_spectatorhud");
-		if (atoi(s))
-			client->pers.spec_flags |= SPECFL_SPECHUD | SPECFL_SPECHUD_NEW;
-		else
-			client->pers.spec_flags &= ~(SPECFL_SPECHUD | SPECFL_SPECHUD_NEW);
-
-	#ifdef AQTION_EXTENSION
-		if (Client_GetProtocol(ent) == 38) // Reki: new clients get new spec hud
-			client->pers.spec_flags &= ~SPECFL_SPECHUD;
-	#endif
-
-		s = Info_ValueForKey(userinfo, "cl_spectatorkillfeed");
-		if (atoi(s))
-			client->pers.spec_flags |= SPECFL_KILLFEED;
-		else
-			client->pers.spec_flags &= ~SPECFL_KILLFEED;
-
-		// Reki - disable antilag for *my own shooting*, not others shooting at me
-		s = Info_ValueForKey(userinfo, "cl_antilag");
-		int antilag_value = client->pers.antilag_optout;
-		if (s[0] == 0 || atoi(s) > 0)
-			client->pers.antilag_optout = qfalse;
-		else if (atoi(s) <= 0)
-			client->pers.antilag_optout = qtrue;
-
-		if (sv_antilag->value && antilag_value != client->pers.antilag_optout)
-			gi.cprintf(ent, PRINT_MEDIUM, "YOUR CL_ANTILAG IS NOW SET TO %i\n", !client->pers.antilag_optout);
-#ifdef AQTION_EXTENSION
-	}
-#endif
 }
 
 /*
@@ -3172,10 +3066,6 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 		qboolean has_enhanced_slippers = e_enhancedSlippers->value && INV_AMMO(ent, SLIP_NUM);
 		if( client->leg_damage && ent->groundentity && ! has_enhanced_slippers )
 		{
-			#ifdef AQTION_EXTENSION
-			pm.s.pm_aq2_flags |= PMF_AQ2_LIMP;
-			pm.s.pm_aq2_leghits = min(client->leghits, 255);
-			#else
 			int frame_mod_6 = (level.framenum / game.framediv) % 6;
 			if( frame_mod_6 <= 2 )
 			{
@@ -3190,15 +3080,7 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 
 			// Prevent jumping with leg damage.
 			pm.s.pm_flags |= PMF_JUMP_HELD;
-			#endif
 		}
-		#ifdef AQTION_EXTENSION
-		else
-		{
-			pm.s.pm_aq2_flags &= ~PMF_AQ2_LIMP;
-			pm.s.pm_aq2_leghits = 0;
-		}
-		#endif
 
 		pm.trace = PM_trace;	// adds default parms
 		pm.pointcontents = gi.pointcontents;
@@ -3347,25 +3229,6 @@ void ClientBeginServerFrame(edict_t * ent)
 
 	if (sv_antilag->value) // if sv_antilag is enabled, we want to track our player position for later reference
 		antilag_update(ent);
-
-#ifdef AQTION_EXTENSION
-	// resync pm_timestamp so all limps are roughly synchronous, to try to maintain original behavior
-	unsigned short world_timestamp = (int)(level.time * 1000) % 60000;
-	client->ps.pmove.pm_timestamp = world_timestamp;
-
-	// update dimension mask for team-only entities
-	client->dimension_observe = 1 | (1 << client->resp.team);
-
-	if (client->resp.hud_type == 1)
-	{
-		client->dimension_observe |= 0xE; // true spectators can see all teams
-		HUD_SpectatorUpdate(ent);
-	}
-	else
-	{
-		HUD_ClientUpdate(ent);
-	}
-#endif
 
 	if (client->resp.penalty > 0 && level.realFramenum % HZ == 0)
 		client->resp.penalty--;
