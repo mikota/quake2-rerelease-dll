@@ -325,7 +325,6 @@ void InitGame( void )
 
 	InitCommandList();
 
-	IRC_init();
 	gi.dprintf( "==== InitGame ====\n" );
 
 	ReadConfigFile();

@@ -538,7 +538,6 @@ int num_ghost_players;
 void ShutdownGame (void)
 {
 	gi.dprintf ("==== ShutdownGame ====\n");
-	IRC_exit ();
 	//PG BUND
 	vExitGame ();
 	gi.FreeTags (TAG_LEVEL);
@@ -1077,9 +1076,6 @@ void G_RunFrame (void)
 	int i;
 	edict_t *ent;
 	qboolean empty = false;
-
-	// IRC poll
-	IRC_poll ();
 
 	// If the server is empty, don't wait at intermission.
 	empty = ! _numclients();
