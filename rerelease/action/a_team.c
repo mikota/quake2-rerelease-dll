@@ -1206,12 +1206,10 @@ void JoinTeam (edict_t * ent, int desired_team, int skip_menuclose)
 	{
 		ent->client->resp.ctf_state = CTF_STATE_START;
 		gi.bprintf (PRINT_HIGH, "%s %s %s.\n", ent->client->pers.netname, a, CTFTeamName(desired_team));
-		IRC_printf (IRC_T_GAME, "%n %s %n.", ent->client->pers.netname, a, CTFTeamName(desired_team));
 	}
 	else
 	{
 		gi.bprintf (PRINT_HIGH, "%s %s %s.\n", ent->client->pers.netname, a, TeamName(desired_team));
-		IRC_printf (IRC_T_GAME, "%n %s %n.", ent->client->pers.netname, a, TeamName(desired_team));
 	}
 
 	ent->client->resp.joined_team = level.realFramenum;
@@ -1260,7 +1258,6 @@ void LeaveTeam (edict_t * ent)
 	genderstr = GENDER_STR(ent, "his", "her", "its");
 
 	gi.bprintf (PRINT_HIGH, "%s left %s team.\n", ent->client->pers.netname, genderstr);
-	IRC_printf (IRC_T_GAME, "%n left %n team.", ent->client->pers.netname, genderstr);
 
 	MM_LeftTeam( ent );
 
@@ -1982,10 +1979,8 @@ void PrintScores (void)
 {
 	if (teamCount == 3) {
 		gi.bprintf (PRINT_HIGH, "Current score is %s: %d to %s: %d to %s: %d\n", TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score, TeamName (TEAM3), teams[TEAM3].score);
-		IRC_printf (IRC_T_TOPIC, "Current score on map %n is %n: %k to %n: %k to %n: %k", level.mapname, TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score, TeamName (TEAM3), teams[TEAM3].score);
 	} else {
 		gi.bprintf (PRINT_HIGH, "Current score is %s: %d to %s: %d\n", TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score);
-		IRC_printf (IRC_T_TOPIC, "Current score on map %n is %n: %k to %n: %k", level.mapname, TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score);
 	}
 }
 
@@ -2010,7 +2005,6 @@ qboolean CheckTimelimit( void )
 				ctfgame.halftime = 0;
 			} else {
 				gi.bprintf( PRINT_HIGH, "Timelimit hit.\n" );
-				IRC_printf( IRC_T_GAME, "Timelimit hit." );
 				if (!(gameSettings & GS_ROUNDBASED))
 					ResetPlayers();
 				EndDMLevel();
@@ -2062,7 +2056,6 @@ static qboolean CheckRoundTimeLimit( void )
 			int winTeam = NOTEAM;
 
 			gi.bprintf( PRINT_HIGH, "Round timelimit hit.\n" );
-			IRC_printf( IRC_T_GAME, "Round timelimit hit." );
 
 			winTeam = CheckForForcedWinner();
 			if (WonGame( winTeam ))
@@ -2124,7 +2117,6 @@ static qboolean CheckRoundLimit( void )
 				MakeAllLivePlayersObservers();
 			} else {
 				gi.bprintf( PRINT_HIGH, "Roundlimit hit.\n" );
-				IRC_printf( IRC_T_GAME, "Roundlimit hit." );
 				EndDMLevel();
 			}
 			team_round_going = team_round_countdown = team_game_going = 0;
@@ -2143,11 +2135,9 @@ int WonGame (int winner)
 	char arg[64];
 
 	gi.bprintf (PRINT_HIGH, "The round is over:\n");
-	IRC_printf (IRC_T_GAME, "The round is over:");
 	if (winner == WINNER_TIE)
 	{
 		gi.bprintf (PRINT_HIGH, "It was a tie, no points awarded!\n");
-		IRC_printf (IRC_T_GAME, "It was a tie, no points awarded!");
 
 		if(use_warnings->value)
 			gi.sound(&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, level.snd_teamwins[0], 1.0, ATTN_NONE, 0.0);
@@ -2166,7 +2156,6 @@ int WonGame (int winner)
 			{
 				gi.bprintf (PRINT_HIGH, "%s was victorious!\n",
 				player->client->pers.netname);
-				IRC_printf (IRC_T_GAME, "%n was victorious!",
 				player->client->pers.netname);
 				TourneyWinner (player);
 			}
@@ -2174,7 +2163,6 @@ int WonGame (int winner)
 		else
 		{
 			gi.bprintf (PRINT_HIGH, "%s won!\n", TeamName(winner));
-			IRC_printf (IRC_T_GAME, "%n won!", TeamName(winner));
 			// AQ:TNG Igor[Rock] changing sound dir
 			if(use_warnings->value)
 				gi.sound(&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, level.snd_teamwins[winner], 1.0, ATTN_NONE, 0.0);

@@ -462,7 +462,6 @@ void hurt_touch (edict_t * self, edict_t * other, cplane_t * plane, csurface_t *
 
 			if (team > 0) {
 				gi.bprintf( PRINT_HIGH, "The %s flag has returned!\n", CTFTeamName( team ) );
-				IRC_printf( IRC_T_GAME, "The %n flag has returned!.\n", CTFTeamName( team ) );
 				CTFResetFlag( team );
 			}
 		}

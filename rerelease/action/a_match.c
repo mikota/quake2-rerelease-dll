@@ -308,7 +308,6 @@ void Cmd_Teamname_f(edict_t * ent)
 		strcpy( temp, "noname" );
 
 	gi.dprintf("%s (team %i) is now known as %s\n", team->name, teamNum, temp);
-	IRC_printf(IRC_T_GAME, "%n (team %k) is now known as %n", team->name, teamNum, temp);
 	strcpy(team->name, temp);
 	gi.cprintf(ent, PRINT_HIGH, "New team name: %s\n", team->name);
 
@@ -478,7 +477,6 @@ void Cmd_SetAdmin_f (edict_t * ent)
 
 	gi.cprintf (ent, PRINT_HIGH, "You are now a match admin.\n");
 	gi.dprintf ("%s is now a match admin\n", ent->client->pers.netname);
-	IRC_printf (IRC_T_GAME, "%n is now a match admin", ent->client->pers.netname);
 	ent->client->pers.admin = 1;
 }
 

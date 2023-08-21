@@ -538,7 +538,6 @@ int num_ghost_players;
 void ShutdownGame (void)
 {
 	gi.dprintf ("==== ShutdownGame ====\n");
-	IRC_printf (IRC_T_SERVER, "==== ShutdownGame ====");
 	IRC_exit ();
 	//PG BUND
 	vExitGame ();
@@ -743,7 +742,6 @@ void EndDMLevel (void)
 	now = localtime (&tnow);
 	(void) strftime (ltm, 64, "%A %d %B %H:%M:%S", now);
 	gi.bprintf (PRINT_HIGH, "Game ending at: %s\n", ltm);
-	IRC_printf (IRC_T_GAME, "Game ending at: %s", ltm);
 
 	// JBravo: Stop q2pro MVD2 recording
 	if (use_mvd2->value)
@@ -892,7 +890,6 @@ void EndDMLevel (void)
 
 	if (level.nextmap != NULL && !byvote) {
 		gi.bprintf (PRINT_HIGH, "Next map in rotation is %s.\n", level.nextmap);
-		IRC_printf (IRC_T_SERVER, "Next map in rotation is %s.", level.nextmap);
 	}
 
 	ReadMOTDFile();
@@ -951,7 +948,6 @@ void CheckDMRules (void)
 			if (cl->resp.score >= fraglimit->value)
 			{
 				gi.bprintf (PRINT_HIGH, "Fraglimit hit.\n");
-				IRC_printf (IRC_T_GAME, "Fraglimit hit.");
 				if (ctf->value)
 					ResetPlayers ();
 				EndDMLevel ();
