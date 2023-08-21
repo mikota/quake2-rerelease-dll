@@ -1,9 +1,15 @@
-project('q2-rerelease', 'cpp', 'c', version : '0.1', default_options : ['warning_level=3','cpp_std=c++14'], license: 'GPLv2')
+project('q2-rerelease', 'cpp', 'c', version : '0.1', default_options : ['warning_level=3','cpp_std=c++17'], license: 'GPLv2')
 
-add_global_arguments('-DKEX_Q2GAME_EXPORTS -DKEX_Q2GAME_DYNAMIC -DGAME_INCLUDE -DNO_FMT_SOURCE', '-Wno-unused-result', '-Wall', '-lm', '-fno-strict-aliasing', '-DC_ONLY', language : 'cpp')
+add_global_arguments('-DKEX_Q2GAME_EXPORTS -DKEX_Q2GAME_DYNAMIC -DGAME_INCLUDE -DNO_FMT_SOURCE', 
+'-Wno-unused-result', 
+'-lm', 
+'-fno-strict-aliasing', 
+'-DC_ONLY', 
+'-Wno-strict-prototypes', 
+language : 'cpp')
 
 cpp = meson.get_compiler('cpp')
-c = meson.get_compiler('c')
+c = meson.get_compiler('cpp')
 
 m_dep = c.find_library('m', required : true)
 

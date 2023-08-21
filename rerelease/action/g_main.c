@@ -271,6 +271,11 @@
 #include <time.h>
 #include "g_local.h"
 
+// Q2R
+#include "../bots/bot_includes.h"
+#include "../g_local.h"
+// Q2R
+
 game_locals_t game;
 level_locals_t level;
 game_import_t gi;
@@ -503,19 +508,18 @@ cvar_t *cl_discord_avatar;
 
 void SpawnEntities (char *mapname, char *entities, char *spawnpoint);
 void ClientThink (edict_t * ent, usercmd_t * cmd);
-qboolean ClientConnect (edict_t * ent, char *userinfo);
+qboolean ClientConnect(edict_t *ent, char *userinfo, const char *social_id, qboolean isBot);
 void ClientUserinfoChanged (edict_t * ent, char *userinfo);
 void ClientDisconnect (edict_t * ent);
 void ClientBegin (edict_t * ent);
 void ClientCommand (edict_t * ent);
 void CheckNeedPass (void);
 void RunEntity (edict_t * ent);
-void WriteGame (char *filename, qboolean autosave);
-void ReadGame (char *filename);
-void WriteLevel (char *filename);
-void ReadLevel (char *filename);
+void PreInitGame(void);
 void InitGame (void);
 void G_RunFrame (void);
+void G_PrepFrame();
+void InitSave();
 
 qboolean CheckTimelimit(void);
 int dosoft;
@@ -540,6 +544,11 @@ void ShutdownGame (void)
 	gi.cvar_forceset("g_features", "0");
 }
 
+static void G_GetExtension(const char *name)
+{
+	return NULL;
+}
+
 
 /*
   =================
@@ -549,19 +558,23 @@ void ShutdownGame (void)
   and global variables
   =================
 */
-Q2GAME_API game_export_t *GetGameAPI (game_import_t * import)
+game_export_t *GetGameAPI (game_import_t * import)
 {
 	gi = *import;
+
+	FRAME_TIME_S = FRAME_TIME_MS = gtime_t::from_ms(gi.frame_time_ms);
+
 	globals.apiversion = GAME_API_VERSION;
+	globals.PreInit = PreInitGame;
 	globals.Init = InitGame;
 	globals.Shutdown = ShutdownGame;
 	globals.SpawnEntities = SpawnEntities;
 
-	globals.WriteGame = WriteGame;
-	globals.ReadGame = ReadGame;
-	globals.WriteLevel = WriteLevel;
-	globals.ReadLevel = ReadLevel;
+	globals.Pmove = Pmove;
 
+	globals.GetExtension = G_GetExtension;
+
+	globals.ClientChooseSlot = ClientChooseSlot;
 	globals.ClientThink = ClientThink;
 	globals.ClientConnect = ClientConnect;
 	globals.ClientUserinfoChanged = ClientUserinfoChanged;
@@ -570,8 +583,13 @@ Q2GAME_API game_export_t *GetGameAPI (game_import_t * import)
 	globals.ClientCommand = ClientCommand;
 
 	globals.RunFrame = G_RunFrame;
+	globals.PrepFrame = G_PrepFrame;
 
 	globals.ServerCommand = ServerCommand;
+	globals.Bot_SetWeapon = Bot_SetWeapon;
+	globals.Bot_TriggerEdict = Bot_TriggerEdict;
+	globals.Bot_GetItemID = Bot_GetItemID;
+	globals.Bot_UseItem = Bot_UseItem;
 
 	globals.edict_size = sizeof (edict_t);
 

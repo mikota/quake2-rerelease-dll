@@ -2702,6 +2702,32 @@ void ClientUserinfoChanged(edict_t *ent, char *userinfo)
 	}
 }
 
+inline qboolean IsSlotIgnored(edict_t *slot, edict_t **ignore, size_t num_ignore)
+{
+	for (size_t i = 0; i < num_ignore; i++)
+		if (slot == ignore[i])
+			return true;
+
+	return false;
+}
+
+inline edict_t *ClientChooseSlot_Any(edict_t **ignore, size_t num_ignore)
+{
+	for (size_t i = 0; i < game.maxclients; i++)
+		if (!IsSlotIgnored(globals.edicts + i + 1, ignore, num_ignore) && !game.clients[i].pers.connected)
+			return globals.edicts + i + 1;
+
+	return NULL;
+}
+
+// [Paril-KEX] for coop, we want to try to ensure that players will always get their
+// proper slot back when they connect.
+edict_t *ClientChooseSlot(const char *userinfo, const char *social_id, qboolean isBot, edict_t **ignore, size_t num_ignore, qboolean cinematic)
+{
+	// just find any free slot
+	return ClientChooseSlot_Any(ignore, num_ignore);
+}
+
 /*
 ===========
 ClientConnect

@@ -311,6 +311,20 @@ field_t fields[] = {
 };
 
 /*
+============
+PreInitGame
+
+This will be called when the dll is first loaded, which
+only happens when a new game is started or a save game
+is loaded.
+============
+*/
+void PreInitGame(void)
+{
+
+}
+
+/*
   ============
   InitGame
   

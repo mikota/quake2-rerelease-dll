@@ -1489,7 +1489,7 @@ void OpenJoinMenu (edict_t * ent)
 
 void gib_die( edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point );  // g_misc
 
-void CleanLevel ()
+void CleanLevel (void)
 {
 	int i, base;
 	edict_t *ent;
@@ -3323,7 +3323,7 @@ void SelectFarTeamplaySpawnPoint (int team, qboolean teams_assigned[])
 //
 // Setup the points at which the teams will spawn.
 //
-void SetupTeamSpawnPoints ()
+void SetupTeamSpawnPoints (void)
 {
 	qboolean teams_assigned[MAX_TEAMS];
 	int i, l;
@@ -3346,7 +3346,7 @@ void SetupTeamSpawnPoints ()
 // TNG:Freud New Spawning system
 // NS_GetSpawnPoints:
 // Put the potential spawns into arrays for each team.
-void NS_GetSpawnPoints ()
+void NS_GetSpawnPoints (void)
 {
 	int x, i;
 
@@ -3485,7 +3485,7 @@ qboolean NS_SelectFarTeamplaySpawnPoint (int team, qboolean teams_assigned[])
 // TNG:Freud
 // NS_SetupTeamSpawnPoints
 // Finds and assigns spawn points to each team.
-void NS_SetupTeamSpawnPoints ()
+void NS_SetupTeamSpawnPoints (void)
 {
 	qboolean teams_assigned[MAX_TEAMS];
 	int l;

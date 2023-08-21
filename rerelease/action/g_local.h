@@ -2145,3 +2145,31 @@ extern int gameSettings;
 
 #include "a_ctf.h"
 #include "a_dom.h"
+
+// Q2R
+
+// typedef enum {
+//     point,
+//     cone
+// } shadow_light_type_t;
+
+// struct shadow_light_data_s
+// {
+//     shadow_light_type_t lighttype;
+// 	float		radius;
+// 	int			resolution;
+// 	float		intensity = 1;
+// 	float		fade_start;
+// 	float		fade_end;
+// 	int			lightstyle = -1;
+// 	float		coneangle = 45;
+//     vec3_t      conedirection;
+// } shadow_light_data_t;
+
+// typedef struct shadow_light_temp_s
+// {
+// 	shadow_light_data_t data;
+// 	const char	*lightstyletarget = NULL;
+// } shadow_light_temp_t;
+
+// Q2R

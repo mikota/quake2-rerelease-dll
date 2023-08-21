@@ -315,7 +315,7 @@ int CTFOtherTeam(int team)
 
 /*--------------------------------------------------------------------------*/
 
-void ResetPlayers()
+void ResetPlayers(void)
 {
 	edict_t *ent;
 	int i;

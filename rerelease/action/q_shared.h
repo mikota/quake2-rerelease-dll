@@ -57,6 +57,7 @@
 #include <time.h>
 //FIREBLADE
 #include <stddef.h>
+#include <stdint.h>
 //FIREBLADE
 
 // legacy ABI support for Windows
@@ -179,32 +180,40 @@ typedef enum { qfalse = 0, qtrue } qboolean;
 
 //// Q2R
 
+#if defined(KEX_Q2GAME_EXPORTS)
+    #define Q2GAME_API extern "C" __declspec( dllexport )
+#elif defined(KEX_Q2GAME_IMPORTS)
+    #define Q2GAME_API extern "C" __declspec( dllimport )
+#else
+    #define Q2GAME_API
+#endif
+
 // game.h -- game dll information visible to server
 // PARIL_NEW_API - value likely not used by any other Q2-esque engine in the wild
-constexpr int32_t GAME_API_VERSION = 2022;
-constexpr int32_t CGAME_API_VERSION = 2022;
+#define GAME_API_VERSION 2022
+#define CGAME_API_VERSION 2022
 
 // forward declarations
 struct edict_t;
 struct gclient_t;
 
-constexpr size_t MAX_STRING_CHARS = 1024; // max length of a string passed to Cmd_TokenizeString
-constexpr size_t MAX_STRING_TOKENS = 80;  // max tokens resulting from Cmd_TokenizeString
-constexpr size_t MAX_TOKEN_CHARS = 512;   // max length of an individual token
+#define MAX_STRING_CHARS 1024 // max length of a string passed to Cmd_TokenizeString
+#define MAX_STRING_TOKENS 80  // max tokens resulting from Cmd_TokenizeString
+#define MAX_TOKEN_CHARS 512   // max length of an individual token
 
-constexpr size_t MAX_QPATH = 64;   // max length of a quake game pathname
-constexpr size_t MAX_OSPATH = 128; // max length of a filesystem pathname
+#define MAX_QPATH 64   // max length of a quake game pathname
+#define MAX_OSPATH 128 // max length of a filesystem pathname
 //
 // per-level limits
 //
-constexpr size_t MAX_CLIENTS = 256; // absolute limit
-constexpr size_t MAX_EDICTS = 8192; // upper limit, due to svc_sound encoding as 15 bits
-constexpr size_t MAX_LIGHTSTYLES = 256;
-constexpr size_t MAX_MODELS = 8192; // these are sent over the net as shorts
-constexpr size_t MAX_SOUNDS = 2048; // so they cannot be blindly increased
-constexpr size_t MAX_IMAGES = 512;
-constexpr size_t MAX_ITEMS = 256;
-constexpr size_t MAX_GENERAL = (MAX_CLIENTS * 2); // general config strings
+#define MAX_CLIENTS 256 // absolute limit
+#define MAX_EDICTS 8192 // upper limit, due to svc_sound encoding as 15 bits
+#define MAX_LIGHTSTYLES 256
+#define MAX_MODELS 8192 // these are sent over the net as shorts
+#define MAX_SOUNDS 2048 // so they cannot be blindly increased
+#define MAX_IMAGES 512
+#define MAX_ITEMS 256
+#define MAX_GENERAL (MAX_CLIENTS * 2) // general config strings
 
 //// Q2R
 
@@ -1344,10 +1353,6 @@ temp_event_t;
 
 //QW// The 2080 magic number comes from q_shared.h of the original game.
 // No game mod can go over this 2080 limit.
-#if (MAX_CONFIGSTRINGS > 2080)
-#error MAX_CONFIGSTRINGS > 2080
-#endif
-
 //==============================================
 
 

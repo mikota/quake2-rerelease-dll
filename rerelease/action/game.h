@@ -203,32 +203,30 @@ typedef struct
   // the init function will only be called when a game starts,
   // not each time a level is loaded.  Persistant data for clients
   // and the server can be allocated in init
+  void (*PreInit) (void);
   void (*Init) (void);
   void (*Shutdown) (void);
 
   // each new level entered will cause a call to SpawnEntities
   void (*SpawnEntities) (char *mapname, char *entstring, char *spawnpoint);
 
-  // Read/Write Game is for storing persistant cross level information
-  // about the world state and the clients.
-  // WriteGame is called every time a level is exited.
-  // ReadGame is called on a loadgame.
-  void (*WriteGame) (char *filename, qboolean autosave);
-  void (*ReadGame) (char *filename);
-
-  // ReadLevel is called after the default map information has been
-  // loaded with SpawnEntities
-  void (*WriteLevel) (char *filename);
-  void (*ReadLevel) (char *filename);
-
-    qboolean (*ClientConnect) (edict_t * ent, char *userinfo);
+  //qboolean (*ClientConnect) (edict_t * ent, char *userinfo);
+  qboolean (*ClientConnect) (edict_t *ent, char *userinfo, const char *social_id, qboolean isBot);
   void (*ClientBegin) (edict_t * ent);
   void (*ClientUserinfoChanged) (edict_t * ent, char *userinfo);
   void (*ClientDisconnect) (edict_t * ent);
   void (*ClientCommand) (edict_t * ent);
   void (*ClientThink) (edict_t * ent, usercmd_t * cmd);
+  void (*GetExtension) (const char *name);
+  edict_t (*ClientChooseSlot) (const char *userinfo, const char *social_id, qboolean isBot, edict_t **ignore, size_t num_ignore, qboolean cinematic);
+
+  void    (*Bot_SetWeapon)(edict_t * botEdict, const int weaponIndex, const qboolean instantSwitch);
+  void    (*Bot_TriggerEdict)(edict_t * botEdict, edict_t * edict);
+  void    (*Bot_UseItem)(edict_t * botEdict, const int32_t itemID);
+  int32_t (*Bot_GetItemID)(const char * classname);
 
   void (*RunFrame) (void);
+  void (*PrepFrame) (void);
 
   // ServerCommand will be called when an "sv <command>" command is issued on the
   // server console.
