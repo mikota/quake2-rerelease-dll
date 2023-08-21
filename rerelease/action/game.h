@@ -14,6 +14,17 @@
 //-----------------------------------------------------------------------------
 #define GAME_API_VERSION        2022
 
+// Q2R
+#if defined(KEX_Q2GAME_EXPORTS)
+    #define Q2GAME_API extern "C" __declspec( dllexport )
+#elif defined(KEX_Q2GAME_IMPORTS)
+    #define Q2GAME_API extern "C" __declspec( dllimport )
+#else
+    #define Q2GAME_API
+#endif
+
+// Q2R
+
 // edict->svflags
 
 #define SVF_NOCLIENT                    0x00000001	// don't send entity to clients, even if it has effects

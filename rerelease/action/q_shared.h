@@ -177,25 +177,36 @@ typedef enum { qfalse = 0, qtrue } qboolean;
 #define YAW                             1	// left / right
 #define ROLL                            2	// fall over
 
-#define MAX_STRING_CHARS                1024	// max length of a string passed to Cmd_TokenizeString
-#define MAX_STRING_TOKENS               80	// max tokens resulting from Cmd_TokenizeString
-#define MAX_TOKEN_CHARS                 128	// max length of an individual token
+//// Q2R
 
-#define MAX_QPATH                       64	// max length of a quake game pathname
-#define MAX_OSPATH                      128	// max length of a filesystem pathname
+// game.h -- game dll information visible to server
+// PARIL_NEW_API - value likely not used by any other Q2-esque engine in the wild
+constexpr int32_t GAME_API_VERSION = 2022;
+constexpr int32_t CGAME_API_VERSION = 2022;
 
+// forward declarations
+struct edict_t;
+struct gclient_t;
+
+constexpr size_t MAX_STRING_CHARS = 1024; // max length of a string passed to Cmd_TokenizeString
+constexpr size_t MAX_STRING_TOKENS = 80;  // max tokens resulting from Cmd_TokenizeString
+constexpr size_t MAX_TOKEN_CHARS = 512;   // max length of an individual token
+
+constexpr size_t MAX_QPATH = 64;   // max length of a quake game pathname
+constexpr size_t MAX_OSPATH = 128; // max length of a filesystem pathname
 //
 // per-level limits
 //
-#define MAX_CLIENTS                     256	// absolute limit
-#define MAX_EDICTS                      1024	// must change protocol to increase more
-#define MAX_LIGHTSTYLES                 256
-#define MAX_MODELS                      256	// these are sent over the net as bytes
-#define MAX_SOUNDS                      256	// so they cannot be blindly increased
-#define MAX_IMAGES                      256
-#define MAX_ITEMS                       256
-#define MAX_GENERAL                     (MAX_CLIENTS*2)	// general config strings (from 3.20 -FB)
+constexpr size_t MAX_CLIENTS = 256; // absolute limit
+constexpr size_t MAX_EDICTS = 8192; // upper limit, due to svc_sound encoding as 15 bits
+constexpr size_t MAX_LIGHTSTYLES = 256;
+constexpr size_t MAX_MODELS = 8192; // these are sent over the net as shorts
+constexpr size_t MAX_SOUNDS = 2048; // so they cannot be blindly increased
+constexpr size_t MAX_IMAGES = 512;
+constexpr size_t MAX_ITEMS = 256;
+constexpr size_t MAX_GENERAL = (MAX_CLIENTS * 2); // general config strings
 
+//// Q2R
 
 // game print flags
 #define PRINT_LOW                       0	// pickup messages
