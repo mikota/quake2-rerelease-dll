@@ -1055,8 +1055,6 @@ void ServerCommand (void)
 	//AQ2:TNG - Slicer : CheckCheats & StuffCmd
 	else if (Q_stricmp (cmd, "stuffcmd") == 0)
 		SVCmd_stuffcmd_f ();
-	else if (Q_stricmp (cmd, "ircraw") == 0)
-		SVCmd_ircraw_f ();
 	else if (Q_stricmp (cmd, "softmap") == 0)
 		SVCmd_Softmap_f ();
 	else if (Q_stricmp (cmd, "map_restart") == 0)

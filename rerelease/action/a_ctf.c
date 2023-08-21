@@ -517,9 +517,6 @@ void CTFFragBonuses(edict_t * targ, edict_t * inflictor, edict_t * attacker)
 		gi.bprintf(PRINT_MEDIUM,
 			   "%s defends %s's flag carrier against an agressive enemy\n",
 			   attacker->client->pers.netname, CTFTeamName(attacker->client->resp.team));
-			   "%n defends %n's flag carrier against an agressive enemy\n",
-			   attacker->client->pers.netname,
-			   CTFTeamName(attacker->client->resp.team));
 		return;
 	}
 	// flag and flag carrier area defense bonuses
@@ -554,13 +551,9 @@ void CTFFragBonuses(edict_t * targ, edict_t * inflictor, edict_t * attacker)
 		if (flag->solid == SOLID_NOT) {
 			gi.bprintf(PRINT_MEDIUM, "%s defends the %s base.\n",
 				   attacker->client->pers.netname, CTFTeamName(attacker->client->resp.team));
-				   attacker->client->pers.netname,
-				   CTFTeamName(attacker->client->resp.team));
 		} else {
 			gi.bprintf(PRINT_MEDIUM, "%s defends the %s flag.\n",
 				   attacker->client->pers.netname, CTFTeamName(attacker->client->resp.team));
-				   attacker->client->pers.netname,
-				   CTFTeamName(attacker->client->resp.team));
 		}
 		return;
 	}
@@ -573,10 +566,7 @@ void CTFFragBonuses(edict_t * targ, edict_t * inflictor, edict_t * attacker)
 		    VectorLength(v2) < CTF_ATTACKER_PROTECT_RADIUS ||
 			visible(carrier, targ, MASK_SOLID) || visible(carrier, attacker, MASK_SOLID)) {
 			attacker->client->resp.score += CTF_CARRIER_PROTECT_BONUS;
-			gi.bprintf(PRINT_MEDIUM, "%s defends the %s's flag carrier.\n",
-				   attacker->client->pers.netname, CTFTeamName(attacker->client->resp.team));
-				   attacker->client->pers.netname,
-				   CTFTeamName(attacker->client->resp.team));
+			gi.bprintf(PRINT_MEDIUM, "%s defends the %s's flag carrier.\n", attacker->client->pers.netname, CTFTeamName(attacker->client->resp.team));
 			return;
 		}
 	}
@@ -672,8 +662,6 @@ qboolean CTFPickup_Flag(edict_t * ent, edict_t * other)
 			if (other->client->inventory[ITEM_INDEX(enemy_flag_item)]) {
 				gi.bprintf(PRINT_HIGH, "%s captured the %s flag!\n",
 					   other->client->pers.netname, CTFOtherTeamName(team));
-					   other->client->pers.netname,
-					   CTFOtherTeamName(team));
 				other->client->inventory[ITEM_INDEX(enemy_flag_item)] = 0;
 
 				ctfgame.last_flag_capture = level.framenum;
@@ -709,16 +697,12 @@ qboolean CTFPickup_Flag(edict_t * ent, edict_t * other)
 							gi.bprintf(PRINT_HIGH,
 								   "%s gets an assist for returning the flag!\n",
 								   player->client->pers.netname);
-								   "%n gets an assist for returning the flag!\n",
-								   player->client->pers.netname);
 							player->client->resp.score += CTF_RETURN_FLAG_ASSIST_BONUS;
 						}
 						if (player->client->resp.ctf_lastfraggedcarrier +
 							CTF_FRAG_CARRIER_ASSIST_TIMEOUT * HZ > level.framenum) {
 							gi.bprintf(PRINT_HIGH,
 								   "%s gets an assist for fragging the flag carrier!\n",
-								   player->client->pers.netname);
-								   "%n gets an assist for fragging the flag carrier!\n",
 								   player->client->pers.netname);
 							player->client->resp.score += CTF_FRAG_CARRIER_ASSIST_BONUS;
 						}

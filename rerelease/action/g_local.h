@@ -285,7 +285,6 @@
 #include	"a_vote.h"
 #include	"a_match.h"
 #include	"tng_stats.h"		// Adding TNG Stats File
-#include	"tng_irc.h"
 #include	"tng_balancer.h"
 #include	"tng_jump.h"
 #include	"g_grapple.h"

@@ -551,19 +551,7 @@ void InitGame( void )
 	// END AQ2 ETE
 
 	// 2022
-	server_id = gi.cvar( "server_id", "", 0 ); 	// Removed it from Serverinfo
-	stat_logs = gi.cvar( "stat_logs", "0", CVAR_SERVERINFO);
-	if (stat_logs->value)
-    {
-		gi.dprintf( "stat_logs is enabled, forcing logfile_flush to 2\n" );
-        gi.cvar_forceset("logfile_flush", "2");
-    }
-	sv_antilag = gi.cvar("sv_antilag", "1", CVAR_SERVERINFO);
-	sv_antilag_interp = gi.cvar("sv_antilag_interp", "0", CVAR_SERVERINFO);
-	sv_limp_highping = gi.cvar("sv_limp_highping", "70", 0); 	// Removed it from Serverinfo
 	mapvote_next_limit = gi.cvar( "mapvote_next_limit", "0", 0);
-	stat_apikey = gi.cvar("stat_apikey", "none", 0);
-	stat_url = gi.cvar("stat_url", "https://apigateway.aq2world.com/api/v1/stats", 0);
 	gm = gi.cvar("gm", "dm", CVAR_SERVERINFO);
 	gmf = gi.cvar("gmf", "0", CVAR_SERVERINFO);
 	sv_idleremove = gi.cvar("sv_idleremove", "0", 0);
@@ -571,22 +559,7 @@ void InitGame( void )
 
 	// 2023
 	use_killcounts = gi.cvar("use_killcounts", "0", 0);
-	am = gi.cvar("am", "0", CVAR_SERVERINFO);
-	am_newnames = gi.cvar("am_newnames", "1", 0);
-	am_botcount = gi.cvar("am_botcount", "6", CVAR_SERVERINFO);
-	if (am_botcount->value < 0){
-    	gi.cvar_forceset("am_botcount", "0");
-	}
-	am_delay = gi.cvar("am_delay", "30", 0);
-	am_team = gi.cvar("am_team", "0", 0);
 	zoom_comp = gi.cvar("zoom_comp", "0", 0);
-
-	// Discord SDK integration with Q2Pro
-	cl_discord = gi.cvar("cl_discord", "0", 0);
-	cl_discord_id = gi.cvar("cl_discord_id", "0", 0);
-	cl_discord_discriminator = gi.cvar("cl_discord_discriminator", "0", 0);
-	cl_discord_username = gi.cvar("cl_discord_username", "", 0);
-	cl_discord_avatar = gi.cvar("cl_discord_avatar", "0", 0);
 
 	// items
 	InitItems();

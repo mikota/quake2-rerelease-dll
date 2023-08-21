@@ -359,9 +359,6 @@ void Announce_Reward(edict_t *ent, int rewardType){
 		CenterPrintAll(buf);
 		gi.sound(&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/accuracy.wav"), 1.0, ATTN_NONE, 0.0);
 	}
-
-	if (stat_logs->value)
-		LogAward(steamid, discordid, rewardType);
 }
 
 void Add_Frag(edict_t * ent, int mod)
@@ -422,8 +419,6 @@ void Add_Frag(edict_t * ent, int mod)
 		{
 			gi.bprintf(PRINT_MEDIUM,
 				"%s has %d kills in a row and receives %d frags for the kill!\n",
-				ent->client->pers.netname, ent->client->resp.streakKills, frags );
-				"%n has %k kills in a row and receives %k frags for the kill!",
 				ent->client->pers.netname, ent->client->resp.streakKills, frags );
 		}
 		ent->client->resp.score += frags;

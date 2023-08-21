@@ -2142,9 +2142,7 @@ int WonGame (int winner)
 
 			if (player)
 			{
-				gi.bprintf (PRINT_HIGH, "%s was victorious!\n",
-				player->client->pers.netname);
-				player->client->pers.netname);
+				gi.bprintf (PRINT_HIGH, "%s was victorious!\n", player->client->pers.netname);
 				TourneyWinner (player);
 			}
 		}
