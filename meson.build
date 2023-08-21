@@ -1,9 +1,9 @@
-project('q2-rerelease', 'cpp',
-  version : '0.1',
-  default_options : ['warning_level=3',
-                     'cpp_std=c++14'])
+project('q2-rerelease', 'cpp', 'c', version : '0.1', default_options : ['warning_level=3','cpp_std=c++14'], license: 'GPLv2')
 
-add_global_arguments('-DKEX_Q2GAME_EXPORTS -DKEX_Q2GAME_DYNAMIC -DGAME_INCLUDE -DNO_FMT_SOURCE', language : 'cpp')
+add_global_arguments('-DKEX_Q2GAME_EXPORTS -DKEX_Q2GAME_DYNAMIC -DGAME_INCLUDE -DNO_FMT_SOURCE', '-Wno-unused-result', '-Wall', '-lm', '-fno-strict-aliasing', '-DC_ONLY', language : 'cpp')
+
+cc = meson.get_compiler('cpp')
+c = meson.get_compiler('c')
 
 common_src = [
   'rerelease/bots/bot_debug.cpp', 
@@ -142,7 +142,6 @@ action_src = [
   'rerelease/action/g_chase.c',
   'rerelease/action/g_cmds.c',
   'rerelease/action/g_combat.c',
-  'rerelease/action/g_ext.c',
   'rerelease/action/g_func.c',
   'rerelease/action/g_grapple.c',
   'rerelease/action/g_grapple.h',
@@ -158,7 +157,6 @@ action_src = [
   'rerelease/action/g_trigger.c',
   'rerelease/action/g_utils.c',
   'rerelease/action/g_weapon.c',
-  'rerelease/action/lcchack.c',
   'rerelease/action/m_player.h',
   'rerelease/action/p_antilag.c',
   'rerelease/action/p_antilag.h',

@@ -141,9 +141,6 @@
     <ClCompile Include="tng_ini.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tng_irc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="a_dom.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -216,9 +213,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tng_ini.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tng_irc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="a_dom.h">

@@ -257,7 +257,6 @@
     <ClCompile Include="tng_balancer.c" />
     <ClCompile Include="tng_flashlight.c" />
     <ClCompile Include="tng_ini.c" />
-    <ClCompile Include="tng_irc.c" />
     <ClCompile Include="tng_jump.c" />
     <ClCompile Include="tng_stats.c" />
   </ItemGroup>
@@ -284,7 +283,6 @@
     <ClInclude Include="q_shared.h" />
     <ClInclude Include="tng_balancer.h" />
     <ClInclude Include="tng_ini.h" />
-    <ClInclude Include="tng_irc.h" />
     <ClInclude Include="tng_jump.h" />
     <ClInclude Include="tng_stats.h" />
   </ItemGroup>

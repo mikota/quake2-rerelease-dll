@@ -671,10 +671,6 @@
 				>
 			</File>
 			<File
-				RelativePath="tng_irc.c"
-				>
-			</File>
-			<File
 				RelativePath="tng_stats.c"
 				>
 			</File>
@@ -765,10 +761,6 @@
 			</File>
 			<File
 				RelativePath="tng_ini.h"
-				>
-			</File>
-			<File
-				RelativePath="tng_irc.h"
 				>
 			</File>
 			<File
