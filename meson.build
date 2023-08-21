@@ -2,8 +2,10 @@ project('q2-rerelease', 'cpp', 'c', version : '0.1', default_options : ['warning
 
 add_global_arguments('-DKEX_Q2GAME_EXPORTS -DKEX_Q2GAME_DYNAMIC -DGAME_INCLUDE -DNO_FMT_SOURCE', '-Wno-unused-result', '-Wall', '-lm', '-fno-strict-aliasing', '-DC_ONLY', language : 'cpp')
 
-cc = meson.get_compiler('cpp')
+cpp = meson.get_compiler('cpp')
 c = meson.get_compiler('c')
+
+m_dep = c.find_library('m', required : true)
 
 common_src = [
   'rerelease/bots/bot_debug.cpp', 
@@ -191,13 +193,59 @@ if cpu in cpuremap
   cpu = cpuremap[cpu]
 endif
 
+common_args = ['-DHAVE_CONFIG_H']
+if not win32
+  common_args += '-D_GNU_SOURCE'
+endif
+
+engine_args = []
+if win32
+  engine_args += '-D_WIN32_WINNT=0x0601'
+endif
+
+common_link_args = []
+exe_link_args = []
+dll_link_args = []
+
+if c.get_argument_syntax() == 'gcc'
+  if x86
+    add_global_arguments('-msse2', '-mfpmath=sse', language: 'c')
+  endif
+
+  test_args = [
+    '-fsigned-char',
+    '-Wpointer-arith',
+    '-Wformat-security',
+    '-Werror=vla',
+    '-Wstrict-prototypes',
+  ]
+
+  common_args += c.get_supported_arguments(test_args)
+  engine_args += c.get_supported_arguments(['-Wmissing-prototypes'])
+
+  if win32
+    common_args += '-D__USE_MINGW_ANSI_STDIO=1'
+    common_link_args += '-Wl,--nxcompat,--dynamicbase'
+
+    if cpu == 'x86_64'
+      exe_link_args += '-Wl,--high-entropy-va,--image-base=0x140000000'
+      dll_link_args += '-Wl,--high-entropy-va,--image-base=0x180000000'
+    endif
+
+    dll_link_args += '-static-libgcc'
+  endif
+elif c.get_id() == 'msvc'
+  common_args += ['/D_USE_MATH_DEFINES', '/wd4146', '/wd4244', '/wd4305']
+endif
+
+
+add_project_arguments(common_args, language: 'c')
+add_project_link_arguments(common_link_args, language: 'c')
+
+fallback_opt = ['default_library=static']
+
 shared_library('game' + cpu, action_src,
-  name_prefix:           '',
-  #include_directories:   'inc',
-  gnu_symbol_visibility: 'hidden',
+  name_prefix:            '',
+  gnu_symbol_visibility:  'hidden',
+  dependencies:           m_dep,
 )
-
-# exe = executable('q2_rerelease', 'q2_rerelease.cpp',
-#   install : true)
-
-# test('basic', exe)
