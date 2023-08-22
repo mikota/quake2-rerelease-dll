@@ -22,7 +22,9 @@
 // - backwards & forwards compatible with this same format
 // - I wrote this initially when the codebase was in C, so it
 //   does have some C-isms in here.
-constexpr size_t SAVE_FORMAT_VERSION = 1;
+
+//constexpr size_t SAVE_FORMAT_VERSION = 1;
+#define SAVE_FORMAT_VERSION 1
 
 #include <unordered_map>
 
