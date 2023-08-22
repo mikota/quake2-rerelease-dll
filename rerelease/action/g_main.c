@@ -272,11 +272,12 @@
 #include "g_local.h"
 
 // Q2R
+#include <stdbool.h>
 #include "../bots/bot_includes.h"
 #include "../g_local.h"
 #include "../q_std.h"
-
 // Q2R
+
 game_locals_t game;
 level_locals_t level;
 game_import_t gi;
