@@ -167,7 +167,6 @@ typedef enum { qfalse = 0, qtrue } qboolean;
 #define true qtrue
 #define false qfalse
 
-
 #ifndef NULL
 #define NULL ((void *)0)
 #endif

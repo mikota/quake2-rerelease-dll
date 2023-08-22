@@ -521,9 +521,6 @@ VideoCheckClient
 */
 void VideoCheckClient(edict_t *ent)
 {
-	if (!ent->client->resp.vidref)
-		return;
-
 	if (video_check_lockpvs->value) {
 		if (ent->client->resp.gllockpvs != 0) {
 			gi.cprintf(ent, PRINT_HIGH,
