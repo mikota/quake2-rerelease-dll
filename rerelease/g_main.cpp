@@ -137,6 +137,10 @@ cvar_t *ai_model_scale;
 cvar_t *ai_allow_dm_spawn;
 cvar_t *ai_movement_disabled;
 
+// Example
+cvar_t *example;
+// Example end
+
 static cvar_t *g_frames_per_frame;
 
 void SpawnEntities(const char *mapname, const char *entities, const char *spawnpoint);
@@ -154,6 +158,10 @@ void ClientCommand(edict_t *ent);
 void G_RunFrame(bool main_loop);
 void G_PrepFrame();
 void InitSave();
+
+// Example
+void DummyFunc(void);
+// Example end
 
 #include <chrono>
 
@@ -173,9 +181,15 @@ void PreInitGame()
 	coop = gi.cvar("coop", "0", CVAR_LATCH);
 	teamplay = gi.cvar("teamplay", "0", CVAR_LATCH);
 
+	// Example
+	example = gi.cvar("example", "0", CVAR_NOFLAGS);
+	DummyFunc();
+	// Example End
+
 	// ZOID
 	CTFInit();
 	// ZOID
+
 
 	// ZOID
 	// This gamemode only supports deathmatch

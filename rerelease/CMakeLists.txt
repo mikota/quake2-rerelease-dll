@@ -3,6 +3,8 @@ project(game)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
+#set(CMAKE_TOOLCHAIN_FILE mingw-w64-x86_64.cmake) 
+
 set(GAME_SRC 
     ${CMAKE_CURRENT_SOURCE_DIR}/bots/bot_debug.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/bots/bot_exports.cpp 
@@ -98,6 +100,8 @@ set(GAME_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/xatrix/m_xatrix_fixbot.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/xatrix/m_xatrix_gekk.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/xatrix/p_xatrix_weapon.cpp 
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/example/g_main.cpp
 )
 
 set(CMAKE_CXX_FLAGS "-lm -ldl -fPIE -pie -lfmt" CACHE STRING "compile flags" FORCE)
@@ -112,16 +116,19 @@ set_target_properties(game PROPERTIES
 set_target_properties(game PROPERTIES PREFIX "")
 set_target_properties(game PROPERTIES OUTPUT_NAME "gamex86")
 
+# Packages
+find_package(PkgConfig REQUIRED)
+
 # Fetch fmt locally
-find_package(fmt CONFIG REQUIRED)
+pkg_check_modules(fmt fmt)
+find_package(fmt REQUIRED)
 
 # Fetch jsoncpp locally
-find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)
 find_library(JSONCPP jsoncpp)
 
 target_link_libraries(
     game 
-    fmt::fmt 
+    fmt::fmt
     ${JSONCPP}
     )
