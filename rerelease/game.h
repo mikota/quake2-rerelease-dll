@@ -101,7 +101,7 @@ template<size_t n>
 constexpr bit_t<n> bit_v = 1ull << n;
 
 #if defined(KEX_Q2GAME_EXPORTS)
-    #if __APPLE__
+    #if (__APPLE__) || (__linux__)
     #define Q2GAME_API extern "C"
     #else
     #define Q2GAME_API extern "C" __declspec( dllexport )

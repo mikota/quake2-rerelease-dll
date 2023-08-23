@@ -1,16 +1,7 @@
 cmake_minimum_required(VERSION 3.23.1)
 project(game)
 set(CMAKE_CXX_STANDARD 17)
-
-include(FetchContent)
-FetchContent_Declare(fmt
-GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-GIT_TAG master
-)
-FetchContent_MakeAvailable(fmt)
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP jsoncpp)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 set(GAME_SRC 
     ${CMAKE_CURRENT_SOURCE_DIR}/bots/bot_debug.cpp 
@@ -109,13 +100,26 @@ set(GAME_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/xatrix/p_xatrix_weapon.cpp 
 )
 
-add_definitions(-DKEX_Q2_GAME -DKEX_Q2GAME_EXPORTS -DNO_FMT_SOURCE -DKEX_Q2GAME_DYNAMIC -DCMAKE_CXX_FLAGS="-std=libc++")
+set(CMAKE_CXX_FLAGS "-lm -ldl -fPIE -pie -lfmt" CACHE STRING "compile flags" FORCE)
+add_compile_options(-DKEX_Q2_GAME -DKEX_Q2GAME_EXPORTS -DNO_FMT_SOURCE -DKEX_Q2GAME_DYNAMIC)
 add_library(game SHARED ${GAME_SRC} )
 #target_include_directories(game PUBLIC /usr/local/Cellar/jsoncpp/1.9.5/include /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk/usr/include/c++/v1/)
-target_include_directories(game PUBLIC /usr/local/Cellar/jsoncpp/1.9.5/include)
+target_include_directories(game PUBLIC /usr/include/jsoncpp)
+
+set_target_properties(game PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
 set_target_properties(game PROPERTIES PREFIX "")
-set_target_properties(game PROPERTIES OUTPUT_NAME "game")
+set_target_properties(game PROPERTIES OUTPUT_NAME "gamex86")
+
+# Fetch fmt locally
+find_package(fmt CONFIG REQUIRED)
+
+# Fetch jsoncpp locally
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
 find_library(JSONCPP jsoncpp)
+
 target_link_libraries(
     game 
     fmt::fmt 
