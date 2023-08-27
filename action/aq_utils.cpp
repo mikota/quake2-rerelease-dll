@@ -5,5 +5,5 @@ template <typename... Args>
 void Debug_Print(edict_t *ent, const char *fmt, Args... args) {
     std::string message = fmt::format(fmt, args...);
 
-    gi.Com_PrintFmt_(ent, message.c_str());
+    gi.Com_PrintFmt(ent, message.c_str());
 }

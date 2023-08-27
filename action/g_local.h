@@ -797,8 +797,11 @@ enum movetype_t {
 	MOVETYPE_WALLBOUNCE,
 	// RAFAEL
 	// ROGUE
-	MOVETYPE_NEWTOSS // PGM - for deathball
+	MOVETYPE_NEWTOSS, // PGM - for deathball
 					 // ROGUE
+	// ACTION
+	MOVETYPE_BOUNCE,
+	MOVETYPE_BLOOD
 };
 
 // edict->flags
@@ -2685,6 +2688,13 @@ Action prototypes, structs and includes
 #define GRENADE_DAMRAD_CLASSIC  	170
 #define GRENADE_DAMRAD          	250
 
+// unicast / sounds
+#define MASK_VOLUME			1
+#define MASK_ATTENUATION	2
+#define MASK_POSITION		4
+#define MASK_ENTITY_CHANNEL 8
+#define MASK_TIMEOFS		16
+
 enum print_receiver_t
 {
 	PCLIENT,
@@ -3057,7 +3067,6 @@ void Touch_Item(edict_t* ent, edict_t* other, cplane_t* plane, csurface_t* surf)
 bool KillBox(edict_t* ent);
 void	G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result);
 edict_t* G_Find(edict_t* from, ptrdiff_t fieldofs, char* match);
-edict_t* findradius(edict_t* from, vec3_t org, float rad);
 edict_t* G_PickTarget(char* targetname);
 void	G_UseTargets(edict_t* ent, edict_t* activator);
 void	G_SetMovedir(vec3_t angles, vec3_t movedir);

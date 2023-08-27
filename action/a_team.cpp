@@ -896,7 +896,7 @@ void AssignSkin (edict_t * ent, const char *s, bool nickChanged)
 			Com_sprintf(skin, sizeof(skin), "%s\\%s", ent->client->pers.netname, default_skin);
 			break;
 		}
-		//gi.Com_PrintFmt_("I assigned skin  %s  to  %s\n", skin, ent->client->pers.netname);
+		//gi.Com_PrintFmt("I assigned skin  %s  to  %s\n", skin, ent->client->pers.netname);
 	}
 	else
 	{
@@ -1662,14 +1662,14 @@ int CheckForWinner()
 			// Check if this value is 1, which means the escorting team wins
 			// By default it is 0
 			if (espsettings.escortcap == 1) {
-				gi.Com_PrintFmt_("The winner was team %d\n", TEAM1);
+				gi.Com_PrintFmt("The winner was team %d\n", TEAM1);
 				return TEAM1;
 			} else if (teams[TEAM1].leader_dead){
-				gi.Com_PrintFmt_("The winner was team %d\n", TEAM2);
+				gi.Com_PrintFmt("The winner was team %d\n", TEAM2);
 				return TEAM2;
 			}
 		}
-	//gi.Com_PrintFmt_("Escortcap value is %d\n", espsettings.escortcap);
+	//gi.Com_PrintFmt("Escortcap value is %d\n", espsettings.escortcap);
 	
 	} else if (!esp->value) {
 		for (i = 0; i < game.maxclients; i++){
@@ -2162,7 +2162,7 @@ int WonGame (int winner)
 			if (esp->value) {
 				for (i = 0; i <= teamCount; i++) {
 					// Reset leader_dead for all teams before next round starts and set escortcap to 0
-					gi.Com_PrintFmt_("Resetting team %d leader status to false\n", i);
+					gi.Com_PrintFmt("Resetting team %d leader status to false\n", i);
 					espsettings.escortcap = 0;
 					teams[i].leader_dead = false;
 				}
@@ -3227,7 +3227,7 @@ void A_ScoreboardMessage (edict_t * ent, edict_t * killer)
 	}
 
 	if (strlen(string) > MAX_SCOREBOARD_SIZE - 1) { // for debugging...
-		gi.Com_PrintFmt_("Warning: scoreboard string neared or exceeded max length\nDump:\n%s\n---\n", string);
+		gi.Com_PrintFmt("Warning: scoreboard string neared or exceeded max length\nDump:\n%s\n---\n", string);
 		string[MAX_SCOREBOARD_SIZE - 1] = '\0';
 	}
 
@@ -3310,7 +3310,7 @@ void GetSpawnPoints (void)
 		num_potential_spawns++;
 		if (num_potential_spawns >= MAX_SPAWNS)
 		{
-			gi.Com_PrintFmt_("Warning: MAX_SPAWNS exceeded\n");
+			gi.Com_PrintFmt("Warning: MAX_SPAWNS exceeded\n");
 			break;
 		}
 	}
@@ -3346,7 +3346,7 @@ void SelectFarTeamplaySpawnPoint (int team, bool teams_assigned[])
 	float closest_spawn_distance, distance;
 
 	if (team < 0 || team >= MAX_TEAMS) {
-		gi.Com_PrintFmt_( "Out-of-range teams value in SelectFarTeamplaySpawnPoint, skipping...\n" );
+		gi.Com_PrintFmt( "Out-of-range teams value in SelectFarTeamplaySpawnPoint, skipping...\n" );
 		return;
 	}
 
@@ -3446,7 +3446,7 @@ bool NS_SelectRandomTeamplaySpawnPoint (int team, bool teams_assigned[])
 	int spawn_point, z;
 
 	if (NS_num_potential_spawns[team] < 1) {
-		gi.Com_PrintFmt_("New Spawncode: gone through all spawns, re-reading spawns\n");
+		gi.Com_PrintFmt("New Spawncode: gone through all spawns, re-reading spawns\n");
 		NS_GetSpawnPoints ();
 		NS_SetupTeamSpawnPoints ();
 		return false;
@@ -3479,7 +3479,7 @@ bool NS_SelectFarTeamplaySpawnPoint (int team, bool teams_assigned[])
 	int num_usable;
 
 	if (team < 0 || team >= MAX_TEAMS) {
-		gi.Com_PrintFmt_( "Out-of-range teams value in SelectFarTeamplaySpawnPoint, skipping...\n" );
+		gi.Com_PrintFmt( "Out-of-range teams value in SelectFarTeamplaySpawnPoint, skipping...\n" );
 		return false;
 	}
 
@@ -3587,7 +3587,7 @@ Obviously, do not use this for 3team functions
 int OtherTeam(int teamNum)
 {
 	if (teamNum < 0 || teamNum > TEAM2) {
-		gi.Com_PrintFmt_("OtherTeam() was called but parameter supplied is not 1 or 2");
+		gi.Com_PrintFmt("OtherTeam() was called but parameter supplied is not 1 or 2");
 		return 0;
 	}
 

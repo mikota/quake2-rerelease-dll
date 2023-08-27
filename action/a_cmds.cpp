@@ -116,6 +116,7 @@ void Cmd_New_Reload_f(edict_t * ent)
 // Handles weapon reload requests
 void Cmd_Reload_f(edict_t * ent)
 {
+	action_weapon_num_t weapNum;
 	//+BD - If the player is dead, don't bother
 	if (!IS_ALIVE(ent) || !ent->client->weapon)
 		return;
@@ -136,7 +137,7 @@ void Cmd_Reload_f(edict_t * ent)
 	//First, grab the current magazine max count...
 
 	//Set the weaponstate...
-	switch(ent->client->weapon->typeNum) {
+	switch(weapNum) {
 	case M3_NUM:
 		if (ent->client->shot_rds >= ent->client->shot_max)
 			return;
@@ -964,8 +965,8 @@ void Cmd_TKOk(edict_t * ent)
 		gi.Center_Print(ent, "Nothing to forgive\n");
 	} else if (ent->client->resp.team == ent->enemy->client->resp.team) {
 		if (ent->enemy->client->resp.team_kills) {
-			gi.Center_Print(ent, "You forgave %s\n", ent->enemy->client->pers.netname);
-			gi.Center_Print(ent->enemy, "%s forgave you\n", ent->client->pers.netname);
+			gi.LocCenter_Print(ent, "You forgave %s\n", ent->enemy->client->pers.netname);
+			gi.LocCenter_Print(ent->enemy, "%s forgave you\n", ent->client->pers.netname);
 			ent->enemy->client->resp.team_kills--;
 			if (ent->enemy->client->resp.team_wounds)
 				ent->enemy->client->resp.team_wounds /= 2;
