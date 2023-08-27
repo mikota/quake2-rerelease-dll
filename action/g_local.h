@@ -1282,7 +1282,8 @@ struct level_locals_t
 	gtime_t next_match_report;
 
 	// Action
-	int32_t pic_items[ITEM_MAX_NUM];
+	bool specspawn;
+	int32_t pic_items[ITEM_MAX];
 	int32_t pic_weapon_ammo[WEAPON_MAX];
 	int32_t pic_sniper_mode[SNIPER_MODE_MAX];
 	int32_t pic_teamskin[TEAM_TOP];

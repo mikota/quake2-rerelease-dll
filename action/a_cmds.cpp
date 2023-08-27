@@ -102,7 +102,7 @@ void LaserSightThink(edict_t * self)
 	self->s.modelindex = (tr.surface && (tr.surface->flags & SURF_SKY)) ? level.model_null : level.model_lsight;
 
 	gi.linkentity(self);
-	self->nextthink = level.time + FRAME_TIME_S;
+	self->nextthink = level.time + 10_hz;
 }
 
 void Cmd_New_Reload_f(edict_t * ent)
@@ -666,7 +666,7 @@ void Cmd_Bandage_f(edict_t *ent)
 		if(ent->client->quad_time > level.time + 1_sec)
 			damage *= 1.5f;
 
-		fire_grenade2(ent, ent->s.origin, vec3_origin, damage, 0, 2 * HZ, damage * 2, false);
+		fire_grenade2(ent, ent->s.origin, vec3_origin, damage, 0, 2_sec, damage * 2, false);
 
 		INV_AMMO(ent, GRENADE_NUM)--;
 		if (INV_AMMO(ent, GRENADE_NUM) <= 0) {
@@ -898,10 +898,11 @@ void Cmd_Choose_f(edict_t * ent)
 	case SNIPER_NUM:
 	case KNIFE_NUM:
 	case M4_NUM:
-		if (!WPF_ALLOWED(itemNum)) {
-			gi.Center_Print(ent, "Weapon disabled on this server.\n");
-			return;
-		}
+		// TODO: Fix weapon bans
+		// if (!WPF_ALLOWED(itemNum)) {
+		// 	gi.Center_Print(ent, "Weapon disabled on this server.\n");
+		// 	return;
+		// }
 		ent->client->pers.chosenWeapon = GET_ITEM(itemNum);
 		break;
 	}
@@ -913,10 +914,11 @@ void Cmd_Choose_f(edict_t * ent)
 	case SIL_NUM:
 	case HELM_NUM:
 	case BAND_NUM:
-		if (!ITF_ALLOWED(itemNum)) {
-			gi.Center_Print(ent, "Item disabled on this server.\n");
-			return;
-		}
+		// TODO: Fix item bans
+		// if (!ITF_ALLOWED(itemNum)) {
+		// 	gi.Center_Print(ent, "Item disabled on this server.\n");
+		// 	return;
+		// }
 		ent->client->pers.chosenItem = GET_ITEM(itemNum);
 		break;
 	}
@@ -1003,9 +1005,9 @@ void Cmd_Time(edict_t * ent)
 	}
 
 	if( timelimit->value )
-		gi.Client_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d. Remaining time: %d:%02d\n", mins, secs, rmins, rsecs );
+		gi.LocClient_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d. Remaining time: %d:%02d\n", mins, secs, rmins, rsecs );
 	else
-		gi.Client_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d\n", mins, secs );
+		gi.LocClient_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d\n", mins, secs );
 }
 
 void Cmd_Roundtimeleft_f(edict_t * ent)
@@ -1024,7 +1026,7 @@ void Cmd_Roundtimeleft_f(edict_t * ent)
 		return;
 
 	remaining = (roundtimelimit->value * 60) - (current_round_length/10);
-	gi.Center_Print(ent, "There is %d:%02i left in this round\n", remaining / 60, remaining % 60);
+	gi.LocClient_Print(ent, "There is %d:%02i left in this round\n", remaining / 60, remaining % 60);
 }
 
 /*
@@ -1051,6 +1053,7 @@ void Cmd_AutoRecord_f(edict_t * ent)
 {
 	char rec_date[20], recstr[MAX_QPATH];
 	time_t clock;
+	char *stuffmsg;
 
 	time( &clock );
 	strftime( rec_date, sizeof(rec_date)-1, "%Y_%b_%d_%H%M", localtime(&clock));
@@ -1067,7 +1070,9 @@ void Cmd_AutoRecord_f(edict_t * ent)
 		Com_sprintf(recstr, sizeof(recstr), "%s-%s", rec_date, level.mapname);
 	}
 
-	stuffcmd(ent, va("record \"%s\"\n", recstr));
+	Com_sprintf(stuffmsg, sizeof(stuffmsg), "record \"%s\"\n", recstr);
+	stuffcmd(ent, stuffmsg);
+	//stuffcmd(ent, va("record \"%s\"\n", recstr));
 }
 
 /*
