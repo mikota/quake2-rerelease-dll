@@ -465,7 +465,7 @@ void TossClientWeapon(edict_t *self)
 	if (quad)
 	{
 		self->client->v_angle[YAW] += spread;
-		drop = Drop_Item(self, GetItemByIndex(IT_ITEM_QUAD));
+		drop = Drop_Item(self, GetItemByIndex(IT_ITEM_QUIET));
 		self->client->v_angle[YAW] -= spread;
 		drop->spawnflags |= SPAWNFLAG_ITEM_DROPPED_PLAYER;
 		drop->spawnflags &= ~SPAWNFLAG_ITEM_DROPPED;
@@ -480,7 +480,7 @@ void TossClientWeapon(edict_t *self)
 	if (quadfire)
 	{
 		self->client->v_angle[YAW] += spread;
-		drop = Drop_Item(self, GetItemByIndex(IT_ITEM_QUADFIRE));
+		drop = Drop_Item(self, GetItemByIndex(IT_ITEM_QUIETFIRE));
 		self->client->v_angle[YAW] -= spread;
 		drop->spawnflags |= SPAWNFLAG_ITEM_DROPPED_PLAYER;
 		drop->spawnflags &= ~SPAWNFLAG_ITEM_DROPPED;
@@ -847,7 +847,7 @@ void InitClientPersistant(edict_t *ent, gclient_t *client)
 			client->pers.max_ammo.fill(50);
 			client->pers.max_ammo[AMMO_BULLETS] = 200;
 			client->pers.max_ammo[AMMO_SHELLS] = 100;
-			client->pers.max_ammo[AMMO_CELLS] = 200;
+			client->pers.max_ammo[AMMO_M4] = 200;
 
 			// RAFAEL
 			client->pers.max_ammo[AMMO_TRAP] = 5;
@@ -868,7 +868,7 @@ void InitClientPersistant(edict_t *ent, gclient_t *client)
 			else if (g_instagib->integer)
 			{
 				client->pers.inventory[IT_WEAPON_RAILGUN] = 1;
-				client->pers.inventory[IT_AMMO_SLUGS] = 99;
+				client->pers.inventory[IT_AMMO_SNIPER] = 99;
 			}
 
 			if (level.start_items && *level.start_items)

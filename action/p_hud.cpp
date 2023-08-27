@@ -702,8 +702,8 @@ struct powerup_info_t
 	gtime_t gclient_t::*time_ptr = nullptr;
 	int32_t gclient_t::*count_ptr = nullptr;
 } powerup_table[] = {
-	{ IT_ITEM_QUAD, &gclient_t::quad_time },
-	{ IT_ITEM_QUADFIRE, &gclient_t::quadfire_time },
+	{ IT_ITEM_QUIET, &gclient_t::quad_time },
+	{ IT_ITEM_QUIETFIRE, &gclient_t::quadfire_time },
 	{ IT_ITEM_DOUBLE, &gclient_t::double_time },
 	{ IT_ITEM_INVULNERABILITY, &gclient_t::invincible_time },
 	{ IT_ITEM_INVISIBILITY, &gclient_t::invisible_time },
@@ -785,7 +785,7 @@ void G_SetStats(edict_t *ent)
 	//
 	power_armor_type = PowerArmorType(ent);
 	if (power_armor_type)
-		cells = ent->client->pers.inventory[IT_AMMO_CELLS];
+		cells = ent->client->pers.inventory[IT_AMMO_M4];
 
 	index = ArmorIndex(ent);
 	if (power_armor_type && (!index || (level.time.milliseconds() % 3000) < 1500))

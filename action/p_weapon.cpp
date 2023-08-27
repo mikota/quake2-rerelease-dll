@@ -401,7 +401,27 @@ void NoAmmoWeaponChange(edict_t *ent, bool sound)
 		IT_WEAPON_SNIPER,
 		IT_WEAPON_DUALMK23,
 		IT_WEAPON_KNIFE,
+		IT_WEAPON_GRENADES,
+
+		IT_AMMO_SHELLS,
+		IT_AMMO_BULLETS,
+		IT_AMMO_M4,
+		IT_AMMO_MAG,
+		IT_AMMO_SNIPER,
+
+		IT_ITEM_QUIET,
+		IT_ITEM_SLIPPERS,
+		IT_ITEM_BANDOLIER,
 		
+		IT_ITEM_IR_GOGGLES,
+		IT_ITEM_TAG_TOKEN,
+
+		IT_HEALTH_MEDIUM,
+
+		IT_FLAG1,
+		IT_FLAG2,
+
+		IT_ITEM_FLASHLIGHT
 	};
 
 	for (size_t i = 0; i < q_countof(no_ammo_order); i++)
@@ -438,7 +458,7 @@ void G_RemoveAmmo(edict_t *ent, int32_t quantity)
 	if (!pre_warning && post_warning)
 		gi.local_sound(ent, CHAN_AUTO, gi.soundindex("weapons/lowammo.wav"), 1, ATTN_NORM, 0);
 
-	if (ent->client->pers.weapon->ammo == IT_AMMO_CELLS)
+	if (ent->client->pers.weapon->ammo == IT_AMMO_M4)
 		G_CheckPowerArmor(ent);
 }
 

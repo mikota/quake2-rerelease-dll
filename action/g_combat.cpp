@@ -176,7 +176,7 @@ static int CheckPowerArmor(edict_t *ent, const vec3_t &point, const vec3_t &norm
 	if (client)
 	{
 		power_armor_type = PowerArmorType(ent);
-		power = &client->pers.inventory[IT_AMMO_CELLS];
+		power = &client->pers.inventory[IT_AMMO_M4];
 	}
 	else if (ent->svflags & SVF_MONSTER)
 	{

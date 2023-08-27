@@ -78,8 +78,8 @@ void Tag_Score(edict_t *attacker, edict_t *victim, int scoreChange, const mod_t 
 			tag_count++;
 			if (tag_count == 5)
 			{
-				quad = GetItemByIndex(IT_ITEM_QUAD);
-				attacker->client->pers.inventory[IT_ITEM_QUAD]++;
+				quad = GetItemByIndex(IT_ITEM_QUIET);
+				attacker->client->pers.inventory[IT_ITEM_QUIET]++;
 				quad->use(attacker, quad);
 				tag_count = 0;
 			}
