@@ -6,6 +6,27 @@
 
 #include "bg_local.h"
 
+// Action
+#include "aq_shared.h"
+#include "a_team.h"
+#include "a_game.h"
+#include "a_menu.h"
+#include "a_radio.h"
+#include "a_xcmds.h"
+#include "a_xgame.h"
+#include "a_tourney.h"
+#include "a_xvote.h"
+#include "a_xmenu.h"
+#include "a_vote.h"
+#include "a_match.h"
+#include "tng_ini.h"
+#include "tng_stats.h"  // Adding TNG Stats File
+#include "tng_balancer.h"
+#include "tng_jump.h"
+#include "g_grapple.h"
+
+// End Action
+
 // the "gameversion" client command will print this plus compile date
 constexpr const char *GAMEVERSION = "action";
 
@@ -2578,7 +2599,7 @@ constexpr spawnflags_t SPAWNFLAG_LANDMARK_KEEP_Z = 1_spawnflag;
 
 
 /*
-Action prototypes
+Action prototypes, structs and includes
 */
 
 // Defines
@@ -2605,21 +2626,8 @@ Action prototypes
 #define HELM_NAME    "Kevlar Helmet"
 #define LASER_NAME   "Lasersight"
 
-
-typedef struct itemList_s
-{
-	int		index;
-	int		flag;
-} itemList_t;
-
-extern itemList_t items[ITEM_MAX_NUM];
-
-// sniper modes
-#define SNIPER_1X		0
-#define SNIPER_2X		1
-#define SNIPER_4X		2
-#define SNIPER_6X		3
-#define SNIPER_MODE_MAX	4
+#define MAX_SKINLEN				32
+#define MAX_TEAMNAMELEN			32
 
 //TempFile sniper zoom moved to constants
 #define SNIPER_FOV1		90
@@ -2639,6 +2647,22 @@ extern itemList_t items[ITEM_MAX_NUM];
 // Igor's back in Time to hard grenades :-)
 #define GRENADE_DAMRAD_CLASSIC  	170
 #define GRENADE_DAMRAD          	250
+
+enum print_receiver_t
+{
+	PCLIENT,
+	PCENTER,
+	PLOC
+};
+
+enum action_sniper_modes_t
+{
+	SNIPER_1X,
+	SNIPER_2X,
+	SNIPER_4X,
+	SNIPER_6X,
+	SNIPER_MODE_MAX
+};
 
 enum action_weapon_num_t
 {
@@ -2686,6 +2710,16 @@ enum action_itemkit_num_t
 	A_KIT_NUM,
 	KIT_MAX_NUM	
 };
+
+typedef struct itemList_s
+{
+	int		index;
+	int		flag;
+} itemList_t;
+
+// Add all max values of enum, subtract by the number of declared enums since it's zero-indexed
+extern itemList_t items[WEAPON_MAX + ITEM_MAX + AMMO_MAX - 3];
+
 
 // #define FLAG_T1_NUM				21
 // #define FLAG_T2_NUM				22
@@ -3194,6 +3228,68 @@ enum ammo_t
   AMMO_SLUGS
 };
 
+edict_t *FindEdictByClassnum (char *classname, int classnum);
+
+void EjectBlooder (edict_t * self, vec3_t start, vec3_t veloc);
+void EjectShell (edict_t * self, vec3_t start, int toggle);
+void AddDecal (edict_t * self, trace_t * tr);
+void AddSplat (edict_t * self, vec3_t point, trace_t * tr);
+
+//AQ2:TNG - Slicer New location support
+#define MAX_LOCATIONS_IN_BASE		256	// Max amount of locations
+// location structure
+typedef struct
+{
+  int x;
+  int y;
+  int z;
+  int rx;
+  int ry;
+  int rz;
+  char desc[128];
+}
+placedata_t;
+
+// Externals for accessing location structures
+extern int ml_count;
+extern placedata_t locationbase[];
+extern char ml_creator[101];
+//AQ2:TNG END
+
+void Cmd_Ghost_f (edict_t * ent);
+void Cmd_AutoRecord_f(edict_t * ent);
+
+typedef struct team_s
+{
+	char name[20];
+	char skin[MAX_SKINLEN];
+	char skin_index[MAX_QPATH];
+	int score, total;
+	int ready, locked;
+	int pauses_used, wantReset;
+	cvar_t	*teamscore;
+	edict_t	*captain;
+	// Espionage
+	edict_t *leader;
+	int respawn_timer;
+	bool leader_dead;
+	char leader_name[MAX_SKINLEN];
+	char leader_skin[MAX_QPATH];
+	char leader_skin_index[MAX_QPATH];
+}team_t;
+
+extern team_t teams[TEAM_TOP];
+#define PARSE_BUFSIZE 256
+#define IS_ALIVE(ent) ((ent)->solid != SOLID_NOT && !(ent)->deadflag)
+
+#define GS_DEATHMATCH	1
+#define GS_TEAMPLAY		2
+#define GS_MATCHMODE	4
+#define GS_ROUNDBASED	8
+#define GS_WEAPONCHOOSE 16
+
+extern int gameSettings;
+
 /*
 End Action prototypes
 */
@@ -3616,6 +3712,8 @@ struct gclient_t
 	gtime_t	 last_attacker_time;
 
 	// Action
+	int			weapon_last_activity;
+	int			ammo_index;
 
 	edict_t		*chase_target;
 	int			chase_mode;

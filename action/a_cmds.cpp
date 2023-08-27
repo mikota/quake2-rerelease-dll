@@ -22,7 +22,8 @@ void SP_LaserSight(edict_t *self, gitem_t *item)
 	}
 	//zucc code to make it be used with the right weapons
 
-	switch (self->client->weapon->typeNum) {
+	//switch (self->client->weapon->typeNum) {
+	switch (weap) {
 	case MK23_NUM:
 	case MP5_NUM:
 	case M4_NUM:
@@ -448,14 +449,14 @@ void Cmd_NextMap_f(edict_t * ent)
 		rot_type = rrot->value ? "randomly" : "in rotation";
 	}
 
-	if( DMFLAGS(DF_SAME_LEVEL) )
+	if( g_dm_same_level->integer )
 	{
 		map_num = cur_map;
 		next_map = level.mapname;
 		rot_type = "repeated";
 	}
 
-	gi.Center_Print( ent, PRINT_HIGH, "Next map %s is %s (%i/%i).\n", rot_type, next_map, map_num+1, num_maps );
+	gi.Client_Print( ent, PRINT_HIGH, "Next map %s is %s (%i/%i).\n", rot_type, next_map, map_num+1, num_maps );
 }
 
 void Cmd_Lens_f(edict_t * ent)
@@ -502,6 +503,7 @@ void Cmd_Lens_f(edict_t * ent)
 void Cmd_Weapon_f(edict_t * ent)
 {
 	int dead;
+	action_weapon_num_t weap;
 
 	if (!ent->client->weapon)
 		return;
@@ -530,7 +532,7 @@ void Cmd_Weapon_f(edict_t * ent)
 		return;
 	}
 
-	switch(ent->client->weapon->typeNum) {
+	switch(weap) {
 	case MK23_NUM:
 		if (!dead)
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("misc/click.wav"), 1, ATTN_NORM, 0);
@@ -722,11 +724,12 @@ void SetIDView(edict_t * ent)
 	ent->client->ps.stats[STAT_ID_VIEW] = 0;
 
 //FIREBLADE
-	if (ent->solid != SOLID_NOT && !teamplay->value) {
-		if (!DMFLAGS( (DF_MODELTEAMS | DF_SKINTEAMS) ))
-			return;	// won't ever work in non-teams so don't run the code...
+	//https://github.com/actionquake/quake2-rerelease-dll/issues/4
+	// if (ent->solid != SOLID_NOT && !teamplay->value) {
+	// 	if (!DMFLAGS( (DF_MODELTEAMS | DF_SKINTEAMS) ))
+	// 		return;	// won't ever work in non-teams so don't run the code...
 
-	}
+	// }
 
 	if (ent->client->chase_mode) {
 		if (ent->client->chase_target && ent->client->chase_target->inuse) {
@@ -869,8 +872,11 @@ int GetItemNumFromArg(const char *s)
 void Cmd_Choose_f(edict_t * ent)
 {
 	char *s, *wpnText, *itmText;
-	int itemNum = 0;
-	gitem_t *item;
+	//int itemNum = 0;
+	//gitem_t *item;
+	action_weapon_num_t weapNum;
+	action_item_num_t itemNum;
+	action_itemkit_num_t itemKitNum;
 
 	// only works in teamplay
 	if (!(gameSettings & GS_WEAPONCHOOSE))
@@ -883,7 +889,7 @@ void Cmd_Choose_f(edict_t * ent)
 			itemNum = GetWeaponNumFromArg(s);
 	}
 
-	switch(itemNum) {
+	switch(weapNum) {
 	case DUAL_NUM:
 	case M3_NUM:
 	case HC_NUM:
@@ -897,6 +903,9 @@ void Cmd_Choose_f(edict_t * ent)
 		}
 		ent->client->pers.chosenWeapon = GET_ITEM(itemNum);
 		break;
+	}
+
+	switch(itemNum) {
 	case LASER_NUM:
 	case KEV_NUM:
 	case SLIP_NUM:
@@ -909,6 +918,9 @@ void Cmd_Choose_f(edict_t * ent)
 		}
 		ent->client->pers.chosenItem = GET_ITEM(itemNum);
 		break;
+	}
+
+	switch(itemKitNum) {
 	case C_KIT_NUM:
 	case S_KIT_NUM:
 	case A_KIT_NUM:
@@ -917,8 +929,8 @@ void Cmd_Choose_f(edict_t * ent)
 		return;
 	}
 
-	item = ent->client->pers.chosenWeapon;
-	wpnText = (item && item->pickup_name) ? item->pickup_name : "NONE";
+	itemNum = ent->client->pers.chosenWeapon;
+	wpnText = (weapNum && weapNum->pickup_name) ? item->pickup_name : "NONE";
 
 	item = ent->client->pers.chosenItem;
 	itmText = (item && item->pickup_name) ? item->pickup_name : "NONE";
@@ -938,9 +950,10 @@ void Cmd_Choose_f(edict_t * ent)
 			// How did you pick a kit not on the list?
 			itmText = "NONE";
 		}
-		gi.Center_Print(ent, "Weapon selected: %s\nItem kit selected: %s\n", wpnText, itmText );
+		
+		gi.LocClient_Print(ent, PRINT_HIGH, "Weapon selected: %s\nItem kit selected: %s\n", wpnText, itmText );
 	} else {
-		gi.Center_Print(ent, "Weapon selected: %s\nItem selected: %s\n", wpnText, itmText );
+		gi.LocClient_Print(ent, PRINT_HIGH, "Weapon selected: %s\nItem selected: %s\n", wpnText, itmText );
 	}
 }
 
@@ -958,8 +971,8 @@ void Cmd_TKOk(edict_t * ent)
 				ent->enemy->client->resp.team_wounds /= 2;
 		}
 	} else {
-		gi.Center_Print(ent, "That's very noble of you...\n");
-		gi.bprintf(PRINT_HIGH, "%s turned the other cheek\n", ent->client->pers.netname);
+		gi.Client_Print(ent, PRINT_HIGH, "That's very noble of you...\n");
+		gi.LocBroadcast_Print(PRINT_HIGH, "%s turned the other cheek\n", ent->client->pers.netname);
 	}
 	ent->enemy = NULL;
 	return;
@@ -968,9 +981,9 @@ void Cmd_TKOk(edict_t * ent)
 void Cmd_FF_f( edict_t *ent )
 {
 	if( teamplay->value )
-		gi.Center_Print( ent, "Friendly Fire %s\n", DMFLAGS(DF_NO_FRIENDLY_FIRE) ? "OFF": "ON" );
+		gi.LocClient_Print( ent, PRINT_MEDIUM, "Friendly Fire %s\n", g_friendly_fire->integer ? "OFF": "ON" );
 	else
-		gi.Center_Print( ent, "FF only applies to teamplay.\n" );
+		gi.LocClient_Print( ent, PRINT_MEDIUM, "FF only applies to teamplay.\n" );
 }
 
 void Cmd_Time(edict_t * ent)
@@ -989,9 +1002,9 @@ void Cmd_Time(edict_t * ent)
 	}
 
 	if( timelimit->value )
-		gi.Center_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d. Remaining time: %d:%02d\n", mins, secs, rmins, rsecs );
+		gi.Client_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d. Remaining time: %d:%02d\n", mins, secs, rmins, rsecs );
 	else
-		gi.Center_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d\n", mins, secs );
+		gi.Client_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d\n", mins, secs );
 }
 
 void Cmd_Roundtimeleft_f(edict_t * ent)
@@ -1084,11 +1097,11 @@ void Cmd_Ghost_f(edict_t * ent)
 	}
 
 	if (i >= num_ghost_players) {
-		gi.Center_Print( ent, PRINT_HIGH, "No ghost match found\n" );
+		gi.Client_Print( ent, PRINT_HIGH, "No ghost match found\n" );
 		return;
 	}
 
-	gi.Center_Print( ent, PRINT_HIGH, "Welcome back %s\n", ent->client->pers.netname );
+	gi.Client_Print( ent, PRINT_HIGH, "Welcome back %s\n", ent->client->pers.netname );
 	frames_since = level.framenum - ghost->disconnect_frame;
 	ent->client->resp.enterframe = ghost->enterframe + frames_since;
 	ent->client->resp.score = ghost->score;
@@ -1161,20 +1174,6 @@ void generate_uuid()
 }
 #endif
 
-#ifndef NO_BOTS
-void Cmd_Placenode_f (edict_t *ent)
-{
-	if(ent->waterlevel)
-		ACEND_AddNode(ent,NODE_WATER);
-	else if(OnLadder(ent))
-		ACEND_AddNode(ent,NODE_LADDER);
-	else if(! ent->groundentity)
-		ACEND_AddNode(ent,NODE_JUMP);
-	else
-		ACEND_AddNode(ent,NODE_MOVE);
-}
-#endif
-
 void Cmd_Volunteer_f(edict_t * ent)
 {
 	int teamNum;
@@ -1208,7 +1207,7 @@ void Cmd_Volunteer_f(edict_t * ent)
 
 	// If the team already has a leader, send this message to the ent volunteering
 	if (oldLeader) {
-		gi.Center_Print( ent, "Your team already has a leader (%s)\n",
+		gi.Client_Print( ent, "Your team already has a leader (%s)\n",
 			teams[teamNum].leader->client->pers.netname );
 		return;
 	}

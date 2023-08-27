@@ -256,8 +256,31 @@ enum player_stat_t
 	STAT_HEALTH_BARS, // two health bar values; 7 bits for value, 1 bit for active
 	// if active, 
 
+	// Action stats
+	STAT_CLIP_ICON,
+    STAT_CLIP,
+    STAT_SNIPER_ICON,
+    STAT_ITEMS_ICON,
+    STAT_WEAPONS_ICON,
+    STAT_ID_VIEW,
+
+    STAT_TEAM_HEADER,
+    STAT_FLAG_PIC,
+    STAT_TEAM1_PIC,
+    STAT_TEAM2_PIC,
+	STAT_TEAM3_PIC,
+
+    STAT_TEAM1_SCORE,
+    STAT_TEAM2_SCORE,
+	STAT_TEAM3_SCORE,
+    STAT_GRENADE_ICON,
+    STAT_GRENADES,
+    
+    STAT_TEAM1_HEADER,
+    STAT_TEAM2_HEADER,
+
 	// don't use; just for verification
     STAT_LAST
-};
+}; // TODO: Reduce this to 64
 
 static_assert(STAT_LAST <= MAX_STATS + 1, "stats list overflow");

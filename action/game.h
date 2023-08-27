@@ -1895,7 +1895,6 @@ struct game_import_t
 
     // center-print to player (legacy function)
     void (*Center_Print)(edict_t *ent, const char *message);
-
     void (*sound)(edict_t *ent, soundchan_t channel, int soundindex, float volume, float attenuation, float timeofs);
     void (*positioned_sound)(gvec3_cref_t origin, edict_t *ent, soundchan_t channel, int soundindex, float volume, float attenuation, float timeofs);
     // [Paril-KEX] like sound, but only send to the player indicated by the parameter;
