@@ -1,16 +1,7 @@
 cmake_minimum_required(VERSION 3.23.1)
 project(game)
 set(CMAKE_CXX_STANDARD 17)
-
-include(FetchContent)
-FetchContent_Declare(fmt
-GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-GIT_TAG master
-)
-FetchContent_MakeAvailable(fmt)
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP jsoncpp)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 set(GAME_SRC 
     ${CMAKE_CURRENT_SOURCE_DIR}/bots/bot_debug.cpp 
@@ -107,61 +98,34 @@ set(GAME_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/xatrix/m_xatrix_fixbot.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/xatrix/m_xatrix_gekk.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/xatrix/p_xatrix_weapon.cpp 
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_cmds.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_ctf.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_dom.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_doorkick.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_game.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_items.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_match.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_menu.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_radio.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_team.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_tourney.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_vote.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_xcmds.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_xgame.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_xmenu.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/a_xvote.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/cgf_sfx_glass.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_chase.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_cmds.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_combat.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_func.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_grapple.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_items.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_misc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_phys.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_save.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_spawn.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_svcmds.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_target.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_trigger.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_utils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/g_weapon.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/p_client.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/p_hud.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/p_view.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/p_weapon.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/q_shared.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/tng_balancer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/tng_flashlight.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/tng_ini.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/tng_jump.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/action/tng_stats.c
 )
 
-add_definitions(-DKEX_Q2_GAME -DKEX_Q2GAME_EXPORTS -DNO_FMT_SOURCE -DKEX_Q2GAME_DYNAMIC -DCMAKE_CXX_FLAGS="-std=libc++")
+#set(CMAKE_CXX_FLAGS "-lm -ldl -fPIE -pie -lfmt" CACHE STRING "compile flags" FORCE)
+add_compile_options(-DKEX_Q2_GAME -DKEX_Q2GAME_EXPORTS -DNO_FMT_SOURCE -DKEX_Q2GAME_DYNAMIC)
 add_library(game SHARED ${GAME_SRC} )
+#target_include_directories(game PUBLIC /usr/include/jsoncpp)
 target_include_directories(game PUBLIC /usr/local/Cellar/jsoncpp/1.9.5/include /usr/local/Cellar/gcc/12.2.0/include/c++/12 /usr/local/Cellar/gcc/12.2.0/include/c++/12/x86_64-apple-darwin21/)
-#target_include_directories(game PUBLIC /usr/local/Cellar/jsoncpp/1.9.5/include)
+
+set_target_properties(game PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
 set_target_properties(game PROPERTIES PREFIX "")
 set_target_properties(game PROPERTIES OUTPUT_NAME "game")
+
+## Packages
+find_package(PkgConfig REQUIRED)
+
+# Fetch fmt locally
+pkg_check_modules(fmt fmt)
+find_package(fmt REQUIRED)
+
+# Fetch jsoncpp locally
+pkg_check_modules(JSONCPP jsoncpp)
 find_library(JSONCPP jsoncpp)
+
+# Link
 target_link_libraries(
     game 
-    fmt::fmt 
+    fmt::fmt
     ${JSONCPP}
     )

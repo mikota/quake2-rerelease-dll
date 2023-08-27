@@ -1,136 +1,3 @@
-//-----------------------------------------------------------------------------
-// zucc
-// File for our new commands.
-//
-// laser sight patch, by Geza Beladi
-//
-// $Id: a_cmds.c,v 1.33 2003/06/15 15:34:32 igor Exp $
-//
-//-----------------------------------------------------------------------------
-// $Log: a_cmds.c,v $
-// Revision 1.33  2003/06/15 15:34:32  igor
-// - removed the zcam code from this branch (see other branch)
-// - added fixes from 2.72 (source only) version
-// - resetted version number to 2.72
-// - This version should be exactly like the release 2.72 - just with a few
-//   more fixes (which whoever did the source only variant didn't get because
-//   he didn't use the CVS as he should. Shame on him.
-//
-// Revision 1.32  2003/02/10 02:12:25  ra
-// Zcam fixes, kick crashbug in CTF fixed and some code cleanup.
-//
-// Revision 1.31  2002/09/04 11:23:09  ra
-// Added zcam to TNG and bumped version to 3.0
-//
-// Revision 1.30  2002/04/01 15:16:06  freud
-// Stats code redone, tng_stats now much more smarter. Removed a few global
-// variables regarding stats code and added kevlar hits to stats.
-//
-// Revision 1.29  2002/03/28 13:30:36  freud
-// Included time played in ghost.
-//
-// Revision 1.28  2002/03/25 23:35:19  freud
-// Ghost code, use_ghosts and more stuff..
-//
-// Revision 1.27  2002/03/25 18:32:11  freud
-// I'm being too productive.. New ghost command needs testing.
-//
-// Revision 1.26  2002/03/25 16:34:39  freud
-// Cmd_Time changes. When timelimit is 0 it says timelimit disables instead of
-// displaying 0 minutes 0 seconds left.
-//
-// Revision 1.25  2002/03/24 19:38:05  ra
-// Securityfix
-//
-// Revision 1.24  2002/01/24 11:29:34  ra
-// Cleanup's in stats code
-//
-// Revision 1.23  2002/01/24 02:24:56  deathwatch
-// Major update to Stats code (thanks to Freud)
-// new cvars:
-// stats_afterround - will display the stats after a round ends or map ends
-// stats_endmap - if on (1) will display the stats scoreboard when the map ends
-//
-// Revision 1.22  2002/01/24 01:40:40  deathwatch
-// Freud's AutoRecord
-//
-// Revision 1.21  2001/11/25 19:09:25  slicerdw
-// Fixed Matchtime
-//
-// Revision 1.20  2001/11/03 17:21:57  deathwatch
-// Fixed something in the time command, removed the .. message from the voice command, fixed the vote spamming with mapvote, removed addpoint command (old pb command that wasnt being used). Some cleaning up of the source at a few points.
-//
-// Revision 1.19  2001/10/26 00:40:07  ra
-// Minor fix to time command
-//
-// Revision 1.18  2001/10/18 12:55:35  deathwatch
-// Added roundtimeleft
-//
-// Revision 1.17  2001/10/18 12:45:47  ra
-// Disable time command in matchmode
-//
-// Revision 1.16  2001/09/30 03:09:34  ra
-// Removed new stats at end of rounds and created a new command to
-// do the same functionality.   Command is called "time"
-//
-// Revision 1.15  2001/09/28 13:48:34  ra
-// I ran indent over the sources. All .c and .h files reindented.
-//
-// Revision 1.14  2001/09/02 20:33:34  deathwatch
-// Added use_classic and fixed an issue with ff_afterround, also updated version
-// nr and cleaned up some commands.
-//
-// Updated the VC Project to output the release build correctly.
-//
-// Revision 1.13  2001/08/18 18:45:19  deathwatch
-// Edited the Flashlight movement code to the Lasersight's movement code, its probably better
-// and I added checks for darkmatch/being dead/being a spectator for its use
-//
-// Revision 1.12  2001/08/17 21:31:37  deathwatch
-// Added support for stats
-//
-// Revision 1.11  2001/08/15 14:50:48  slicerdw
-// Added Flood protections to Radio & Voice, Fixed the sniper bug AGAIN
-//
-// Revision 1.10  2001/08/06 12:13:07  slicerdw
-// Fixed the Sniper Weapon plus reloading bug
-//
-// Revision 1.9  2001/07/30 16:04:37  igor_rock
-// - changed the message for disallowed items (it said "Weapon not...")
-//
-// Revision 1.8  2001/07/28 19:30:05  deathwatch
-// Fixed the choose command (replaced weapon for item when it was working with items)
-// and fixed some tabs on other documents to make it more readable
-//
-// Revision 1.7  2001/07/25 23:02:02  slicerdw
-// Fixed the source, added the weapons and items capping to choose command
-//
-// Revision 1.6  2001/07/16 19:02:06  ra
-// Fixed compilerwarnings (-g -Wall).  Only one remains.
-//
-// Revision 1.5  2001/05/31 16:58:14  igor_rock
-// conflicts resolved
-//
-// Revision 1.4.2.1  2001/05/20 15:17:31  igor_rock
-// removed the old ctf code completly
-//
-// Revision 1.4  2001/05/13 01:23:01  deathwatch
-// Added Single Barreled Handcannon mode, made the menus and scoreboards
-// look nicer and made the voice command a bit less loud.
-//
-// Revision 1.3  2001/05/11 16:07:25  mort
-// Various CTF bits and pieces...
-//
-// Revision 1.2  2001/05/07 02:05:36  ra
-//
-//
-// Added tkok command to forgive teamkills.
-//
-// Revision 1.1.1.1  2001/05/06 17:24:14  igor_rock
-// This is the PG Bund Edition V1.25 with all stuff laying around here...
-//
-//-----------------------------------------------------------------------------
-
 #include "g_local.h"
 #include <time.h>
 
@@ -143,8 +10,10 @@
 void SP_LaserSight(edict_t * self, gitem_t * item)
 {
 	edict_t *lasersight = self->client->lasersight;
+	enum action_item_num_t item = LASER_NUM;
+	enum action_weapon_num_t weap;
 
-	if (!INV_AMMO(self, LASER_NUM) || !self->client->weapon) {
+	if (!INV_AMMO(self, item) || !self->client->weapon) {
 		if (lasersight) {  // laser is on
 			G_FreeEdict(lasersight);
 			self->client->lasersight = NULL;
@@ -423,6 +292,7 @@ int calc_zoom_comp(edict_t * ent)
 	int clping = ent->client->ping;
 
 	int idle_weapon_frames = 0;
+	int calc_idle_weapon_frames = round(clping / pingfloor);
 
 	// No compensation if player ping is less than pingfloor
 	// For every tier of pingfloor you reduce your frames by 1
@@ -843,7 +713,10 @@ void Bandage(edict_t * ent)
 	ent->client->bandaging = 0;
 	ent->client->attacker = NULL;
 	ent->client->bandage_stopped = 1;
-	ent->client->idle_weapon = BANDAGE_TIME;
+	if (esp->value && esp_leaderenhance->value)
+		ent->client->idle_weapon = ENHANCED_BANDAGE_TIME;
+	else
+		ent->client->idle_weapon = BANDAGE_TIME;
 }
 
 void Cmd_ID_f(edict_t * ent)
@@ -1059,6 +932,9 @@ void Cmd_Choose_f(edict_t * ent)
 		}
 		ent->client->pers.chosenItem = GET_ITEM(itemNum);
 		break;
+	case C_KIT_NUM:
+	case S_KIT_NUM:
+	case A_KIT_NUM:
 	default:
 		gi.cprintf(ent, PRINT_HIGH, "Invalid weapon or item choice.\n");
 		return;
@@ -1070,7 +946,25 @@ void Cmd_Choose_f(edict_t * ent)
 	item = ent->client->pers.chosenItem;
 	itmText = (item && item->pickup_name) ? item->pickup_name : "NONE";
 
-	gi.cprintf(ent, PRINT_HIGH, "Weapon selected: %s\nItem selected: %s\n", wpnText, itmText );
+	if (item_kit_mode->value) {
+		if (itemNum == C_KIT_NUM){
+			itmText = "Commando Kit (Bandolier + Kevlar Helmet)";
+		} else if (itemNum == A_KIT_NUM){
+			itmText = "Assassin Kit (Laser Sight + Silencer)";
+		} else if (itemNum == S_KIT_NUM){
+			if (e_enhancedSlippers->value){
+				itmText = "Stealth Kit (Enhanced Stealth Slippers + Silencer)";
+			} else {
+				itmText = "Stealth Kit (Stealth Slippers + Silencer)";
+			}
+		} else {
+			// How did you pick a kit not on the list?
+			itmText = "NONE";
+		}
+		gi.cprintf(ent, PRINT_HIGH, "Weapon selected: %s\nItem kit selected: %s\n", wpnText, itmText );
+	} else {
+		gi.cprintf(ent, PRINT_HIGH, "Weapon selected: %s\nItem selected: %s\n", wpnText, itmText );
+	}
 }
 
 // AQ:TNG - JBravo adding tkok
@@ -1248,4 +1142,99 @@ void Cmd_Ghost_f(edict_t * ent)
 		ghost_players[i - 1] = ghost_players[i];
 	}
 	num_ghost_players--;
+}
+
+
+#if USE_AQTION
+void generate_uuid()
+{
+#ifdef WIN32
+#if _MSC_VER >= 1920 && !__INTEL_COMPILER
+     UUID uuid;
+     unsigned char* uuidStr;
+
+     if (UuidCreate(&uuid) != RPC_S_OK)
+     {
+         gi.dprintf("%s unable to create UUID\n", __func__);
+         return;
+     }
+     if (UuidToStringA(&uuid, &uuidStr) != RPC_S_OK)
+     {
+         gi.dprintf("%s unable to format UUID as a string\n", __func__);
+         return;
+     }
+
+     strncpy(game.matchid, uuidStr, MAX_QPATH);
+     //gi.dprintf("%s UUID: %s\n", __func__, game.matchid);
+
+     if (RpcStringFreeA(&uuidStr) != RPC_S_OK)
+     {
+         gi.dprintf("Failed to free UUID display string\n", __func__);
+         return;
+     }
+#endif
+#else
+    char uuidBuff[MAX_QPATH]; // Make the buffer slightly larger than required
+    uuid_t uuidGenerated;
+    uuid_generate_random(uuidGenerated); // The UUID is 16 bytes (128 bits) long, which gives approximately 3.4x10^38 unique values
+    uuid_unparse(uuidGenerated, uuidBuff);
+    strncpy(game.matchid, uuidBuff, MAX_QPATH);
+    //gi.dprintf("%s UUID: %s\n", __func__, game.matchid);
+#endif
+}
+#endif
+
+#ifndef NO_BOTS
+void Cmd_Placenode_f (edict_t *ent)
+{
+	if(ent->waterlevel)
+		ACEND_AddNode(ent,NODE_WATER);
+	else if(OnLadder(ent))
+		ACEND_AddNode(ent,NODE_LADDER);
+	else if(! ent->groundentity)
+		ACEND_AddNode(ent,NODE_JUMP);
+	else
+		ACEND_AddNode(ent,NODE_MOVE);
+}
+#endif
+
+void Cmd_Volunteer_f(edict_t * ent)
+{
+	int teamNum;
+	edict_t *oldLeader;
+
+	// Ignore if not Espionage mode
+	if (!esp->value) {
+		gi.cprintf(ent, PRINT_HIGH, "This command needs Espionage to be enabled\n");
+		return;
+	}
+
+	// Ignore entity if not on a team
+	teamNum = ent->client->resp.team;
+	if (teamNum == NOTEAM) {
+		gi.cprintf(ent, PRINT_HIGH, "You need to be on a team for that...\n");
+		return;
+	}
+
+	// Ignore entity if they are a sub
+	if (ent->client->resp.subteam == teamNum) {
+		gi.cprintf(ent, PRINT_HIGH, "Subs cannot be leaders...\n");
+		return;
+	}
+
+	// If the current leader is issuing this command again, remove them as leader
+	oldLeader = teams[teamNum].leader;
+	if (oldLeader == ent) {
+		EspSetLeader( teamNum, NULL );
+		return;
+	}
+
+	// If the team already has a leader, send this message to the ent volunteering
+	if (oldLeader) {
+		gi.cprintf( ent, PRINT_HIGH, "Your team already has a leader (%s)\n",
+			teams[teamNum].leader->client->pers.netname );
+		return;
+	}
+
+	EspSetLeader( teamNum, ent );
 }

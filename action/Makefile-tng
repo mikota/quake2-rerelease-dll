@@ -1,0 +1,112 @@
+# GNU Make required
+#
+# Tested platforms: Linux x86, Linux x86_64, MinGW x86
+#
+
+PACKAGE=q2-rerelease
+VERSION=1.00
+FILE_VERSION:=$(VERSION)
+
+ifndef RELEASE
+GIT_DATE=$(shell git show -s --format='%cd' --date=short)
+ifeq ($(GIT_DATE),)
+	GIT_DATE=$(shell date +'%Y-%m-%d')
+endif
+VERSION += $(GIT_DATE)
+GIT_REV=$(shell git rev-parse --short HEAD)
+ifeq ($(GIT_REV),)
+	GIT_REV=git
+endif
+VERSION += $(GIT_REV)
+FILE_VERSION:=$(FILE_VERSION)~$(GIT_REV)
+endif
+
+CC=g++
+BASE_CPPFLAGS=-Wall -std=c++11 -DVERSION="\"$(VERSION)\" -DKEX_Q2GAME_EXPORTS -DKEX_Q2GAME_DYNAMIC -DGAME_INCLUDE -DNO_FMT_SOURCE"
+
+#use these CPPFLAGS to optimize it
+ifdef DEBUG
+	CPPFLAGS=$(BASE_CPPFLAGS) -g
+else
+	CPPFLAGS=$(BASE_CPPFLAGS) -O2
+endif
+
+MACHINE=$(shell uname -m)
+SYSTEM=$(shell uname -s)
+
+ARCH=$(MACHINE)
+
+# If machine starts with arm (any 32-bit Raspberry Pi) make gamearm.so.
+ifneq (,$(findstring __arm,__$(MACHINE)))
+ARCH=arm
+endif
+
+DO_CC=$(CC) $(CPPFLAGS) $(SHLIBCPPFLAGS) -o $@ -c $<
+DO_LINK=$(CC) $(CPPFLAGS) $(SHLIBLDFLAGS) -o $@ $(GAME_OBJS) $(SHLIBLIBS)
+
+SHLIBEXT?=so
+SHLIBLDFLAGS?=-shared
+
+ifdef WIN64
+CC=x86_64-w64-mingw32-g++
+CPPFLAGS+=-DWIN64 -m64
+ARCH=x86_64
+SHLIBEXT=dll
+SHLIBLIBS=-lws2_32
+endif
+
+ifeq ($(SYSTEM), Darwin)
+SHLIBEXT=dylib
+# Fixes by bAron to get it compiling on max m1
+ifeq ($(TNG_BUILD_FOR),M1)
+CC=g++
+MACHINE=arm
+CPPFLAGS+=-target aarch64-apple-darwin
+endif
+endif
+
+
+#############################################################################
+# SETUP AND BUILD
+# GAME
+#############################################################################
+
+%.o: %.c $(wildcard *.h */*.h)
+	$(DO_CC)
+
+GAME_OBJS = \
+	cg_main.o cg_screen.o g_ai.o g_chase.o g_cmds.o g_combat.o g_func.o \
+	g_items.o g_main.o g_misc.o g_monster.o g_phys.o g_save.o g_spawn.o \
+	g_svcmds.o g_target.o g_trigger.o g_turret.o g_utils.o g_weapon.o m_actor.o \
+	m_arachnid.o m_berserk.o m_boss2.o m_boss3.o m_boss31.o m_boss32.o m_brain.o \
+	m_chick.o m_flipper.o m_float.o m_flyer.o m_gladiator.o m_guardian.o m_guncmdr.o \
+	m_gunner.o m_hover.o m_infantry.o m_insane.o m_medic.o m_move.o m_mutant.o \
+	m_parasite.o m_shambler.o m_soldier.o m_supertank.o m_tank.o p_client.o \
+	p_hud.o p_move.o p_trail.o p_view.o p_weapon.o q_std.o
+
+game$(ARCH).$(SHLIBEXT): $(GAME_OBJS)
+	$(DO_LINK)
+
+
+#############################################################################
+# MISC
+#############################################################################
+
+clean:
+	-rm -f $(GAME_OBJS) game$(ARCH).$(SHLIBEXT)
+
+install:
+	cp game$(ARCH).$(SHLIBEXT) ../action/
+	strip ../action/game$(ARCH).$(SHLIBEXT)
+
+bindist: game$(ARCH).$(SHLIBEXT)
+	strip -s game$(ARCH).$(SHLIBEXT)
+	tar -zcvf ../$(PACKAGE)-$(FILE_VERSION)-$(SYSTEM)-$(MACHINE).tar.gz \
+            game$(ARCH).$(SHLIBEXT) ../TNG-manual.txt ../change.txt
+
+distclean: clean
+	-rm -f ../$(PACKAGE)-*.{tar.gz,zip}
+
+dist:
+	git archive --format=tar --prefix=$(PACKAGE)-$(FILE_VERSION)-src/ HEAD | gzip -9 > ../$(PACKAGE)-$(FILE_VERSION)-src.tar.gz
+
