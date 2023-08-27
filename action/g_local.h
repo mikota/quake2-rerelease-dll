@@ -7,7 +7,7 @@
 #include "bg_local.h"
 
 // the "gameversion" client command will print this plus compile date
-constexpr const char *GAMEVERSION = "baseq2";
+constexpr const char *GAMEVERSION = "action";
 
 //==================================================================
 
@@ -631,7 +631,14 @@ enum weaponstate_t
 	WEAPON_READY,
 	WEAPON_ACTIVATING,
 	WEAPON_DROPPING,
-	WEAPON_FIRING
+	WEAPON_FIRING,
+	// action
+	WEAPON_END_MAG,
+	WEAPON_RELOADING,
+	WEAPON_BURSTING,
+	WEAPON_BUSY,			// used by sniper rifle when engaging zoom, if I want to make laser sight toggle on/off  this could be used for that too...
+	WEAPON_BANDAGING
+	//end action
 };
 
 // gib flags
@@ -2598,9 +2605,44 @@ Action prototypes
 #define HELM_NAME    "Kevlar Helmet"
 #define LASER_NAME   "Lasersight"
 
-enum class action_weapon_num_t
+
+typedef struct itemList_s
 {
-	NO_NUM
+	int		index;
+	int		flag;
+} itemList_t;
+
+extern itemList_t items[ITEM_MAX_NUM];
+
+// sniper modes
+#define SNIPER_1X		0
+#define SNIPER_2X		1
+#define SNIPER_4X		2
+#define SNIPER_6X		3
+#define SNIPER_MODE_MAX	4
+
+//TempFile sniper zoom moved to constants
+#define SNIPER_FOV1		90
+#define SNIPER_FOV2		45
+#define SNIPER_FOV4		20
+#define SNIPER_FOV6		10
+
+#define GRENADE_IDLE_FIRST  40
+#define GRENADE_IDLE_LAST   69
+#define GRENADE_THROW_FIRST 4
+#define GRENADE_THROW_LAST  9	// throw it on frame 8?
+
+#define SPEC_WEAPON_RESPAWN 		1
+#define BANDAGE_TIME    			27	// 10 = 1 second
+#define ENHANCED_BANDAGE_TIME		10
+#define BLEED_TIME      			10	// 10 = 1 second is time for losing 1 health at slowest bleed rate
+// Igor's back in Time to hard grenades :-)
+#define GRENADE_DAMRAD_CLASSIC  	170
+#define GRENADE_DAMRAD          	250
+
+enum action_weapon_num_t
+{
+	NO_WEAP_NUM,
 	MK23_NUM,
 	MP5_NUM,
 	M4_NUM,
@@ -2609,26 +2651,40 @@ enum class action_weapon_num_t
 	SNIPER_NUM,
 	DUAL_NUM,
 	KNIFE_NUM,
-	GRENADE_NUM
+	GRENADE_NUM,
+	WEAPON_MAX
 };
 
-enum class action_item_num_t
+enum action_item_num_t
 {
+	NO_ITEM_NUM,
 	SIL_NUM,
 	SLIP_NUM,
 	BAND_NUM,
 	KEV_NUM,
 	LASER_NUM,
-	HELM_NUM
+	HELM_NUM,
+	ITEM_MAX
 };
 
-enum class action_ammo_num_t
+enum action_ammo_num_t
 {
+	NO_AMMO_NUM,
 	MK23_ANUM,
 	MP5_ANUM,
 	M4_ANUM,
 	SHELL_ANUM,
-	SNIPER_ANUM
+	SNIPER_ANUM,
+	AMMO_MAX
+};
+
+enum action_itemkit_num_t
+{
+	NO_ITEMKIT_NUM,
+	C_KIT_NUM,
+	S_KIT_NUM,
+	A_KIT_NUM,
+	KIT_MAX_NUM	
 };
 
 // #define FLAG_T1_NUM				21
@@ -2648,7 +2704,7 @@ enum class action_ammo_num_t
 // #define AMMO_MAX				AMMO_FIRST+AMMO_COUNT
 
 
-enum class damage_locations_t
+enum damage_locations_t
 {
 	LOC_HDAM,			// Head damage
 	LOC_CDAM,			// Chest damage
@@ -2659,14 +2715,14 @@ enum class damage_locations_t
 	LOC_NO				// Non-specific location damage (handcannon, shotgun..)
 };
 
-enum class action_awards_t
+enum action_awards_t
 {
 	ACCURACY,
 	IMPRESSIVE,
 	EXCELLENT
 };
 
-enum class action_gamemodes_t
+enum action_gamemodes_t
 {
 	GM_TEAMPLAY,
 	GM_TEAMDM,
@@ -2676,7 +2732,7 @@ enum class action_gamemodes_t
 	GM_DOMINATION
 };
 
-enum class action_gamemodeflags_t
+enum action_gamemodeflags_t
 {
 	GMF_NONE,
 	GMF_3TEAMS,
@@ -2837,7 +2893,7 @@ extern cvar_t* allow_hoarding; // Allow carrying multiple of the same special it
 extern cvar_t* stats_endmap; // If on (1), show the accuracy/etc stats at the end of a map
 extern cvar_t* stats_afterround; // TNG Stats, collect stats between rounds
 
-extern cvar_t* auto_join;	// Automaticly join clients to teams they were on in last map.
+extern cvar_t* auto_join;	// Automatically join clients to teams they were on in last map.
 extern cvar_t* auto_equip;	// Remember weapons and items for players between maps.
 extern cvar_t* auto_menu;	// Automatically show the join menu
 
@@ -2865,8 +2921,18 @@ extern cvar_t* medkit_time;
 extern cvar_t* medkit_instant;
 
 // BEGIN AQ2 ETE
+extern cvar_t* esp;
+extern cvar_t* esp_mode;
+extern cvar_t* esp_customspawns;
+extern cvar_t* esp_punish;
+extern cvar_t* esp_etv_halftime;
+extern cvar_t* esp_mustvolunteer;
+extern cvar_t* esp_showleader;
+extern cvar_t* esp_showtarget;
+extern cvar_t* esp_forcejoin;
+extern cvar_t* esp_leaderequip;
+extern cvar_t* esp_leaderenhance;
 extern cvar_t* e_enhancedSlippers;
-
 // END AQ2 ETE
 
 // 2023
@@ -2909,8 +2975,7 @@ void PrecacheItems(void);
 void SpawnItem(edict_t* ent, gitem_t* item);
 void Think_Weapon(edict_t* ent);
 bool Add_Ammo(edict_t* ent, gitem_t* item, int count);
-void Touch_Item(edict_t* ent, edict_t* other, cplane_t* plane,
-	csurface_t* surf);
+void Touch_Item(edict_t* ent, edict_t* other, cplane_t* plane, csurface_t* surf);
 
 //
 // g_utils.c
@@ -3119,6 +3184,16 @@ struct gunStats_t
 	int damage;		//Damage dealt
 };
 
+enum ammo_t
+{
+  AMMO_BULLETS,
+  AMMO_SHELLS,
+  AMMO_ROCKETS,
+  AMMO_GRENADES,
+  AMMO_CELLS,
+  AMMO_SLUGS
+};
+
 /*
 End Action prototypes
 */
@@ -3238,6 +3313,24 @@ struct client_persistant_t
 	int32_t lives; // player lives left (1 = no respawns remaining)
 	uint8_t n64_crouch_warn_times;
 	gtime_t n64_crouch_warning;
+
+	// action
+	gitem_t *chosenItem;		// item for teamplay
+	gitem_t *chosenWeapon;	// weapon for teamplay
+	gitem_t *chosenItem2;		// Support for item kit mode
+
+	int menu_shown;		// has the main menu been shown
+	bool dm_selected;		// if dm weapon selection has been done once
+	int mk23_mode;		// firing mode, semi or auto
+	int mp5_mode;
+	int m4_mode;
+	int knife_mode;
+	int grenade_mode;
+	int hc_mode;
+	int id;			// id command on or off
+	int irvision;			// ir on or off (only matters if player has ir device, currently bandolier)
+
+	//ignorelist_t ignorelist;  // TODO: Add this ?
 };
 
 // client data that stays across deathmatch respawns
@@ -3264,6 +3357,55 @@ struct client_respawn_t
 	bool	 admin;
 	ghost_t *ghost; // for ghost codes
 					// ZOID
+	
+	int sniper_mode;		//level of zoom
+
+  int kills;			// real kills
+
+  int deaths;			// deaths
+
+  int damage_dealt;		// keep track of damage dealt by player to other players
+
+  int team;			// team the player is on
+  int subteam;
+
+  int joined_team;		// last frame # at which the player joined a team
+  int lastWave;			//last time used wave
+
+  radio_t radio;
+ 
+  int motd_refreshes;
+  int last_motd_refresh;
+  edict_t *last_chase_target;	// last person they chased, to resume at the same place later...
+
+  // Number of team kills this game
+  int team_kills;
+  int team_wounds;
+  
+  int idletime;
+  int totalidletime;
+  int tourneynumber;
+  edict_t *kickvote;
+
+  char *mapvote;		// pointer to map voted on (if any)
+  char *cvote;			// pointer to config voted on (if any)
+  bool scramblevote;	// want scramble
+
+  int ignore_time;		// framenum when the player called ignore - to prevent spamming
+	
+  int stat_mode;    		// Automatical Send of statistics to client
+  int stat_mode_intermission;
+
+  int shotsTotal;					//Total number of shots
+  int hitsTotal;					//Total number of hits
+  int streakKills;					//Kills in a row
+  int streakHS;						//Headshots in a Row
+  int streakKillsHighest;			//Highest kills in a row
+  int streakHSHighest;				//Highest headshots in a Row
+
+  int hitsLocations[LOC_MAX];		//Number of hits for different locations
+  gunStats_t gunstats[MOD_TOTAL]; //Number of shots/hits for different guns, adjusted to MOD_TOTAL to allow grenade, kick and punch stats
+
 };
 
 // [Paril-KEX] seconds until we are fully invisible after
@@ -3339,6 +3481,7 @@ struct gclient_t
 		gtime_t	time, total;
 	} kick;
 	gtime_t		  quake_time;
+	vec3_t		  kick_angles;
 	vec3_t		  kick_origin;
 	float		  v_dmg_roll, v_dmg_pitch;
 	gtime_t		  v_dmg_time; // damage kicks
@@ -3473,6 +3616,12 @@ struct gclient_t
 	gtime_t	 last_attacker_time;
 
 	// Action
+
+	edict_t		*chase_target;
+	int			chase_mode;
+	int			selected_item;
+	int			inventory[MAX_ITEMS];
+
 	// ammo capacities
 	int			max_pistolmags;
 	int			max_shells;

@@ -137,6 +137,156 @@ cvar_t *ai_model_scale;
 cvar_t *ai_allow_dm_spawn;
 cvar_t *ai_movement_disabled;
 
+
+// Action
+
+cvar_t *flood_threshold;
+cvar_t *unique_weapons;
+cvar_t *unique_items;
+cvar_t *ir;
+cvar_t *knifelimit;
+cvar_t *tgren;
+//SLIC2
+/*cvar_t *flashgren;
+cvar_t *flashradius;
+cvar_t *flashtime;*/
+//SLIC2
+cvar_t *allweapon;
+cvar_t *allitem;
+cvar_t *allow_hoarding;
+cvar_t *sv_shelloff;
+cvar_t *shelllimit;
+cvar_t *shelllife;
+cvar_t *bholelimit;
+cvar_t *splatlimit;
+cvar_t *bholelife;
+cvar_t *splatlife;
+cvar_t *check_time;		// Time to wait before checks start ?
+cvar_t *video_check;
+cvar_t *video_checktime;
+cvar_t *video_max_3dfx;
+cvar_t *video_max_3dfxam;
+cvar_t *video_max_opengl;
+cvar_t *video_force_restart;
+cvar_t *video_check_lockpvs;
+cvar_t *video_check_glclear;
+cvar_t *hc_single;
+cvar_t *wp_flags;		// Weapon Banning
+cvar_t *itm_flags;		// Item Banning
+cvar_t *matchmode;
+cvar_t *darkmatch;		// Darkmatch
+cvar_t *day_cycle;		// If darkmatch is on, this value is the nr of seconds between each interval (day, dusk, night, dawn)
+cvar_t *use_flashlight;         // Allow flashlight when not darkmatch?
+cvar_t *hearall;		// used for matchmode
+cvar_t *deadtalk;
+cvar_t *force_skin;
+
+cvar_t *mm_forceteamtalk;
+cvar_t *mm_adminpwd;
+cvar_t *mm_allowlock;
+cvar_t *mm_pausecount;
+cvar_t *mm_pausetime;
+
+cvar_t *teamdm;
+cvar_t *teamdm_respawn;
+cvar_t *respawn_effect;
+
+cvar_t *dm_shield;
+
+cvar_t *tourney_lca;	// Enables lights camera action for tourney mode
+
+cvar_t *item_respawnmode;
+
+cvar_t *use_mvd2;	// JBravo: activate mvd2 recording on servers running q2pro
+
+cvar_t *item_respawn;
+cvar_t *weapon_respawn;
+cvar_t *ammo_respawn;
+
+cvar_t *wave_time;
+
+/*cvar_t *team1score;
+cvar_t *team2score;
+cvar_t *team3score;*/
+cvar_t *stats_endmap; // If on (1) show the fpm/etc stats when the map ends
+cvar_t *stats_afterround;     // Collect TNG stats between rounds
+
+cvar_t *auto_join;
+cvar_t *auto_equip;
+cvar_t *auto_menu;
+
+cvar_t *dm_choose;
+
+//TNG:Freud - new spawning system
+cvar_t *use_oldspawns;
+//TNG:Freud - ghosts
+cvar_t *use_ghosts;
+
+cvar_t *use_punch;
+
+cvar_t *radio_max;		// max nr Radio and Voice requests
+cvar_t *radio_time;		// max nr of time for the radio_max
+cvar_t *radio_ban;		// silence for xx nr of secs
+cvar_t *radio_repeat;		// same as radio_max, only for repeats
+//SLIC2
+cvar_t *radio_repeat_time;
+
+cvar_t *use_classic;		// Used to reset spread/gren strength to 1.52
+
+cvar_t *warmup;
+cvar_t *warmup_bots;
+cvar_t *round_begin;
+cvar_t *spectator_hud;
+
+cvar_t *medkit_drop;
+cvar_t *medkit_time;
+cvar_t *medkit_instant;
+cvar_t *medkit_max;
+cvar_t *medkit_value;
+
+cvar_t *jump;			// jumping mod
+
+// BEGIN AQ2 ETE
+cvar_t *esp;
+cvar_t *esp_mode;
+cvar_t *esp_customspawns;
+cvar_t *esp_punish;
+cvar_t *esp_etv_halftime;
+cvar_t *esp_mustvolunteer;
+cvar_t *esp_showleader;
+cvar_t *esp_showtarget;
+cvar_t *esp_forcejoin;
+cvar_t *esp_leaderequip;
+cvar_t *esp_leaderenhance;
+cvar_t *e_enhancedSlippers;
+// END AQ2 ETE
+
+// 2022
+
+cvar_t *sv_limp_highping;
+cvar_t *server_id;
+cvar_t *stat_logs;
+cvar_t *mapvote_next_limit;
+cvar_t *stat_apikey;
+cvar_t *stat_url;
+cvar_t *gm;
+cvar_t *gmf;
+cvar_t *sv_idleremove;
+cvar_t *g_spawn_items;
+
+// 2023
+cvar_t *use_killcounts;  // Display kill counts in console to clients on frag
+cvar_t *am;  // Attract mode toggle
+cvar_t *am_newnames;  // Attract mode new names, use new LTK bot names
+cvar_t *am_botcount;  // Attract mode botcount, how many bots at minimum at all times
+cvar_t *am_delay;  // Attract mode delay, unused at the moment
+cvar_t *am_team;  // Attract mode team, which team do you want the bots to join
+cvar_t *zoom_comp; // Compensates zoom-in frames with ping (high ping = fewer frames)
+cvar_t *item_kit_mode;  // Toggles item kit mode
+cvar_t *printrules;  // Centerprint game rules when the countdown begins
+
+// End action
+
 static cvar_t *g_frames_per_frame;
 
 void SpawnEntities(const char *mapname, const char *entities, const char *spawnpoint);

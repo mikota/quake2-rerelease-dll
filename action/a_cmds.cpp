@@ -7,11 +7,11 @@
  * Create/remove the laser sight entity
  *---------------------------------------*/
 
-void SP_LaserSight(edict_t * self, gitem_t * item)
+void SP_LaserSight(edict_t *self, gitem_t *item)
 {
 	edict_t *lasersight = self->client->lasersight;
-	enum action_item_num_t item = LASER_NUM;
-	enum action_weapon_num_t weap;
+	action_item_num_t item = LASER_NUM;
+	action_weapon_num_t weap;
 
 	if (!INV_AMMO(self, item) || !self->client->weapon) {
 		if (lasersight) {  // laser is on
@@ -51,7 +51,7 @@ void SP_LaserSight(edict_t * self, gitem_t * item)
 	lasersight->ideal_yaw = self->viewheight;
 	lasersight->count = 0;
 	lasersight->think = LaserSightThink;
-	lasersight->nextthink = level.framenum + 1;
+	lasersight->nextthink = level.time + 10_hz;
 	LaserSightThink( lasersight );
 	VectorCopy( lasersight->s.origin, lasersight->s.old_origin );
 	VectorCopy( lasersight->s.origin, lasersight->old_origin );
@@ -78,29 +78,6 @@ void LaserSightThink(edict_t * self)
 	if (self->owner->client->lasersight != self) {
 		self->think = G_FreeEdict;
 	}
-
-#ifndef NO_FPS
-	// Raptor007: Smooth laser viewheight changes (crouch/stand) with sv_fps.
-	// I borrowed ideal_yaw and yaw_speed because I needed two entity floats
-	// that wouldn't otherwise be used for the lasersight.
-	if( FRAMEDIV > 1 )
-	{
-		if( self->count )
-		{
-			self->ideal_yaw += self->yaw_speed;
-			self->count --;
-		}
-
-		if( FRAMESYNC && ! self->count )
-		{
-			self->yaw_speed = (self->owner->viewheight - self->ideal_yaw) / (float) FRAMEDIV;
-			self->ideal_yaw += self->yaw_speed;
-			self->count = FRAMEDIV - 1;
-		}
-
-		viewheight = self->ideal_yaw;
-	}
-#endif
 
 	if (self->owner->client->pers.firing_style == ACTION_FIRING_CLASSIC)
 		viewheight -= 8;
@@ -164,7 +141,7 @@ void Cmd_Reload_f(edict_t * ent)
 			return;
 
 		if(ent->client->inventory[ent->client->ammo_index] <= 0) {
-			gi.cprintf(ent, PRINT_HIGH, "Out of ammo\n");
+			gi.Center_Print(ent, "Out of ammo\n");
 			return;
 		}
 		// already in the process of reloading!
@@ -187,7 +164,7 @@ void Cmd_Reload_f(edict_t * ent)
 			return;
 
 		if(ent->client->inventory[ent->client->ammo_index] <= 0) {
-			gi.cprintf(ent, PRINT_HIGH, "Out of ammo\n");
+			gi.Center_Print(ent, "Out of ammo\n");
 			return;
 		}
 		if(hc_single->value)
@@ -207,7 +184,7 @@ void Cmd_Reload_f(edict_t * ent)
 			return;
 
 		if(ent->client->inventory[ent->client->ammo_index] <= 0) {
-			gi.cprintf(ent, PRINT_HIGH, "Out of ammo\n");
+			gi.Center_Print(ent, "Out of ammo\n");
 			return;
 		}
 		// already in the process of reloading!
@@ -233,7 +210,7 @@ void Cmd_Reload_f(edict_t * ent)
 			return;
 
 		if(ent->client->inventory[ent->client->ammo_index] <= 0) {
-			gi.cprintf(ent, PRINT_HIGH, "Out of ammo\n");
+			gi.Center_Print(ent, "Out of ammo\n");
 			return;
 		}
 		//TempFile change to pistol, then reload
@@ -251,7 +228,7 @@ void Cmd_Reload_f(edict_t * ent)
 		if (ent->client->mp5_rds == ent->client->mp5_max)
 			return;
 		if(ent->client->inventory[ent->client->ammo_index] <= 0) {
-			gi.cprintf(ent, PRINT_HIGH, "Out of ammo\n");
+			gi.Center_Print(ent, "Out of ammo\n");
 			return;
 		}
 		break;
@@ -259,7 +236,7 @@ void Cmd_Reload_f(edict_t * ent)
 		if (ent->client->m4_rds == ent->client->m4_max)
 			return;
 		if(ent->client->inventory[ent->client->ammo_index] <= 0) {
-			gi.cprintf(ent, PRINT_HIGH, "Out of ammo\n");
+			gi.Center_Print(ent, "Out of ammo\n");
 			return;
 		}
 		break;
@@ -267,7 +244,7 @@ void Cmd_Reload_f(edict_t * ent)
 		if (ent->client->mk23_rds == ent->client->mk23_max)
 			return;
 		if(ent->client->inventory[ent->client->ammo_index] <= 0) {
-			gi.cprintf(ent, PRINT_HIGH, "Out of ammo\n");
+			gi.Center_Print(ent, "Out of ammo\n");
 			return;
 		}
 		break;
@@ -399,7 +376,7 @@ int _SniperMode(edict_t *ent)
 }
 //TempFile BEGIN
 
-void _ZoomIn(edict_t * ent, qboolean overflow)
+void _ZoomIn(edict_t * ent, bool overflow)
 {
 	switch (_SniperMode(ent)) {
 	case SNIPER_1X:
@@ -418,7 +395,7 @@ void _ZoomIn(edict_t * ent, qboolean overflow)
 	}
 }
 
-void _ZoomOut(edict_t * ent, qboolean overflow)
+void _ZoomOut(edict_t * ent, bool overflow)
 {
 	switch (_SniperMode(ent)) {
 	case SNIPER_1X:
@@ -478,7 +455,7 @@ void Cmd_NextMap_f(edict_t * ent)
 		rot_type = "repeated";
 	}
 
-	gi.cprintf( ent, PRINT_HIGH, "Next map %s is %s (%i/%i).\n", rot_type, next_map, map_num+1, num_maps );
+	gi.Center_Print( ent, PRINT_HIGH, "Next map %s is %s (%i/%i).\n", rot_type, next_map, map_num+1, num_maps );
 }
 
 void Cmd_Lens_f(edict_t * ent)
@@ -538,7 +515,7 @@ void Cmd_Weapon_f(edict_t * ent)
 	if (ent->client->bandaging || ent->client->bandage_stopped) {
 		if (!ent->client->weapon_after_bandage_warned) {
 			ent->client->weapon_after_bandage_warned = true;
-			gi.cprintf(ent, PRINT_HIGH, "You'll get to your weapon when you're done bandaging!\n");
+			gi.Center_Print(ent, "You'll get to your weapon when you're done bandaging!\n");
 		}
 		ent->client->weapon_attempts++;
 		return;
@@ -548,7 +525,7 @@ void Cmd_Weapon_f(edict_t * ent)
 
 	if (ent->client->weaponstate == WEAPON_FIRING || ent->client->weaponstate == WEAPON_BUSY)
 	{
-		//gi.cprintf(ent, PRINT_HIGH, "Try again when you aren't using your weapon.\n");
+		//gi.Center_Print(ent, "Try again when you aren't using your weapon.\n");
 		ent->client->weapon_attempts++;
 		return;
 	}
@@ -559,27 +536,27 @@ void Cmd_Weapon_f(edict_t * ent)
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("misc/click.wav"), 1, ATTN_NORM, 0);
 		ent->client->pers.mk23_mode = !(ent->client->pers.mk23_mode);
 		if (ent->client->pers.mk23_mode)
-			gi.cprintf(ent, PRINT_HIGH, "MK23 Pistol set for semi-automatic action\n");
+			gi.Center_Print(ent, "MK23 Pistol set for semi-automatic action\n");
 		else
-			gi.cprintf(ent, PRINT_HIGH, "MK23 Pistol set for automatic action\n");
+			gi.Center_Print(ent, "MK23 Pistol set for automatic action\n");
 		break;
 	case MP5_NUM:
 		if (!dead)
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("misc/click.wav"), 1, ATTN_NORM, 0);
 		ent->client->pers.mp5_mode = !(ent->client->pers.mp5_mode);
 		if (ent->client->pers.mp5_mode)
-			gi.cprintf(ent, PRINT_HIGH, "MP5 set to 3 Round Burst mode\n");
+			gi.Center_Print(ent, "MP5 set to 3 Round Burst mode\n");
 		else
-			gi.cprintf(ent, PRINT_HIGH, "MP5 set to Full Automatic mode\n");
+			gi.Center_Print(ent, "MP5 set to Full Automatic mode\n");
 		break;
 	case M4_NUM:
 		if (!dead)
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("misc/click.wav"), 1, ATTN_NORM, 0);
 		ent->client->pers.m4_mode = !(ent->client->pers.m4_mode);
 		if (ent->client->pers.m4_mode)
-			gi.cprintf(ent, PRINT_HIGH, "M4 set to 3 Round Burst mode\n");
+			gi.Center_Print(ent, "M4 set to 3 Round Burst mode\n");
 		else
-			gi.cprintf(ent, PRINT_HIGH, "M4 set to Full Automatic mode\n");
+			gi.Center_Print(ent, "M4 set to Full Automatic mode\n");
 		break;
 	case SNIPER_NUM:
 		if (dead)
@@ -601,9 +578,9 @@ void Cmd_Weapon_f(edict_t * ent)
 
 		ent->client->pers.hc_mode = !(ent->client->pers.hc_mode);
 		if (ent->client->pers.hc_mode)
-			gi.cprintf(ent, PRINT_HIGH, "Single Barreled Handcannon\n");
+			gi.Center_Print(ent, "Single Barreled Handcannon\n");
 		else
-			gi.cprintf(ent, PRINT_HIGH, "Double Barreled Handcannon\n");
+			gi.Center_Print(ent, "Double Barreled Handcannon\n");
 		// AQ2:TNG End
 		break;
 	case KNIFE_NUM:
@@ -613,23 +590,23 @@ void Cmd_Weapon_f(edict_t * ent)
 			ent->client->pers.knife_mode = !(ent->client->pers.knife_mode);
 			ent->client->weaponstate = WEAPON_ACTIVATING;
 			if (ent->client->pers.knife_mode) {
-				gi.cprintf(ent, PRINT_HIGH, "Switching to throwing\n");
+				gi.Center_Print(ent, "Switching to throwing\n");
 				ent->client->ps.gunframe = 0;
 			} else {
-				gi.cprintf(ent, PRINT_HIGH, "Switching to slashing\n");
+				gi.Center_Print(ent, "Switching to slashing\n");
 				ent->client->ps.gunframe = 106;
 			}
 		}
 		break;
 	case GRENADE_NUM:
 		if (ent->client->pers.grenade_mode == 0) {
-			gi.cprintf(ent, PRINT_HIGH, "Prepared to make a medium range throw\n");
+			gi.Center_Print(ent, "Prepared to make a medium range throw\n");
 			ent->client->pers.grenade_mode = 1;
 		} else if (ent->client->pers.grenade_mode == 1) {
-			gi.cprintf(ent, PRINT_HIGH, "Prepared to make a long range throw\n");
+			gi.Center_Print(ent, "Prepared to make a long range throw\n");
 			ent->client->pers.grenade_mode = 2;
 		} else {
-			gi.cprintf(ent, PRINT_HIGH, "Prepared to make a short range throw\n");
+			gi.Center_Print(ent, "Prepared to make a short range throw\n");
 			ent->client->pers.grenade_mode = 0;
 		}
 		break;
@@ -649,21 +626,21 @@ void Cmd_Bandage_f(edict_t *ent)
 		return;
 
 	if (ent->client->bandaging) {
-		gi.cprintf(ent, PRINT_HIGH, "Already bandaging\n");
+		gi.Center_Print(ent, "Already bandaging\n");
 		return;
 	}
 
-	qboolean can_use_medkit = (ent->client->medkit > 0) && (ent->health < ent->max_health);
+	bool can_use_medkit = (ent->client->medkit > 0) && (ent->health < ent->max_health);
 
 	if (ent->client->bleeding == 0 && ent->client->leg_damage == 0 && ! can_use_medkit) {
-		gi.cprintf(ent, PRINT_HIGH, "No need to bandage\n");
+		gi.Center_Print(ent, "No need to bandage\n");
 		return;
 	}
 
 	ent->client->reload_attempts = 0;	// prevent any further reloading
 
 	if (ent->client->weaponstate != WEAPON_READY && ent->client->weaponstate != WEAPON_END_MAG) {
-		gi.cprintf(ent, PRINT_HIGH, "Can't bandage now\n");
+		gi.Center_Print(ent, "Can't bandage now\n");
 		return;
 	}
 
@@ -683,7 +660,7 @@ void Cmd_Bandage_f(edict_t *ent)
 		else
 			damage = GRENADE_DAMRAD;
 			
-		if(ent->client->quad_framenum > level.framenum)
+		if(ent->client->quad_framenum > level.time + 1_sec)
 			damage *= 1.5f;
 
 		fire_grenade2(ent, ent->s.origin, vec3_origin, damage, 0, 2 * HZ, damage * 2, false);
@@ -700,7 +677,7 @@ void Cmd_Bandage_f(edict_t *ent)
 	ent->client->desired_fov = 90;
 	if (ent->client->weapon)
 		ent->client->ps.gunindex = gi.modelindex(ent->client->weapon->view_model);
-	gi.cprintf(ent, PRINT_HIGH, "You've started bandaging\n");
+	gi.Center_Print(ent, "You've started bandaging\n");
 }
 
 // function called in generic_weapon function that does the bandaging
@@ -722,10 +699,10 @@ void Bandage(edict_t * ent)
 void Cmd_ID_f(edict_t * ent)
 {
 	if (!ent->client->pers.id) {
-		gi.cprintf(ent, PRINT_HIGH, "Disabling player identification display.\n");
+		gi.Center_Print(ent, "Disabling player identification display.\n");
 		ent->client->pers.id = 1;
 	} else {
-		gi.cprintf(ent, PRINT_HIGH, "Activating player identification display.\n");
+		gi.Center_Print(ent, "Activating player identification display.\n");
 		ent->client->pers.id = 0;
 	}
 	return;
@@ -781,7 +758,7 @@ void SetIDView(edict_t * ent)
 		if (!who->inuse)
 			continue;
 
-		if ((who->solid == SOLID_NOT && who->deadflag != DEAD_DEAD) ||
+		if ((who->solid == SOLID_NOT && who->deadflag) ||
 			(ent->solid != SOLID_NOT && !OnSameTeam(ent, who)))
 			continue;
 
@@ -803,7 +780,7 @@ void Cmd_IR_f(edict_t * ent)
 	int band = 0;
 
 	if (!ir->value) {
-		gi.cprintf(ent, PRINT_HIGH, "IR vision not enabled on this server.\n");
+		gi.Center_Print(ent, "IR vision not enabled on this server.\n");
 		return;
 	}
 	if (INV_AMMO(ent, BAND_NUM))
@@ -813,16 +790,16 @@ void Cmd_IR_f(edict_t * ent)
 	if (ent->client->pers.irvision == 0)
 	{
 		if (band)
-			gi.cprintf(ent, PRINT_HIGH, "IR vision disabled.\n");
+			gi.Center_Print(ent, "IR vision disabled.\n");
 		else
-			gi.cprintf(ent, PRINT_HIGH, "IR vision will be disabled when you get a bandolier.\n");
+			gi.Center_Print(ent, "IR vision will be disabled when you get a bandolier.\n");
 	}
 	else
 	{
 		if (band)
-			gi.cprintf(ent, PRINT_HIGH, "IR vision enabled.\n");
+			gi.Center_Print(ent, "IR vision enabled.\n");
 		else
-			gi.cprintf(ent, PRINT_HIGH, "IR vision will be enabled when you get a bandolier.\n");
+			gi.Center_Print(ent, "IR vision will be enabled when you get a bandolier.\n");
 	}
 }
 
@@ -835,26 +812,26 @@ int GetWeaponNumFromArg(const char *s)
 	if (!s || !*s)
 		return 0;
 
-	for (i = 0; i<WEAPON_COUNT; i++) {
-		itemNum = WEAPON_FIRST + i;
+	for (i = 0; i < WEAPON_MAX - 1; i++) {
+		itemNum = MK23_NUM + i;
 		item = GET_ITEM(itemNum);
-		if (item->pickup_name && !Q_stricmp(s, item->pickup_name))
+		if (item->pickup_name && !strcmp(s, item->pickup_name))
 			return itemNum;
 	}
 
 	itemNum = 0;
 	// convert names a player might try (DW added a few)
-	if (!Q_stricmp(s, "mark 23 pistol"))
+	if (!strcmp(s, "mark 23 pistol"))
 		itemNum = MK23_NUM;
-	else if (!Q_stricmp(s, "A 2nd pistol") || !Q_stricmp(s, "akimbo"))
+	else if (!strcmp(s, "A 2nd pistol") || !strcmp(s, "akimbo"))
 		itemNum = DUAL_NUM;
-	else if (!Q_stricmp(s, "shotgun"))
+	else if (!strcmp(s, "shotgun"))
 		itemNum = M3_NUM;
-	else if (!Q_stricmp(s, "mp5"))
+	else if (!strcmp(s, "mp5"))
 		itemNum = MP5_NUM;
-	else if (!Q_stricmp(s, "sniper"))
+	else if (!strcmp(s, "sniper"))
 		itemNum = SNIPER_NUM;
-	else if (!Q_stricmp(s, "m4"))
+	else if (!strcmp(s, "m4"))
 		itemNum = M4_NUM;
 
 	return itemNum;
@@ -868,21 +845,21 @@ int GetItemNumFromArg(const char *s)
 	if (!s || !*s)
 		return 0;
 
-	for (i = 0; i<ITEM_COUNT; i++) {
-		itemNum = ITEM_FIRST + i;
+	for (i = 0; i < ITEM_MAX - 1; i++) {
+		itemNum = NO_ITEM_NUM + i;
 		item = GET_ITEM(itemNum);
-		if (item->pickup_name && !Q_stricmp(s, item->pickup_name))
+		if (item->pickup_name && !strcmp(s, item->pickup_name))
 			return itemNum;
 	}
 
 	itemNum = 0;
-	if (!Q_stricmp(s, "laser"))
+	if (!strcmp(s, "laser"))
 		itemNum = LASER_NUM;
-	else if (!Q_stricmp(s, "vest"))
+	else if (!strcmp(s, "vest"))
 		itemNum = KEV_NUM;
-	else if (!Q_stricmp(s, "slippers"))
+	else if (!strcmp(s, "slippers"))
 		itemNum = SLIP_NUM;
-	else if (!Q_stricmp(s, "helmet"))
+	else if (!strcmp(s, "helmet"))
 		itemNum = HELM_NUM;
 
 	return itemNum;
@@ -915,7 +892,7 @@ void Cmd_Choose_f(edict_t * ent)
 	case KNIFE_NUM:
 	case M4_NUM:
 		if (!WPF_ALLOWED(itemNum)) {
-			gi.cprintf(ent, PRINT_HIGH, "Weapon disabled on this server.\n");
+			gi.Center_Print(ent, "Weapon disabled on this server.\n");
 			return;
 		}
 		ent->client->pers.chosenWeapon = GET_ITEM(itemNum);
@@ -927,7 +904,7 @@ void Cmd_Choose_f(edict_t * ent)
 	case HELM_NUM:
 	case BAND_NUM:
 		if (!ITF_ALLOWED(itemNum)) {
-			gi.cprintf(ent, PRINT_HIGH, "Item disabled on this server.\n");
+			gi.Center_Print(ent, "Item disabled on this server.\n");
 			return;
 		}
 		ent->client->pers.chosenItem = GET_ITEM(itemNum);
@@ -936,7 +913,7 @@ void Cmd_Choose_f(edict_t * ent)
 	case S_KIT_NUM:
 	case A_KIT_NUM:
 	default:
-		gi.cprintf(ent, PRINT_HIGH, "Invalid weapon or item choice.\n");
+		gi.Center_Print(ent, "Invalid weapon or item choice.\n");
 		return;
 	}
 
@@ -961,9 +938,9 @@ void Cmd_Choose_f(edict_t * ent)
 			// How did you pick a kit not on the list?
 			itmText = "NONE";
 		}
-		gi.cprintf(ent, PRINT_HIGH, "Weapon selected: %s\nItem kit selected: %s\n", wpnText, itmText );
+		gi.Center_Print(ent, "Weapon selected: %s\nItem kit selected: %s\n", wpnText, itmText );
 	} else {
-		gi.cprintf(ent, PRINT_HIGH, "Weapon selected: %s\nItem selected: %s\n", wpnText, itmText );
+		gi.Center_Print(ent, "Weapon selected: %s\nItem selected: %s\n", wpnText, itmText );
 	}
 }
 
@@ -971,17 +948,17 @@ void Cmd_Choose_f(edict_t * ent)
 void Cmd_TKOk(edict_t * ent)
 {
 	if (!ent->enemy || !ent->enemy->inuse || !ent->enemy->client || (ent == ent->enemy)) {
-		gi.cprintf(ent, PRINT_HIGH, "Nothing to forgive\n");
+		gi.Center_Print(ent, "Nothing to forgive\n");
 	} else if (ent->client->resp.team == ent->enemy->client->resp.team) {
 		if (ent->enemy->client->resp.team_kills) {
-			gi.cprintf(ent, PRINT_HIGH, "You forgave %s\n", ent->enemy->client->pers.netname);
-			gi.cprintf(ent->enemy, PRINT_HIGH, "%s forgave you\n", ent->client->pers.netname);
+			gi.Center_Print(ent, "You forgave %s\n", ent->enemy->client->pers.netname);
+			gi.Center_Print(ent->enemy, "%s forgave you\n", ent->client->pers.netname);
 			ent->enemy->client->resp.team_kills--;
 			if (ent->enemy->client->resp.team_wounds)
 				ent->enemy->client->resp.team_wounds /= 2;
 		}
 	} else {
-		gi.cprintf(ent, PRINT_HIGH, "That's very noble of you...\n");
+		gi.Center_Print(ent, "That's very noble of you...\n");
 		gi.bprintf(PRINT_HIGH, "%s turned the other cheek\n", ent->client->pers.netname);
 	}
 	ent->enemy = NULL;
@@ -991,9 +968,9 @@ void Cmd_TKOk(edict_t * ent)
 void Cmd_FF_f( edict_t *ent )
 {
 	if( teamplay->value )
-		gi.cprintf( ent, PRINT_MEDIUM, "Friendly Fire %s\n", DMFLAGS(DF_NO_FRIENDLY_FIRE) ? "OFF": "ON" );
+		gi.Center_Print( ent, "Friendly Fire %s\n", DMFLAGS(DF_NO_FRIENDLY_FIRE) ? "OFF": "ON" );
 	else
-		gi.cprintf( ent, PRINT_MEDIUM, "FF only applies to teamplay.\n" );
+		gi.Center_Print( ent, "FF only applies to teamplay.\n" );
 }
 
 void Cmd_Time(edict_t * ent)
@@ -1012,9 +989,9 @@ void Cmd_Time(edict_t * ent)
 	}
 
 	if( timelimit->value )
-		gi.cprintf( ent, PRINT_HIGH, "Elapsed time: %d:%02d. Remaining time: %d:%02d\n", mins, secs, rmins, rsecs );
+		gi.Center_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d. Remaining time: %d:%02d\n", mins, secs, rmins, rsecs );
 	else
-		gi.cprintf( ent, PRINT_HIGH, "Elapsed time: %d:%02d\n", mins, secs );
+		gi.Center_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d\n", mins, secs );
 }
 
 void Cmd_Roundtimeleft_f(edict_t * ent)
@@ -1022,7 +999,7 @@ void Cmd_Roundtimeleft_f(edict_t * ent)
 	int remaining;
 
 	if(!teamplay->value) {
-		gi.cprintf(ent, PRINT_HIGH, "This command need teamplay to be enabled\n");
+		gi.Center_Print(ent, "This command need teamplay to be enabled\n");
 		return;
 	}
 
@@ -1033,7 +1010,7 @@ void Cmd_Roundtimeleft_f(edict_t * ent)
 		return;
 
 	remaining = (roundtimelimit->value * 60) - (current_round_length/10);
-	gi.cprintf(ent, PRINT_HIGH, "There is %d:%02i left in this round\n", remaining / 60, remaining % 60);
+	gi.Center_Print(ent, "There is %d:%02i left in this round\n", remaining / 60, remaining % 60);
 }
 
 /*
@@ -1091,12 +1068,12 @@ void Cmd_Ghost_f(edict_t * ent)
 	gghost_t *ghost = NULL;
 
 	if (!use_ghosts->value) {
-		gi.cprintf(ent, PRINT_HIGH, "Ghosting is not enabled on this server\n");
+		gi.Center_Print(ent, "Ghosting is not enabled on this server\n");
 		return;
 	}
 
 	if (num_ghost_players == 0) {
-		gi.cprintf(ent, PRINT_HIGH, "No ghost match found\n");
+		gi.Center_Print(ent, "No ghost match found\n");
 		return;
 	}
 
@@ -1107,11 +1084,11 @@ void Cmd_Ghost_f(edict_t * ent)
 	}
 
 	if (i >= num_ghost_players) {
-		gi.cprintf( ent, PRINT_HIGH, "No ghost match found\n" );
+		gi.Center_Print( ent, PRINT_HIGH, "No ghost match found\n" );
 		return;
 	}
 
-	gi.cprintf( ent, PRINT_HIGH, "Welcome back %s\n", ent->client->pers.netname );
+	gi.Center_Print( ent, PRINT_HIGH, "Welcome back %s\n", ent->client->pers.netname );
 	frames_since = level.framenum - ghost->disconnect_frame;
 	ent->client->resp.enterframe = ghost->enterframe + frames_since;
 	ent->client->resp.score = ghost->score;
@@ -1205,20 +1182,20 @@ void Cmd_Volunteer_f(edict_t * ent)
 
 	// Ignore if not Espionage mode
 	if (!esp->value) {
-		gi.cprintf(ent, PRINT_HIGH, "This command needs Espionage to be enabled\n");
+		gi.Center_Print(ent, "This command needs Espionage to be enabled\n");
 		return;
 	}
 
 	// Ignore entity if not on a team
 	teamNum = ent->client->resp.team;
 	if (teamNum == NOTEAM) {
-		gi.cprintf(ent, PRINT_HIGH, "You need to be on a team for that...\n");
+		gi.Center_Print(ent, "You need to be on a team for that...\n");
 		return;
 	}
 
 	// Ignore entity if they are a sub
 	if (ent->client->resp.subteam == teamNum) {
-		gi.cprintf(ent, PRINT_HIGH, "Subs cannot be leaders...\n");
+		gi.Center_Print(ent, "Subs cannot be leaders...\n");
 		return;
 	}
 
@@ -1231,7 +1208,7 @@ void Cmd_Volunteer_f(edict_t * ent)
 
 	// If the team already has a leader, send this message to the ent volunteering
 	if (oldLeader) {
-		gi.cprintf( ent, PRINT_HIGH, "Your team already has a leader (%s)\n",
+		gi.Center_Print( ent, "Your team already has a leader (%s)\n",
 			teams[teamNum].leader->client->pers.netname );
 		return;
 	}
