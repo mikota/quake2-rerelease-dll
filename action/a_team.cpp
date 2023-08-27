@@ -896,7 +896,7 @@ void AssignSkin (edict_t * ent, const char *s, bool nickChanged)
 			Com_sprintf(skin, sizeof(skin), "%s\\%s", ent->client->pers.netname, default_skin);
 			break;
 		}
-		//gi.dprintf("I assigned skin  %s  to  %s\n", skin, ent->client->pers.netname);
+		//gi.Com_PrintFmt_("I assigned skin  %s  to  %s\n", skin, ent->client->pers.netname);
 	}
 	else
 	{
@@ -1075,12 +1075,12 @@ void JoinTeam (edict_t * ent, int desired_team, int skip_menuclose)
 	if (ctf->value)
 	{
 		ent->client->resp.ctf_state = CTF_STATE_START;
-		gi.bprintf (PRINT_HIGH, "%s %s %s.\n", ent->client->pers.netname, a, CTFTeamName(desired_team));
+		gi.Broadcast_Print (PRINT_HIGH, "%s %s %s.\n", ent->client->pers.netname, a, CTFTeamName(desired_team));
 		IRC_printf (IRC_T_GAME, "%n %s %n.", ent->client->pers.netname, a, CTFTeamName(desired_team));
 	}
 	else
 	{
-		gi.bprintf (PRINT_HIGH, "%s %s %s.\n", ent->client->pers.netname, a, TeamName(desired_team));
+		gi.Broadcast_Print (PRINT_HIGH, "%s %s %s.\n", ent->client->pers.netname, a, TeamName(desired_team));
 		IRC_printf (IRC_T_GAME, "%n %s %n.", ent->client->pers.netname, a, TeamName(desired_team));
 	}
 
@@ -1437,12 +1437,15 @@ void CleanLevel ()
 	edict_t *ent;
 	base = 1 + game.maxclients + BODY_QUEUE_SIZE;
 	ent = g_edicts + base;
+	action_weapon_num_t weapNum;
+	action_item_num_t itemNum;
+	action_ammo_num_t ammoNum;
 	
 	for (i = base; i < globals.num_edicts; i++, ent++)
 	{
 		if (!ent->classname)
 			continue;
-		switch (ent->typeNum) {
+		switch (weapNum) {
 			case MK23_NUM:
 			case MP5_NUM:
 			case M4_NUM:
@@ -1452,12 +1455,20 @@ void CleanLevel ()
 			case DUAL_NUM:
 			case KNIFE_NUM:
 			case GRENADE_NUM:
+			G_FreeEdict( ent );
+				break;
+		}
+		switch (itemNum) {
 			case SIL_NUM:
 			case SLIP_NUM:
 			case BAND_NUM:
 			case KEV_NUM:
 			case LASER_NUM:
 			case HELM_NUM:
+			G_FreeEdict( ent );
+				break;
+		}
+		switch (ammoNum) {
 			case MK23_ANUM:
 			case MP5_ANUM:
 			case M4_ANUM:
@@ -1465,14 +1476,15 @@ void CleanLevel ()
 			case SNIPER_ANUM:
 				G_FreeEdict( ent );
 				break;
-			default:
-				if((ent->die == gib_die)
-				|| (strcmp( ent->classname, "medkit" ) == 0)
-				|| (strcmp( ent->classname, "decal" ) == 0)
-				|| (strcmp( ent->classname, "splat" ) == 0)
-				|| (strcmp( ent->classname, "shell" ) == 0))
-					G_FreeEdict( ent );
 		}
+
+		if((ent->die == gib_die)
+		|| (strcmp( ent->classname, "medkit" ) == 0)
+		|| (strcmp( ent->classname, "decal" ) == 0)
+		|| (strcmp( ent->classname, "splat" ) == 0)
+		|| (strcmp( ent->classname, "shell" ) == 0))
+			G_FreeEdict( ent );
+
 	}
 	
 	CleanBodies();
@@ -1650,14 +1662,14 @@ int CheckForWinner()
 			// Check if this value is 1, which means the escorting team wins
 			// By default it is 0
 			if (espsettings.escortcap == 1) {
-				gi.dprintf("The winner was team %d\n", TEAM1);
+				gi.Com_PrintFmt_("The winner was team %d\n", TEAM1);
 				return TEAM1;
 			} else if (teams[TEAM1].leader_dead){
-				gi.dprintf("The winner was team %d\n", TEAM2);
+				gi.Com_PrintFmt_("The winner was team %d\n", TEAM2);
 				return TEAM2;
 			}
 		}
-	//gi.dprintf("Escortcap value is %d\n", espsettings.escortcap);
+	//gi.Com_PrintFmt_("Escortcap value is %d\n", espsettings.escortcap);
 	
 	} else if (!esp->value) {
 		for (i = 0; i < game.maxclients; i++){
@@ -1833,13 +1845,13 @@ void RunWarmup ()
 		if (!ent->client->pers.chosenWeapon || !ent->client->pers.chosenItem)
 			continue;
 
-		dead = (ent->solid == SOLID_NOT && ent->deadflag == DEAD_NO && ent->movetype == MOVETYPE_NOCLIP);
-		if (dead && ent->client->latched_buttons & BUTTON_ATTACK)
+		//dead = (ent->solid == SOLID_NOT && ent->deadflag == DEAD_NO && ent->movetype == MOVETYPE_NOCLIP);
+		if (!IS_ALIVE(ent) && ent->client->latched_buttons & BUTTON_ATTACK)
 		{
 			ent->client->latched_buttons = 0;
 			PutClientInServer(ent);
 			AddToTransparentList(ent);
-			gi.centerprintf(ent, "WARMUP");
+			gi.Center_Print(ent, "WARMUP");
 		}
 	}
 	#ifdef USE_AQTION
@@ -1959,11 +1971,9 @@ void MakeAllLivePlayersObservers (void)
 void PrintScores (void)
 {
 	if (teamCount == 3) {
-		gi.bprintf (PRINT_HIGH, "Current score is %s: %d to %s: %d to %s: %d\n", TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score, TeamName (TEAM3), teams[TEAM3].score);
-		IRC_printf (IRC_T_TOPIC, "Current score on map %n is %n: %k to %n: %k to %n: %k", level.mapname, TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score, TeamName (TEAM3), teams[TEAM3].score);
+		gi.Broadcast_Print(PRINT_HIGH, "Current score is %s: %d to %s: %d to %s: %d\n", TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score, TeamName (TEAM3), teams[TEAM3].score);
 	} else {
-		gi.bprintf (PRINT_HIGH, "Current score is %s: %d to %s: %d\n", TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score);
-		IRC_printf (IRC_T_TOPIC, "Current score on map %n is %n: %k to %n: %k", level.mapname, TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score);
+		gi.Broadcast_Print(PRINT_HIGH, "Current score is %s: %d to %s: %d\n", TeamName (TEAM1), teams[TEAM1].score, TeamName (TEAM2), teams[TEAM2].score);
 	}
 }
 
@@ -1987,8 +1997,7 @@ bool CheckTimelimit( void )
 				MakeAllLivePlayersObservers();
 				ctfgame.halftime = 0;
 			} else {
-				gi.bprintf( PRINT_HIGH, "Timelimit hit.\n" );
-				IRC_printf( IRC_T_GAME, "Timelimit hit." );
+				gi.Broadcast_Print( PRINT_HIGH, "Timelimit hit.\n" );
 				if (!(gameSettings & GS_ROUNDBASED))
 					ResetPlayers();
 				EndDMLevel();
@@ -2039,8 +2048,7 @@ static bool CheckRoundTimeLimit( void )
 		{
 			int winTeam = NOTEAM;
 
-			gi.bprintf( PRINT_HIGH, "Round timelimit hit.\n" );
-			IRC_printf( IRC_T_GAME, "Round timelimit hit." );
+			gi.Broadcast_Print( PRINT_HIGH, "Round timelimit hit.\n" );
 
 			winTeam = CheckForForcedWinner();
 			if (WonGame( winTeam ))
@@ -2061,13 +2069,13 @@ static bool CheckRoundTimeLimit( void )
 			
 			if (roundLimitFrames <= 600)
 			{
-				CenterPrintAll( "1 MINUTE LEFT..." );
+				gi.Broadcast_Print(PRINT_HIGH, "1 MINUTE LEFT..." );
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex( "tng/1_minute.wav" ), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 2;
 			}
 			else if (roundLimitFrames <= 1800 && timewarning < 1 && roundtimelimit->value > 3)
 			{
-				CenterPrintAll( "3 MINUTES LEFT..." );
+				gi.Broadcast_Print(PRINT_HIGH, "3 MINUTES LEFT..." );
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex( "tng/3_minutes.wav" ), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 1;
 			}
@@ -2101,8 +2109,7 @@ static bool CheckRoundLimit( void )
 				team_round_going = team_round_countdown = team_game_going = 0;
 				MakeAllLivePlayersObservers();
 			} else {
-				gi.bprintf( PRINT_HIGH, "Roundlimit hit.\n" );
-				IRC_printf( IRC_T_GAME, "Roundlimit hit." );
+				gi.Broadcast_Print( PRINT_HIGH, "Roundlimit hit.\n" );
 				EndDMLevel();
 			}
 			team_round_going = team_round_countdown = team_game_going = 0;
@@ -2120,12 +2127,10 @@ int WonGame (int winner)
 	int i;
 	char arg[64];
 
-	gi.bprintf (PRINT_HIGH, "The round is over:\n");
-	IRC_printf (IRC_T_GAME, "The round is over:");
+	gi.Broadcast_Print(PRINT_HIGH, "The round is over:\n");
 	if (winner == WINNER_TIE)
 	{
-		gi.bprintf (PRINT_HIGH, "It was a tie, no points awarded!\n");
-		IRC_printf (IRC_T_GAME, "It was a tie, no points awarded!");
+		gi.Broadcast_Print(PRINT_HIGH, "It was a tie, no points awarded!\n");
 
 		if(use_warnings->value)
 			gi.sound(&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, level.snd_teamwins[0], 1.0, ATTN_NONE, 0.0);
@@ -2142,17 +2147,13 @@ int WonGame (int winner)
 
 			if (player)
 			{
-				gi.bprintf (PRINT_HIGH, "%s was victorious!\n",
-				player->client->pers.netname);
-				IRC_printf (IRC_T_GAME, "%n was victorious!",
-				player->client->pers.netname);
+				gi.Broadcast_Print(PRINT_HIGH, "%s was victorious!\n", player->client->pers.netname);
 				TourneyWinner (player);
 			}
 		}
 		else
 		{
-			gi.bprintf (PRINT_HIGH, "%s won!\n", TeamName(winner));
-			IRC_printf (IRC_T_GAME, "%n won!", TeamName(winner));
+			gi.Broadcast_Print(PRINT_HIGH, "%s won!\n", TeamName(winner));
 			// AQ:TNG Igor[Rock] changing sound dir
 			if(use_warnings->value)
 				gi.sound(&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, level.snd_teamwins[winner], 1.0, ATTN_NONE, 0.0);
@@ -2161,7 +2162,7 @@ int WonGame (int winner)
 			if (esp->value) {
 				for (i = 0; i <= teamCount; i++) {
 					// Reset leader_dead for all teams before next round starts and set escortcap to 0
-					gi.dprintf("Resetting team %d leader status to false\n", i);
+					gi.Com_PrintFmt_("Resetting team %d leader status to false\n", i);
 					espsettings.escortcap = 0;
 					teams[i].leader_dead = false;
 				}
@@ -2392,7 +2393,7 @@ int CheckTeamRules (void)
 						strftime( ltm, 64, "%Y%m%d-%H%M%S", now );
 						Com_sprintf( mvdstring, sizeof(mvdstring), "mvdrecord %s-%s\n", ltm, level.mapname );
 						gi.AddCommandString( mvdstring );
-						gi.bprintf( PRINT_HIGH, "Starting MVD recording to file %s-%s.mvd2\n", ltm, level.mapname );
+						gi.Broadcast_Print( PRINT_HIGH, "Starting MVD recording to file %s-%s.mvd2\n", ltm, level.mapname );
 					}
 					// JBravo: End MVD2
 				}
@@ -2577,7 +2578,7 @@ int G_SortedClients( gclient_t **sortedList )
 	gclient_t *client;
 
 	for (i = 0, client = game.clients; i < game.maxclients; i++, client++) {
-		if (!client->pers.connected || client->pers.mvdspec)
+		if (!client->pers.connected)
 			continue;
 
 		sortedList[total++] = client;
@@ -2594,7 +2595,7 @@ int G_NotSortedClients( gclient_t **sortedList )
 	gclient_t *client;
 
 	for (i = 0, client = game.clients; i < game.maxclients; i++, client++) {
-		if (!client->pers.connected || client->pers.mvdspec)
+		if (!client->pers.connected)
 			continue;
 
 		sortedList[total++] = client;
@@ -2901,7 +2902,7 @@ void A_ScoreboardMessage (edict_t * ent, edict_t * killer)
 			}
 
 			if (ctf->value)
-				flagindex = (i == TEAM1) ? items[FLAG_T1_NUM].index : items[FLAG_T2_NUM].index;
+				flagindex = (i == TEAM1) ? items[IT_FLAG1].index : items[IT_FLAG2].index;
 
 			printCount = 0;
 			totalaliveprinted = 0;
@@ -3226,7 +3227,7 @@ void A_ScoreboardMessage (edict_t * ent, edict_t * killer)
 	}
 
 	if (strlen(string) > MAX_SCOREBOARD_SIZE - 1) { // for debugging...
-		gi.dprintf("Warning: scoreboard string neared or exceeded max length\nDump:\n%s\n---\n", string);
+		gi.Com_PrintFmt_("Warning: scoreboard string neared or exceeded max length\nDump:\n%s\n---\n", string);
 		string[MAX_SCOREBOARD_SIZE - 1] = '\0';
 	}
 
@@ -3290,26 +3291,26 @@ void GetSpawnPoints (void)
 
 	num_potential_spawns = 0;
 
-	if ((spot = G_Find (spot, FOFS (classname), "info_player_team1")) != NULL)
+	if ((spot = G_FindByString<&edict_t::classname>(spot, "info_player_team1")) != nullptr)
 	{
 		potential_spawns[num_potential_spawns] = spot;
 		num_potential_spawns++;
 	}
 
-	if ((spot = G_Find (spot, FOFS (classname), "info_player_team2")) != NULL)
+	if ((spot = G_FindByString<&edict_t::classname>(spot, "info_player_team2")) != nullptr)
 	{
 		potential_spawns[num_potential_spawns] = spot;
 		num_potential_spawns++;
 	}
 
 	spot = NULL;
-	while ((spot = G_Find (spot, FOFS (classname), "info_player_deathmatch")) != NULL)
+	while ((spot = G_FindByString<&edict_t::classname>(spot, "info_player_deathmatch")) != nullptr)
 	{
 		potential_spawns[num_potential_spawns] = spot;
 		num_potential_spawns++;
 		if (num_potential_spawns >= MAX_SPAWNS)
 		{
-			gi.dprintf ("Warning: MAX_SPAWNS exceeded\n");
+			gi.Com_PrintFmt_("Warning: MAX_SPAWNS exceeded\n");
 			break;
 		}
 	}
@@ -3345,7 +3346,7 @@ void SelectFarTeamplaySpawnPoint (int team, bool teams_assigned[])
 	float closest_spawn_distance, distance;
 
 	if (team < 0 || team >= MAX_TEAMS) {
-		gi.dprintf( "Out-of-range teams value in SelectFarTeamplaySpawnPoint, skipping...\n" );
+		gi.Com_PrintFmt_( "Out-of-range teams value in SelectFarTeamplaySpawnPoint, skipping...\n" );
 		return;
 	}
 
@@ -3384,7 +3385,7 @@ void SelectFarTeamplaySpawnPoint (int team, bool teams_assigned[])
 		preferred_spawn_points = 3;
 
 	//FB 6/1/99 - make DF_SPAWN_FARTHEST force far spawn points in TP
-	if (DMFLAGS(DF_SPAWN_FARTHEST))
+	if (g_dm_spawn_farthest->integer)
 		preferred_spawn_points = 1;
 	//FB 6/1/99
 
@@ -3445,7 +3446,7 @@ bool NS_SelectRandomTeamplaySpawnPoint (int team, bool teams_assigned[])
 	int spawn_point, z;
 
 	if (NS_num_potential_spawns[team] < 1) {
-		gi.dprintf("New Spawncode: gone through all spawns, re-reading spawns\n");
+		gi.Com_PrintFmt_("New Spawncode: gone through all spawns, re-reading spawns\n");
 		NS_GetSpawnPoints ();
 		NS_SetupTeamSpawnPoints ();
 		return false;
@@ -3478,7 +3479,7 @@ bool NS_SelectFarTeamplaySpawnPoint (int team, bool teams_assigned[])
 	int num_usable;
 
 	if (team < 0 || team >= MAX_TEAMS) {
-		gi.dprintf( "Out-of-range teams value in SelectFarTeamplaySpawnPoint, skipping...\n" );
+		gi.Com_PrintFmt_( "Out-of-range teams value in SelectFarTeamplaySpawnPoint, skipping...\n" );
 		return false;
 	}
 
@@ -3519,7 +3520,7 @@ bool NS_SelectFarTeamplaySpawnPoint (int team, bool teams_assigned[])
 		preferred_spawn_points = 3;
 
 	//FB 6/1/99 - make DF_SPAWN_FARTHEST force far spawn points in TP
-	if (DMFLAGS(DF_SPAWN_FARTHEST))
+	if (g_dm_spawn_farthest->integer)
 		preferred_spawn_points = 1;
 	//FB 6/1/99
 
@@ -3586,7 +3587,7 @@ Obviously, do not use this for 3team functions
 int OtherTeam(int teamNum)
 {
 	if (teamNum < 0 || teamNum > TEAM2) {
-		gi.dprintf("OtherTeam() was called but parameter supplied is not 1 or 2");
+		gi.Com_PrintFmt_("OtherTeam() was called but parameter supplied is not 1 or 2");
 		return 0;
 	}
 

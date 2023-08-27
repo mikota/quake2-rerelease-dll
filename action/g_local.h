@@ -1277,6 +1277,43 @@ struct level_locals_t
 	bool story_active;
 	gtime_t next_auto_save;
 	gtime_t next_match_report;
+
+	// Action
+	int32_t pic_items[ITEM_MAX_NUM];
+	int32_t pic_weapon_ammo[WEAPON_MAX];
+	int32_t pic_sniper_mode[SNIPER_MODE_MAX];
+	int32_t pic_teamskin[TEAM_TOP];
+	int32_t pic_teamtag;
+	
+	int32_t pic_ctf_teamtag[TEAM_TOP];
+	int32_t pic_ctf_flagbase[TEAM_TOP];
+	int32_t pic_ctf_flagtaken[TEAM_TOP];
+	int32_t pic_ctf_flagdropped[TEAM_TOP];
+
+	int pic_leaderskin[TEAM_TOP];  
+	int pic_esp_teamtag[TEAM_TOP];
+	int pic_esp_marker[TEAM_TOP];
+
+	float matchTime;
+	float emptyTime;
+	int weapon_sound_framenum;
+
+	int32_t snd_fry;
+	int32_t snd_lights;
+	int32_t snd_camera;
+	int32_t snd_action;
+	int32_t snd_teamwins[TEAM_TOP];
+	int32_t snd_silencer;
+	int32_t snd_headshot;
+	int32_t snd_vesthit;
+	int32_t snd_knifethrow;
+	int32_t snd_kick;
+	int32_t snd_noammo;
+
+	int32_t model_null;
+	int32_t model_lsight;
+
+	int32_t roundNum;
 };
 
 struct shadow_light_temp_t
@@ -2720,6 +2757,8 @@ typedef struct itemList_s
 // Add all max values of enum, subtract by the number of declared enums since it's zero-indexed
 extern itemList_t items[WEAPON_MAX + ITEM_MAX + AMMO_MAX - 3];
 
+#define ITEM_MAX_NUM WEAPON_MAX+ITEM_MAX+AMMO_MAX
+
 
 // #define FLAG_T1_NUM				21
 // #define FLAG_T2_NUM				22
@@ -2763,7 +2802,8 @@ enum action_gamemodes_t
 	GM_CTF,
 	GM_TOURNEY,
 	GM_DEATHMATCH,
-	GM_DOMINATION
+	GM_DOMINATION,
+	GM_ESPIONAGE
 };
 
 enum action_gamemodeflags_t
@@ -3411,20 +3451,21 @@ struct client_persistant_t
 	gtime_t n64_crouch_warning;
 
 	// action
+	int32_t firing_style;
 	gitem_t *chosenItem;		// item for teamplay
 	gitem_t *chosenWeapon;	// weapon for teamplay
 	gitem_t *chosenItem2;		// Support for item kit mode
 
-	int menu_shown;		// has the main menu been shown
+	int32_t menu_shown;		// has the main menu been shown
 	bool dm_selected;		// if dm weapon selection has been done once
-	int mk23_mode;		// firing mode, semi or auto
-	int mp5_mode;
-	int m4_mode;
-	int knife_mode;
-	int grenade_mode;
-	int hc_mode;
-	int id;			// id command on or off
-	int irvision;			// ir on or off (only matters if player has ir device, currently bandolier)
+	int32_t mk23_mode;		// firing mode, semi or auto
+	int32_t mp5_mode;
+	int32_t m4_mode;
+	int32_t knife_mode;
+	int32_t grenade_mode;
+	int32_t hc_mode;
+	int32_t id;			// id command on or off
+	int32_t irvision;			// ir on or off (only matters if player has ir device, currently bandolier)
 
 	//ignorelist_t ignorelist;  // TODO: Add this ?
 };

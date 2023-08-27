@@ -102,7 +102,7 @@ void LaserSightThink(edict_t * self)
 	self->s.modelindex = (tr.surface && (tr.surface->flags & SURF_SKY)) ? level.model_null : level.model_lsight;
 
 	gi.linkentity(self);
-	self->nextthink = level.framenum + 1;
+	self->nextthink = level.time + FRAME_TIME_S;
 }
 
 void Cmd_New_Reload_f(edict_t * ent)
@@ -456,7 +456,7 @@ void Cmd_NextMap_f(edict_t * ent)
 		rot_type = "repeated";
 	}
 
-	gi.Client_Print( ent, PRINT_HIGH, "Next map %s is %s (%i/%i).\n", rot_type, next_map, map_num+1, num_maps );
+	gi.LocClient_Print( ent, PRINT_HIGH, "Next map %s is %s (%i/%i).\n", rot_type, next_map, map_num+1, num_maps );
 }
 
 void Cmd_Lens_f(edict_t * ent)
@@ -662,7 +662,7 @@ void Cmd_Bandage_f(edict_t *ent)
 		else
 			damage = GRENADE_DAMRAD;
 			
-		if(ent->client->quad_framenum > level.time + 1_sec)
+		if(ent->client->quad_time > level.time + 1_sec)
 			damage *= 1.5f;
 
 		fire_grenade2(ent, ent->s.origin, vec3_origin, damage, 0, 2 * HZ, damage * 2, false);
@@ -1075,104 +1075,66 @@ Cmd_Ghost_f
 
 Person gets frags/kills/damage/weapon/item/team/stats back if he disconnected
 */
-void Cmd_Ghost_f(edict_t * ent)
-{
-	int i = 0, frames_since = 0;
-	gghost_t *ghost = NULL;
 
-	if (!use_ghosts->value) {
-		gi.Center_Print(ent, "Ghosting is not enabled on this server\n");
-		return;
-	}
+//TODO: Reenable at some point?
+// void Cmd_Ghost_f(edict_t * ent)
+// {
+// 	int i = 0, frames_since = 0;
+// 	gghost_t *ghost = NULL;
 
-	if (num_ghost_players == 0) {
-		gi.Center_Print(ent, "No ghost match found\n");
-		return;
-	}
+// 	if (!use_ghosts->value) {
+// 		gi.Center_Print(ent, "Ghosting is not enabled on this server\n");
+// 		return;
+// 	}
 
-	for (i = 0, ghost = ghost_players; i < num_ghost_players; i++, ghost++) {
-		if (!strcmp(ghost->ip, ent->client->pers.ip) && !strcmp(ghost->netname, ent->client->pers.netname)) {
-			break;
-		}
-	}
+// 	if (num_ghost_players == 0) {
+// 		gi.Center_Print(ent, "No ghost match found\n");
+// 		return;
+// 	}
 
-	if (i >= num_ghost_players) {
-		gi.Client_Print( ent, PRINT_HIGH, "No ghost match found\n" );
-		return;
-	}
+// 	for (i = 0, ghost = ghost_players; i < num_ghost_players; i++, ghost++) {
+// 		if (!strcmp(ghost->ip, ent->client->pers.ip) && !strcmp(ghost->netname, ent->client->pers.netname)) {
+// 			break;
+// 		}
+// 	}
 
-	gi.Client_Print( ent, PRINT_HIGH, "Welcome back %s\n", ent->client->pers.netname );
-	frames_since = level.framenum - ghost->disconnect_frame;
-	ent->client->resp.enterframe = ghost->enterframe + frames_since;
-	ent->client->resp.score = ghost->score;
-	ent->client->resp.kills = ghost->kills;
-	ent->client->resp.deaths = ghost->deaths;
-	ent->client->resp.damage_dealt = ghost->damage_dealt;
-	ent->client->resp.ctf_caps = ghost->ctf_caps;
+// 	if (i >= num_ghost_players) {
+// 		gi.Client_Print( ent, PRINT_HIGH, "No ghost match found\n" );
+// 		return;
+// 	}
 
-	if (teamplay->value && ghost->team && ghost->team != ent->client->resp.team)
-			JoinTeam( ent, ghost->team, 1 );
+// 	gi.Client_Print( ent, PRINT_HIGH, "Welcome back %s\n", ent->client->pers.netname );
+// 	frames_since = level.framenum - ghost->disconnect_frame;
+// 	ent->client->resp.enterframe = ghost->enterframe + frames_since;
+// 	ent->client->resp.score = ghost->score;
+// 	ent->client->resp.kills = ghost->kills;
+// 	ent->client->resp.deaths = ghost->deaths;
+// 	ent->client->resp.damage_dealt = ghost->damage_dealt;
+// 	ent->client->resp.ctf_caps = ghost->ctf_caps;
 
-	if (gameSettings & GS_WEAPONCHOOSE) {
-		if (ghost->weapon)
-			ent->client->pers.chosenWeapon = ghost->weapon;
+// 	if (teamplay->value && ghost->team && ghost->team != ent->client->resp.team)
+// 			JoinTeam( ent, ghost->team, 1 );
 
-		if (ghost->item)
-			ent->client->pers.chosenItem = ghost->item;
-	}
+// 	if (gameSettings & GS_WEAPONCHOOSE) {
+// 		if (ghost->weapon)
+// 			ent->client->pers.chosenWeapon = ghost->weapon;
 
-	ent->client->resp.shotsTotal = ghost->shotsTotal;
-	ent->client->resp.hitsTotal = ghost->hitsTotal;
+// 		if (ghost->item)
+// 			ent->client->pers.chosenItem = ghost->item;
+// 	}
 
-	memcpy(ent->client->resp.hitsLocations, ghost->hitsLocations, sizeof(ent->client->resp.hitsLocations));
-	memcpy(ent->client->resp.gunstats, ghost->gunstats, sizeof(ent->client->resp.gunstats));
+// 	ent->client->resp.shotsTotal = ghost->shotsTotal;
+// 	ent->client->resp.hitsTotal = ghost->hitsTotal;
 
-	//Remove it from the list
-	for (i += 1; i < num_ghost_players; i++) {
-		ghost_players[i - 1] = ghost_players[i];
-	}
-	num_ghost_players--;
-}
+// 	memcpy(ent->client->resp.hitsLocations, ghost->hitsLocations, sizeof(ent->client->resp.hitsLocations));
+// 	memcpy(ent->client->resp.gunstats, ghost->gunstats, sizeof(ent->client->resp.gunstats));
 
-
-#if USE_AQTION
-void generate_uuid()
-{
-#ifdef WIN32
-#if _MSC_VER >= 1920 && !__INTEL_COMPILER
-     UUID uuid;
-     unsigned char* uuidStr;
-
-     if (UuidCreate(&uuid) != RPC_S_OK)
-     {
-         gi.dprintf("%s unable to create UUID\n", __func__);
-         return;
-     }
-     if (UuidToStringA(&uuid, &uuidStr) != RPC_S_OK)
-     {
-         gi.dprintf("%s unable to format UUID as a string\n", __func__);
-         return;
-     }
-
-     strncpy(game.matchid, uuidStr, MAX_QPATH);
-     //gi.dprintf("%s UUID: %s\n", __func__, game.matchid);
-
-     if (RpcStringFreeA(&uuidStr) != RPC_S_OK)
-     {
-         gi.dprintf("Failed to free UUID display string\n", __func__);
-         return;
-     }
-#endif
-#else
-    char uuidBuff[MAX_QPATH]; // Make the buffer slightly larger than required
-    uuid_t uuidGenerated;
-    uuid_generate_random(uuidGenerated); // The UUID is 16 bytes (128 bits) long, which gives approximately 3.4x10^38 unique values
-    uuid_unparse(uuidGenerated, uuidBuff);
-    strncpy(game.matchid, uuidBuff, MAX_QPATH);
-    //gi.dprintf("%s UUID: %s\n", __func__, game.matchid);
-#endif
-}
-#endif
+// 	//Remove it from the list
+// 	for (i += 1; i < num_ghost_players; i++) {
+// 		ghost_players[i - 1] = ghost_players[i];
+// 	}
+// 	num_ghost_players--;
+// }
 
 void Cmd_Volunteer_f(edict_t * ent)
 {
