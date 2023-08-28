@@ -474,7 +474,7 @@ void Subtract_Frag(edict_t * ent)
 		teams[ent->client->resp.team].score--;
 }
 
-void Add_Death( edict_t *ent, qboolean end_streak )
+void Add_Death( edict_t *ent, bool end_streak )
 {
 	if( in_warmup )
 		return;
@@ -669,7 +669,7 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 	char *message;
 	char *message2;
 	char death_msg[1024];	// enough in all situations? -FB
-	qboolean friendlyFire;
+	bool friendlyFire;
 	char *special_message = NULL;
 	int n;
 
@@ -1260,7 +1260,7 @@ void EjectMedKit( edict_t *ent, int medkit )
 void TossItemsOnDeath(edict_t * ent)
 {
 	gitem_t *item;
-	qboolean quad;
+	bool quad;
 	int i;
 
 	// don't bother dropping stuff when allweapons/items is active
@@ -1310,7 +1310,7 @@ void TossClientWeapon(edict_t * self)
 {
 	gitem_t *item;
 	edict_t *drop;
-	qboolean quad;
+	bool quad;
 	float spread;
 
 	item = self->client->weapon;
@@ -1475,7 +1475,7 @@ void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 		((self->health < -20) && (mod == MOD_M3))) && (sv_gib->value)) {
 		gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 5; n++)
-			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
+			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_NONE);
 		ThrowClientHead(self, damage);
 		self->client->anim_priority = ANIM_DEATH;
 		self->client->anim_end = 0;
@@ -1513,7 +1513,7 @@ void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 							for (n = 0; n < 8; n++)
 								ThrowGib(self,
 									 "models/objects/gibs/sm_meat/tris.md2",
-									 damage, GIB_ORGANIC);
+									 damage, GIB_NONE);
 							ThrowClientHead(self, damage);
 						}
 					}
@@ -1707,7 +1707,7 @@ void SelectSpawnPoint(edict_t * ent, vec3_t origin, vec3_t angles)
 
 	// find a single player start spot
 	if (!spot) {
-		gi.dprintf("Warning: failed to find deathmatch spawn point\n");
+		gi.Com_PrintFmt("Warning: failed to find deathmatch spawn point\n");
 
 		while ((spot = G_Find(spot, FOFS(classname), "info_player_start")) != NULL) {
 			if (!game.spawnpoint[0] && !spot->targetname)
@@ -1758,7 +1758,7 @@ void body_die(edict_t * self, edict_t * inflictor, edict_t * attacker, int damag
 		// remove gibbing
 /*                gi.sound (self, CHAN_BODY, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
                 for (n= 0; n < 4; n++)
-                        ThrowGib (self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
+                        ThrowGib (self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_NONE);
                 self->s.origin[2] -= 48;
                 ThrowClientHead (self, damage);*/
 		self->takedamage = DAMAGE_NO;
@@ -2251,7 +2251,7 @@ void ClientLegDamage(edict_t *ent)
 			if (e_enhancedSlippers->value && INV_AMMO(ent, SLIP_NUM)) // we don't limp with enhanced slippers, so just ignore this leg damage.
 				break;
 
-			ent->client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
+			ent->client->ps.pmove.pm_flags |= PMF_NO_POSITIONAL_PREDICTION;
 			break;
 	}
 	//
@@ -2262,7 +2262,7 @@ void ClientFixLegs(edict_t *ent)
 {
 	if (ent->client->leg_damage && ent->client->ctf_grapplestate <= CTF_GRAPPLE_STATE_FLY)
 	{
-		ent->client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+		ent->client->ps.pmove.pm_flags &= ~PMF_NO_POSITIONAL_PREDICTION;
 	}
 
 	ent->client->leg_noise = 0;
@@ -2619,7 +2619,7 @@ The game can override any of the settings in place
 void ClientUserinfoChanged(edict_t *ent, char *userinfo)
 {
 	char *s, tnick[16];
-	qboolean nickChanged = false;
+	bool nickChanged = false;
 	gclient_t *client = ent->client;
 
 	// check for malformed or illegal info strings
@@ -2650,7 +2650,7 @@ void ClientUserinfoChanged(edict_t *ent, char *userinfo)
 				gi.cprintf( other, PRINT_MEDIUM, "%s is now known as %s.\n", client->pers.netname, tnick ); //TempFile
 			}
 			if( dedicated->value )
-				gi.dprintf( "%s is now known as %s.\n", client->pers.netname, tnick ); //TempFile
+				gi.Com_PrintFmt( "%s is now known as %s.\n", client->pers.netname, tnick ); //TempFile
 			nickChanged = true;
 		}
 		strcpy(client->pers.netname, tnick);
@@ -2702,7 +2702,7 @@ void ClientUserinfoChanged(edict_t *ent, char *userinfo)
 	}
 }
 
-inline qboolean IsSlotIgnored(edict_t *slot, edict_t **ignore, size_t num_ignore)
+inline bool IsSlotIgnored(edict_t *slot, edict_t **ignore, size_t num_ignore)
 {
 	for (size_t i = 0; i < num_ignore; i++)
 		if (slot == ignore[i])
@@ -2722,7 +2722,7 @@ inline edict_t *ClientChooseSlot_Any(edict_t **ignore, size_t num_ignore)
 
 // [Paril-KEX] for coop, we want to try to ensure that players will always get their
 // proper slot back when they connect.
-edict_t *ClientChooseSlot(const char *userinfo, const char *social_id, qboolean isBot, edict_t **ignore, size_t num_ignore, qboolean cinematic)
+edict_t *ClientChooseSlot(const char *userinfo, const char *social_id, bool isBot, edict_t **ignore, size_t num_ignore, bool cinematic)
 {
 	// just find any free slot
 	return ClientChooseSlot_Any(ignore, num_ignore);
@@ -2740,7 +2740,7 @@ Changing levels will NOT cause this to be called again, but
 loadgames will.
 ============
 */
-qboolean ClientConnect(edict_t * ent, char *userinfo)
+bool ClientConnect(edict_t * ent, char *userinfo)
 {
 	char *value, ipaddr_buf[64];
 	int tempBan = 0;
@@ -2749,7 +2749,7 @@ qboolean ClientConnect(edict_t * ent, char *userinfo)
 	value = Info_ValueForKey( userinfo, "ip" );
 
 	if (strlen(value) > sizeof(ipaddr_buf) - 1)
-		gi.dprintf("ipaddr_buf length exceeded\n");
+		gi.Com_PrintFmt("ipaddr_buf length exceeded\n");
 	Q_strncpyz(ipaddr_buf, value, sizeof(ipaddr_buf));
 
 	if (SV_FilterPacket(ipaddr_buf, &tempBan)) {
@@ -2790,7 +2790,7 @@ qboolean ClientConnect(edict_t * ent, char *userinfo)
 
 	if (game.maxclients > 1) {
 		value = Info_ValueForKey(userinfo, "name");
-		gi.dprintf("%s@%s connected\n", value, ipaddr_buf);
+		gi.Com_PrintFmt("%s@%s connected\n", value, ipaddr_buf);
 	}
 
 	//rekkie -- silence ban -- s
@@ -2798,7 +2798,7 @@ qboolean ClientConnect(edict_t * ent, char *userinfo)
 	{
 		ent->client->pers.silence_banned = true;
 		value = Info_ValueForKey(userinfo, "name");
-		gi.dprintf("%s has been [SILENCED] because they're on the naughty list\n", value); // Notify console the player is silenced
+		gi.Com_PrintFmt("%s has been [SILENCED] because they're on the naughty list\n", value); // Notify console the player is silenced
 	}
 	else
 		ent->client->pers.silence_banned = false;
@@ -2906,7 +2906,7 @@ void CreateGhost(edict_t * ent)
 
 	if (i >= num_ghost_players) {
 		if (num_ghost_players >= MAX_GHOSTS) {
-			gi.dprintf( "Maximum number of ghosts reached.\n" );
+			gi.Com_PrintFmt( "Maximum number of ghosts reached.\n" );
 			return;
 		}
 		ghost = &ghost_players[num_ghost_players++];
@@ -2954,7 +2954,7 @@ trace_t q_gameabi PM_trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end)
 }
 
 // Raptor007: Allow weapon actions to start happening on any frame.
-static void ClientThinkWeaponIfReady( edict_t *ent, qboolean update_idle )
+static void ClientThinkWeaponIfReady( edict_t *ent, bool update_idle )
 {
 	int old_weaponstate, old_gunframe;
 
@@ -3076,7 +3076,7 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 
 		if (memcmp(&client->old_pmove, &pm.s, sizeof(pm.s))) {
 			pm.snapinitial = true;
-			//      gi.dprintf ("pmove changed!\n");
+			//      gi.Com_PrintFmt ("pmove changed!\n");
 		}
 
 		pm.cmd = *ucmd;
@@ -3084,7 +3084,7 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 
 		// Stumbling movement with leg damage.
 		// darksaint ETE edit:  if e_enhancedSlippers are enabled/equipped, negate all stumbling
-		qboolean has_enhanced_slippers = e_enhancedSlippers->value && INV_AMMO(ent, SLIP_NUM);
+		bool has_enhanced_slippers = e_enhancedSlippers->value && INV_AMMO(ent, SLIP_NUM);
 		if( client->leg_damage && ent->groundentity && ! has_enhanced_slippers )
 		{
 			int frame_mod_6 = (level.framenum / game.framediv) % 6;
@@ -3386,7 +3386,7 @@ void ClientBeginServerFrame(edict_t * ent)
 				teams[ idler_team ].ready = 0;
 			}
 			client->resp.idletime = 0;
-			gi.dprintf( "%s has been removed from play due to reaching the sv_idleremove timer of %i seconds\n",
+			gi.Com_PrintFmt( "%s has been removed from play due to reaching the sv_idleremove timer of %i seconds\n",
 				client->pers.netname, (int) sv_idleremove->value );
 		}
 

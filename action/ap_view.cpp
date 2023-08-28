@@ -571,7 +571,7 @@ void SV_CalcBlend (edict_t * ent)
 OnLadder
 ========
 */
-qboolean OnLadder( edict_t *ent )
+bool OnLadder( edict_t *ent )
 {
 	float yaw_rad = 0;
 	vec3_t fwd = {0}, end = {0};
@@ -732,8 +732,8 @@ P_WorldEffects
 */
 void P_WorldEffects (void)
 {
-	qboolean breather;
-	qboolean envirosuit;
+	bool breather;
+	bool envirosuit;
 	int waterlevel, old_waterlevel;
 
 	if (current_player->movetype == MOVETYPE_NOCLIP)
@@ -1036,8 +1036,8 @@ G_SetClientFrame
 void G_SetClientFrame (edict_t * ent)
 {
 	gclient_t *client;
-	qboolean duck, run;
-	qboolean anim_framesync;
+	bool duck, run;
+	bool anim_framesync;
 
 	if (ent->s.modelindex != 255)
 		return;			// not in the player model
@@ -1301,7 +1301,7 @@ void FrameEndZ( edict_t *ent )
 	// Only smooth Z-axis values when walking on regular ground.
 	if(  ent->inuse && IS_ALIVE(ent)
 	&&  (ent->client->ps.pmove.pm_type == PM_NORMAL)
-	&& !(ent->client->ps.pmove.pm_flags & PMF_NO_PREDICTION)
+	&& !(ent->client->ps.pmove.pm_flags & PMF_NO_POSITIONAL_PREDICTION)
 	&&  (ent->client->ps.pmove.pm_flags & PMF_ON_GROUND)
 	&&  (ent->groundentity == &(globals.edicts[0])) )
 	{
@@ -1347,7 +1347,7 @@ void ClientEndServerFrame (edict_t * ent)
 	//char player_name[30];
 	//char temp[40];
 	//        int             damage; // zucc for bleeding
-	qboolean weapon_framesync;
+	bool weapon_framesync;
 
 	current_player = ent;
 	current_client = ent->client;

@@ -6,8 +6,8 @@ char *INI_Find(FILE *fh, const char *section, const char *key);
 typedef struct
 {
 	FILE *pfile;
-	qboolean inparsing;
-	qboolean nextline;
+	bool inparsing;
+	bool nextline;
 	char cline[1024];
 	char ctoken[1024];
 	int lnumber;
@@ -28,6 +28,6 @@ char *ReadIniStr(ini_t *ini, char *section, char *key, char *value, char *defval
 int ReadIniInt(ini_t *ini, char *section, char *key, int defvalue);
 
 // parse functions
-qboolean ParseStartFile(char *filename, parse_t *parse);
+bool ParseStartFile(char *filename, parse_t *parse);
 void ParseEndFile(parse_t *parse);
 char *ParseNextToken(parse_t *parse, char *seperator);

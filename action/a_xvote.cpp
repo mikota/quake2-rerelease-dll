@@ -189,7 +189,7 @@ void vInitGame(void)
 	ini.pfile = NULL;
 
 	if (OpenIniFile(IniPath(), &ini) == false)
-		gi.dprintf("Error opening ini file %s.\n", IniPath());
+		gi.Com_PrintFmt("Error opening ini file %s.\n", IniPath());
 
 	for (i = 0, xvote = xvotelist; i < xvlistsize; i++, xvote++)
 	{
@@ -273,7 +273,7 @@ void vNewRound(void)
 	}
 }
 
-qboolean vCheckVote(void)
+bool vCheckVote(void)
 {
 	int i;
 	vote_t *xvote;

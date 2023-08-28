@@ -37,7 +37,7 @@ typedef struct
 }
 xmenu_t;
 
-qboolean xMenu_New (edict_t * ent, char *title, char *subtitle,
+bool xMenu_New (edict_t * ent, char *title, char *subtitle,
 		    void (*DoAddMenu) (edict_t * ent, int fromix));
-qboolean xMenu_Add (edict_t * ent, char *name,
+bool xMenu_Add (edict_t * ent, char *name,
 		    void (*SelectFunc) (edict_t * ent, pmenu_t * p));

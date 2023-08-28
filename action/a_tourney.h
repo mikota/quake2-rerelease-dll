@@ -47,7 +47,7 @@ void TourneyNewPlayer (edict_t * player);
 edict_t *TourneyFindPlayer (int number);
 void TourneyRemovePlayer (edict_t * player);
 void TourneyWinner (edict_t * player);
-qboolean TourneyNewRound (void);
+bool TourneyNewRound (void);
 
 
 void TourneyTimeEvent (TOURNEYTIME ttime, int attime);

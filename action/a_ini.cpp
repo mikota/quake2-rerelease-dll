@@ -14,7 +14,7 @@ char *INI_Find( FILE *fh, const char *section, const char *key )
 
 	if( ! fh )
 	{
-		gi.dprintf( "INI_Find: file handle was NULL\n" );
+		gi.Com_PrintFmt( "INI_Find: file handle was NULL\n" );
 		return NULL;
 	}
 
@@ -29,7 +29,7 @@ char *INI_Find( FILE *fh, const char *section, const char *key )
 	if( read_size == MAX_INI_SIZE )
 	{
 		_ini_file[ MAX_INI_SIZE - 1 ] = '\0';
-		gi.dprintf( "INI_Find: file is too long, ignoring the end\n" );
+		gi.Com_PrintFmt( "INI_Find: file is too long, ignoring the end\n" );
 	}
 
 	// This allows us to handle pre-section name/value pairs without redundant code below.
@@ -53,7 +53,7 @@ char *INI_Find( FILE *fh, const char *section, const char *key )
 			{
 				value = strchr( line+1, '=' );
 				if( ! value )
-					gi.dprintf( "INI_Find: invalid key/value pair: \"%s\"\n", line );
+					gi.Com_PrintFmt( "INI_Find: invalid key/value pair: \"%s\"\n", line );
 				else
 				{
 					*value = '\0'; // Null the delimeter; now line points to key and value+1 to value.
@@ -109,7 +109,7 @@ static char *StripSpaces(char *astring)
 }
 
 //
-static qboolean CheckForRemark(char *src)
+static bool CheckForRemark(char *src)
 {
 	char *myptr;
 
@@ -127,7 +127,7 @@ static qboolean CheckForRemark(char *src)
 }
 
 //
-qboolean ParseStartFile(char *filename, parse_t * parse)
+bool ParseStartFile(char *filename, parse_t * parse)
 {
 	if (parse->inparsing == true)
 		return false;
@@ -139,7 +139,7 @@ qboolean ParseStartFile(char *filename, parse_t * parse)
 		return true;
 	}
 	else
-		gi.dprintf("Error opening file %s\n", filename);
+		gi.Com_PrintFmt("Error opening file %s\n", filename);
 	return false;
 }
 
@@ -192,7 +192,7 @@ char *ParseNextToken(parse_t * parse, char *seperator)
 // internal use only, ini section must occupy one line
 // and has the format "[section]". This may be altered
 // Sections are case insensitive.
-static qboolean _seekinisection(FILE * afile, char *section)
+static bool _seekinisection(FILE * afile, char *section)
 {
 	inistr buf, comp;
 
@@ -282,7 +282,7 @@ char *IniPath(void)
 	cvar_t *p;
 
 	if (!*_inipath) {
-		p = gi.cvar("ininame", "action.ini", 0);
+		p = gi.cvar("ininame", "action.ini", CVAR_NOFLAGS);
 		if (p->string && *(p->string))
 			sprintf(_inipath, "%s/%s", GAMEVERSION, p->string);
 		else

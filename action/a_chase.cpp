@@ -1,33 +1,3 @@
-//-----------------------------------------------------------------------------
-// This source file comes from the 3.20 source originally.
-// 
-// Added through-the-eyes cam mode, as well as the ability to spin around the player
-// when in regular chase cam mode, among other Axshun-related mods.
-// -Fireblade
-//
-// $Id: g_chase.c,v 1.4 2003/06/15 15:34:32 igor Exp $
-//
-//-----------------------------------------------------------------------------
-// $Log: g_chase.c,v $
-// Revision 1.4  2003/06/15 15:34:32  igor
-// - removed the zcam code from this branch (see other branch)
-// - added fixes from 2.72 (source only) version
-// - resetted version number to 2.72
-// - This version should be exactly like the release 2.72 - just with a few
-//   more fixes (which whoever did the source only variant didn't get because
-//   he didn't use the CVS as he should. Shame on him.
-//
-// Revision 1.3  2002/09/04 11:23:09  ra
-// Added zcam to TNG and bumped version to 3.0
-//
-// Revision 1.2  2001/09/28 13:48:34  ra
-// I ran indent over the sources. All .c and .h files reindented.
-//
-// Revision 1.1.1.1  2001/05/06 17:30:00  igor_rock
-// This is the PG Bund Edition V1.25 with all stuff laying around here...
-//
-//-----------------------------------------------------------------------------
-
 #include "g_local.h"
 
 void DisableChaseCam( edict_t *ent )
@@ -40,7 +10,7 @@ void DisableChaseCam( edict_t *ent )
 
 	ent->client->chase_mode = 0;
 	ent->client->chase_target = NULL;
-	ent->client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+	ent->client->ps.pmove.pm_flags &= ~PMF_NO_POSITIONAL_PREDICTION;
 
 	ent->client->desired_fov = 90;
 	ent->client->ps.fov = 90;
@@ -54,7 +24,7 @@ int ChaseTargetGone( edict_t * ent )
 
 	// is our chase target gone?
 	if (!targ || !targ->inuse
-		|| (targ->solid == SOLID_NOT && targ->deadflag != DEAD_DEAD))
+		|| !IS_ALIVE(targ))
 	{
 		ChaseNext( ent );
 		if (ent->client->chase_target == targ) {
@@ -285,7 +255,7 @@ void UpdateChaseCam( edict_t * ent )
 	client->ps.stats[STAT_ID_VIEW] = oldStats[STAT_ID_VIEW];
 	client->ps.stats[STAT_FRAGS] = oldStats[STAT_FRAGS];
 
-	client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
+	client->ps.pmove.pm_flags |= PMF_NO_POSITIONAL_PREDICTION;
 	gi.linkentity( ent );
 }
 
@@ -321,7 +291,7 @@ void ChaseNext( edict_t * ent )
 		e = g_edicts + i;
 		if (!e->inuse)
 			continue;
-		if (e->solid == SOLID_NOT && e->deadflag != DEAD_DEAD)
+		if (!IS_ALIVE(e))
 			continue;
 		if (limchase && ent->client->resp.team != e->client->resp.team)
 			continue;
@@ -352,7 +322,7 @@ void ChasePrev( edict_t * ent )
 		e = g_edicts + i;
 		if (!e->inuse)
 			continue;
-		if (e->solid == SOLID_NOT && e->deadflag != DEAD_DEAD)
+		if (!IS_ALIVE(e))
 			continue;
 		if (limchase && ent->client->resp.team != e->client->resp.team)
 			continue;
@@ -391,7 +361,7 @@ void GetChaseTarget( edict_t * ent )
 		e = g_edicts + i;
 		if (!e->inuse)
 			continue;
-		if (e->solid == SOLID_NOT && e->deadflag != DEAD_DEAD)
+		if (!IS_ALIVE(e))
 			continue;
 		if (limchase && ent->client->resp.team != e->client->resp.team)
 			continue;
@@ -399,6 +369,4 @@ void GetChaseTarget( edict_t * ent )
 		SetChase( ent, e );
 		return;
 	} while (e != targ);
-
-	//gi.cprintf(ent, PRINT_HIGH, "No players to chase.\n");
 }

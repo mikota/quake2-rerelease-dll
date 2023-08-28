@@ -33,7 +33,7 @@ typedef struct radio_queue_entry_s
   int from_gender;		// true if female
 
   int length;
-  qboolean click;
+  bool click;
 } radio_queue_entry_t;
 
 
@@ -43,11 +43,11 @@ typedef struct radio_s
 	radio_queue_entry_t queue[MAX_RADIO_QUEUE_SIZE];
 	int queue_size;
 
-	qboolean gender;			// radiogender
-	qboolean power_off;		// radio_power
+	bool gender;			// radiogender
+	bool power_off;		// radio_power
 
 	// Partners stuff
-	qboolean partner_mode;	// 'radio' command using team or partner
+	bool partner_mode;	// 'radio' command using team or partner
 	edict_t *partner;	// current partner
 	edict_t *partner_last_offered_to;	// last person I offered a partnership to
 	edict_t *partner_last_offered_from;	// last person I received a partnership offer from
@@ -75,5 +75,5 @@ void Cmd_Partner_f (edict_t *);
 void Cmd_Deny_f (edict_t *);
 void Cmd_Unpartner_f (edict_t *);
 void PrecacheRadioSounds ();
-qboolean CheckForFlood (edict_t * ent);
-qboolean CheckForRepeat (edict_t * ent, int radioCode);
+bool CheckForFlood (edict_t * ent);
+bool CheckForRepeat (edict_t * ent, int radioCode);

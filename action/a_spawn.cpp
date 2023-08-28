@@ -1,159 +1,4 @@
-//-----------------------------------------------------------------------------
-// g_spawn.c
-//
-// $Id: g_spawn.c,v 1.38 2002/03/28 12:10:11 freud Exp $
-//
-//-----------------------------------------------------------------------------
-// $Log: g_spawn.c,v $
-// Revision 1.38  2002/03/28 12:10:11  freud
-// Removed unused variables (compiler warnings).
-// Added cvar mm_allowlock.
-//
-// Revision 1.37  2002/03/28 11:46:03  freud
-// stat_mode 2 and timelimit 0 did not show stats at end of round.
-// Added lock/unlock.
-// A fix for use_oldspawns 1, crash bug.
-//
-// Revision 1.36  2002/03/27 15:16:56  freud
-// Original 1.52 spawn code implemented for use_newspawns 0.
-// Teamplay, when dropping bandolier, your drop the grenades.
-// Teamplay, cannot pick up grenades unless wearing bandolier.
-//
-// Revision 1.35  2002/03/25 23:35:19  freud
-// Ghost code, use_ghosts and more stuff..
-//
-// Revision 1.34  2002/03/25 18:32:11  freud
-// I'm being too productive.. New ghost command needs testing.
-//
-// Revision 1.33  2002/03/24 22:45:54  freud
-// New spawn code again, bad commit last time..
-//
-// Revision 1.31  2002/01/24 01:47:17  ra
-// Further fixes to M$ files
-//
-// Revision 1.30  2002/01/24 01:32:34  ra
-// Enabling .aqg files to be in either M$ form or real text files.
-//
-// Revision 1.29  2001/11/27 23:23:40  igor_rock
-// Bug fixed: day_cycle_at wasn't reset at mapchange
-//
-// Revision 1.28  2001/11/16 13:01:39  deathwatch
-// Fixed 'no team wins' sound - it wont play now with use_warnings 0
-// Precaching misc/flashlight.wav
-//
-// Revision 1.27  2001/11/10 14:00:14  deathwatch
-// Fixed resetting of teamXscores
-//
-// Revision 1.26  2001/09/28 13:48:34  ra
-// I ran indent over the sources. All .c and .h files reindented.
-//
-// Revision 1.25  2001/09/28 13:44:23  slicerdw
-// Several Changes / improvements
-//
-// Revision 1.24  2001/08/18 01:28:06  deathwatch
-// Fixed some stats stuff, added darkmatch + day_cycle, cleaned up several files, restructured ClientCommand
-//
-// Revision 1.23  2001/07/15 16:02:18  slicerdw
-// Added checks for teamplay on when using 3teams or tourney
-//
-// Revision 1.22  2001/06/26 11:41:39  igor_rock
-// removed the debug messages for flag and playerstart positions in ctf
-//
-// Revision 1.21  2001/06/25 11:44:47  slicerdw
-// New Video Check System - video_check and video_check_lockpvs no longer latched
-//
-// Revision 1.20  2001/06/22 16:34:05  slicerdw
-// Finished Matchmode Basics, now with admins, Say command tweaked...
-//
-// Revision 1.19  2001/06/21 00:05:30  slicerdw
-// New Video Check System done -  might need some revision but works..
-//
-// Revision 1.16  2001/06/13 09:43:49  igor_rock
-// if ctf is enabled, friendly fire automatically set to off (ff doesn't make any sense in ctf)
-//
-// Revision 1.15  2001/06/01 19:18:42  slicerdw
-// Added Matchmode Code
-//
-// Revision 1.14  2001/05/31 16:58:14  igor_rock
-// conflicts resolved
-//
-// Revision 1.13.2.8  2001/05/31 15:15:52  igor_rock
-// added a parameter check for sscanf
-//
-// Revision 1.13.2.7  2001/05/31 06:47:51  igor_rock
-// - removed crash bug with non exisitng flag files
-// - added new commands "setflag1", "setflag2" and "saveflags" to create
-//   .flg files
-//
-// Revision 1.13.2.6  2001/05/27 17:24:10  igor_rock
-// changed spawnpoint behavior in CTF
-//
-// Revision 1.13.2.5  2001/05/27 16:11:10  igor_rock
-// added function to replace nearest spawnpoint to flag through info_player_teamX
-//
-// Revision 1.13.2.4  2001/05/27 11:47:53  igor_rock
-// added .flg file support and timelimit bug fix
-//
-// Revision 1.13.2.3  2001/05/25 18:59:52  igor_rock
-// Added CTF Mode completly :)
-// Support for .flg files is still missing, but with "real" CTF maps like
-// tq2gtd1 the ctf works fine.
-// (I hope that all other modes still work, just tested DM and teamplay)
-//
-// Revision 1.13.2.2  2001/05/20 18:54:19  igor_rock
-// added original ctf code snippets from zoid. lib compilesand runs but
-// doesn't function the right way.
-// Jsut committing these to have a base to return to if something wents
-// awfully wrong.
-//
-// Revision 1.13.2.1  2001/05/20 15:17:31  igor_rock
-// removed the old ctf code completly
-//
-// Revision 1.13  2001/05/15 15:49:14  igor_rock
-// added itm_flags for deathmatch
-//
-// Revision 1.12  2001/05/14 21:10:16  igor_rock
-// added wp_flags support (and itm_flags skeleton - doesn't disturb in the moment)
-//
-// Revision 1.11  2001/05/14 14:08:51  igor_rock
-// added tng sounds for precaching
-//
-// Revision 1.10  2001/05/12 19:29:28  mort
-// Fixed more various map change bugs
-//
-// Revision 1.9  2001/05/12 19:27:17  mort
-// Fixed various map change bugs
-//
-// Revision 1.8  2001/05/12 17:20:27  mort
-// Reset started variable in SP_worldspawn
-//
-// Revision 1.7  2001/05/12 13:45:59  mort
-// CTF status bar now sends correctly
-//
-// Revision 1.6  2001/05/12 13:15:04  mort
-// Forces teamplay on when ctf is enabled
-//
-// Revision 1.5  2001/05/12 08:20:01  mort
-// CTF bug fix, makes sure flags have actually spawned before certain functions attempt to use them
-//
-// Revision 1.4  2001/05/12 00:37:03  ra
-//
-//
-// Fixing various compilerwarnings.
-//
-// Revision 1.3  2001/05/11 16:07:25  mort
-// Various CTF bits and pieces...
-//
-// Revision 1.2  2001/05/11 12:21:19  slicerdw
-// Commented old Location support ( ADF ) With the ML/ETE Compatible one
-//
-// Revision 1.1.1.1  2001/05/06 17:31:52  igor_rock
-// This is the PG Bund Edition V1.25 with all stuff laying around here...
-//
-//-----------------------------------------------------------------------------
-
 #include "g_local.h"
-
 
 typedef struct
 {
@@ -345,7 +190,7 @@ void ED_CallSpawn (edict_t * ent)
 	int i;
 
 	if (!ent->classname) {
-		gi.dprintf("ED_CallSpawn: NULL classname\n");
+		gi.Com_PrintFmt("ED_CallSpawn: NULL classname\n");
 		return;
 	}
 
@@ -407,7 +252,7 @@ void ED_CallSpawn (edict_t * ent)
 	}
 
 	/*if(strcmp (ent->classname, "freed") != 0) {
-		gi.dprintf ("%s doesn't have a spawn function\n", ent->classname);
+		gi.Com_PrintFmt ("%s doesn't have a spawn function\n", ent->classname);
 	}*/
 
 	G_FreeEdict( ent );
@@ -530,7 +375,7 @@ void ED_ParseField (char *key, char *value, edict_t * ent)
 				break;
 			case F_VECTOR:
                 if (sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]) != 3) {
-                    gi.dprintf("ED_ParseField: couldn't parse '%s'\n", key);
+                    gi.Com_PrintFmt("ED_ParseField: couldn't parse '%s'\n", key);
                     VectorClear(vec);
                 }
 				((float *) (b + f->ofs))[0] = vec[0];
@@ -557,7 +402,7 @@ void ED_ParseField (char *key, char *value, edict_t * ent)
 			return;
 		}
 	}
-	gi.dprintf("ED_ParseField: %s is not a field\n", key);
+	gi.Com_PrintFmt("ED_ParseField: %s is not a field\n", key);
 }
 
 /*
@@ -571,7 +416,7 @@ ed should be a properly initialized empty edict.
 char *
 ED_ParseEdict (char *data, edict_t * ent)
 {
-  qboolean init;
+  bool init;
   char keyname[256];
   char *com_token;
 
@@ -660,7 +505,7 @@ void G_FindTeams (void)
 		}
 	}
 
-	gi.dprintf ("%i teams with %i entities\n", c, c2);
+	gi.Com_PrintFmt ("%i teams with %i entities\n", c, c2);
 }
 
 //Precaches and enables download options for user sounds. All sounds
@@ -674,7 +519,7 @@ static void PrecacheUserSounds(void)
 
 	soundlist = fopen(GAMEVERSION "/sndlist.ini", "r");
 	if (!soundlist) { // no "sndlist.ini" file...
-		gi.dprintf("Cannot load %s, sound download is disabled.\n", GAMEVERSION "/sndlist.ini");
+		gi.Com_PrintFmt("Cannot load %s, sound download is disabled.\n", GAMEVERSION "/sndlist.ini");
 		return;
 	}
 
@@ -693,16 +538,16 @@ static void PrecacheUserSounds(void)
 		Q_strncpyz(fullpath, PG_SNDPATH, sizeof(fullpath));
 		Q_strncatz(fullpath, buf, sizeof(fullpath));
 		gi.soundindex(fullpath);
-		//gi.dprintf("Sound %s: precache %i",fullpath, gi.soundindex(fullpath)); 
+		//gi.Com_PrintFmt("Sound %s: precache %i",fullpath, gi.soundindex(fullpath)); 
 		count++;
 		if (count == 100)
 			break;
 	}
 	fclose(soundlist);
 	if (!count)
-		gi.dprintf("%s is empty, no sounds to precache.\n", GAMEVERSION "/sndlist.ini");
+		gi.Com_PrintFmt("%s is empty, no sounds to precache.\n", GAMEVERSION "/sndlist.ini");
 	else
-		gi.dprintf("%i user sounds precached.\n", count);
+		gi.Com_PrintFmt("%i user sounds precached.\n", count);
 }
 
 void G_LoadLocations( void )
@@ -727,11 +572,11 @@ void G_LoadLocations( void )
 
 	f = fopen( locfile, "r" );
 	if (!f) {
-		gi.dprintf( "No location file for %s\n", level.mapname );
+		gi.Com_PrintFmt( "No location file for %s\n", level.mapname );
 		return;
 	}
 
-	gi.dprintf( "Location file: %s\n", level.mapname );
+	gi.Com_PrintFmt( "Location file: %s\n", level.mapname );
 
 	do
 	{
@@ -808,13 +653,13 @@ void G_LoadLocations( void )
 		Q_strncpyz( loc->desc, locationstr, sizeof( loc->desc ) );
 
 		if (ml_count >= MAX_LOCATIONS_IN_BASE) {
-			gi.dprintf( "Cannot read more than %d locations.\n", MAX_LOCATIONS_IN_BASE );
+			gi.Com_PrintFmt( "Cannot read more than %d locations.\n", MAX_LOCATIONS_IN_BASE );
 			break;
 		}
 	} while (1);
 
 	fclose( f );
-	gi.dprintf( "Found %d locations.\n", ml_count );
+	gi.Com_PrintFmt( "Found %d locations.\n", ml_count );
 }
 
 
@@ -900,37 +745,37 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	gi.cvar_forceset(stat_logs->name, "0"); // Turn off stat logs for jump mode
 		if (teamplay->value)
 		{
-			gi.dprintf ("Jump Enabled - Forcing teamplay ff\n");
+			gi.Com_PrintFmt ("Jump Enabled - Forcing teamplay ff\n");
 			gi.cvar_forceset(teamplay->name, "0");
 		}
 		if (use_3teams->value)
 		{
-			gi.dprintf ("Jump Enabled - Forcing 3Teams off\n");
+			gi.Com_PrintFmt ("Jump Enabled - Forcing 3Teams off\n");
 			gi.cvar_forceset(use_3teams->name, "0");
 		}
 		if (teamdm->value)
 		{
-			gi.dprintf ("Jump Enabled - Forcing Team DM off\n");
+			gi.Com_PrintFmt ("Jump Enabled - Forcing Team DM off\n");
 			gi.cvar_forceset(teamdm->name, "0");
 		}
 		if (use_tourney->value)
 		{
-			gi.dprintf ("Jump Enabled - Forcing Tourney off\n");
+			gi.Com_PrintFmt ("Jump Enabled - Forcing Tourney off\n");
 			gi.cvar_forceset(use_tourney->name, "0");
 		}
 		if (ctf->value)
 		{
-			gi.dprintf ("Jump Enabled - Forcing CTF off\n");
+			gi.Com_PrintFmt ("Jump Enabled - Forcing CTF off\n");
 			gi.cvar_forceset(ctf->name, "0");
 		}
 		if (dom->value)
 		{
-			gi.dprintf ("Jump Enabled - Forcing Domination off\n");
+			gi.Com_PrintFmt ("Jump Enabled - Forcing Domination off\n");
 			gi.cvar_forceset(dom->name, "0");
 		}
 		if (use_randoms->value)
 		{
-			gi.dprintf ("Jump Enabled - Forcing Random weapons and items off\n");
+			gi.Com_PrintFmt ("Jump Enabled - Forcing Random weapons and items off\n");
 			gi.cvar_forceset(use_randoms->name, "0");
 		}
 	}
@@ -945,37 +790,37 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 		// Make sure teamplay is enabled
 		if (!teamplay->value)
 		{
-			gi.dprintf ("CTF Enabled - Forcing teamplay on\n");
+			gi.Com_PrintFmt ("CTF Enabled - Forcing teamplay on\n");
 			gi.cvar_forceset(teamplay->name, "1");
 		}
 		if (use_3teams->value)
 		{
-			gi.dprintf ("CTF Enabled - Forcing 3Teams off\n");
+			gi.Com_PrintFmt ("CTF Enabled - Forcing 3Teams off\n");
 			gi.cvar_forceset(use_3teams->name, "0");
 		}
 		if(teamdm->value)
 		{
-			gi.dprintf ("CTF Enabled - Forcing Team DM off\n");
+			gi.Com_PrintFmt ("CTF Enabled - Forcing Team DM off\n");
 			gi.cvar_forceset(teamdm->name, "0");
 		}
 		if (use_tourney->value)
 		{
-			gi.dprintf ("CTF Enabled - Forcing Tourney off\n");
+			gi.Com_PrintFmt ("CTF Enabled - Forcing Tourney off\n");
 			gi.cvar_forceset(use_tourney->name, "0");
 		}
 		if (dom->value)
 		{
-			gi.dprintf ("CTF Enabled - Forcing Domination off\n");
+			gi.Com_PrintFmt ("CTF Enabled - Forcing Domination off\n");
 			gi.cvar_forceset(dom->name, "0");
 		}
 		if (!DMFLAGS(DF_NO_FRIENDLY_FIRE))
 		{
-			gi.dprintf ("CTF Enabled - Forcing Friendly Fire off\n");
+			gi.Com_PrintFmt ("CTF Enabled - Forcing Friendly Fire off\n");
 			gi.cvar_forceset(dmflags->name, va("%i", (int)dmflags->value | DF_NO_FRIENDLY_FIRE));
 		}
 		if (use_randoms->value)
 		{
-			gi.dprintf ("CTF Enabled - Forcing Random weapons and items off\n");
+			gi.Com_PrintFmt ("CTF Enabled - Forcing Random weapons and items off\n");
 			gi.cvar_forceset(use_randoms->name, "0");
 		}
 		Q_strncpyz(teams[TEAM1].name, "RED", sizeof(teams[TEAM1].name));
@@ -991,22 +836,22 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 		gameSettings |= GS_WEAPONCHOOSE;
 		if (!teamplay->value)
 		{
-			gi.dprintf ("Domination Enabled - Forcing teamplay on\n");
+			gi.Com_PrintFmt ("Domination Enabled - Forcing teamplay on\n");
 			gi.cvar_forceset(teamplay->name, "1");
 		}
 		if (teamdm->value)
 		{
-			gi.dprintf ("Domination Enabled - Forcing Team DM off\n");
+			gi.Com_PrintFmt ("Domination Enabled - Forcing Team DM off\n");
 			gi.cvar_forceset(teamdm->name, "0");
 		}
 		if (use_tourney->value)
 		{
-			gi.dprintf ("Domination Enabled - Forcing Tourney off\n");
+			gi.Com_PrintFmt ("Domination Enabled - Forcing Tourney off\n");
 			gi.cvar_forceset(use_tourney->name, "0");
 		}
 		if (use_randoms->value)
 		{
-			gi.dprintf ("Domination Enabled - Forcing Random weapons and items off\n");
+			gi.Com_PrintFmt ("Domination Enabled - Forcing Random weapons and items off\n");
 			gi.cvar_forceset(use_randoms->name, "0");
 		}
 		Q_strncpyz(teams[TEAM1].name, "RED", sizeof(teams[TEAM1].name));
@@ -1029,12 +874,12 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 		if (!teamplay->value)
 		{
-			gi.dprintf ("Team Deathmatch Enabled - Forcing teamplay on\n");
+			gi.Com_PrintFmt ("Team Deathmatch Enabled - Forcing teamplay on\n");
 			gi.cvar_forceset(teamplay->name, "1");
 		}
 		if (use_tourney->value)
 		{
-			gi.dprintf ("Team Deathmatch Enabled - Forcing Tourney off\n");
+			gi.Com_PrintFmt ("Team Deathmatch Enabled - Forcing Tourney off\n");
 			gi.cvar_forceset(use_tourney->name, "0");
 		}
 	}
@@ -1045,12 +890,12 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 		if (!teamplay->value)
 		{
-			gi.dprintf ("3 Teams Enabled - Forcing teamplay on\n");
+			gi.Com_PrintFmt ("3 Teams Enabled - Forcing teamplay on\n");
 			gi.cvar_forceset(teamplay->name, "1");
 		}
 		if (use_tourney->value)
 		{
-			gi.dprintf ("3 Teams Enabled - Forcing Tourney off\n");
+			gi.Com_PrintFmt ("3 Teams Enabled - Forcing Tourney off\n");
 			gi.cvar_forceset(use_tourney->name, "0");
 		}
 	}
@@ -1059,12 +904,12 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 		gameSettings |= (GS_ROUNDBASED | GS_WEAPONCHOOSE);
 		if (!teamplay->value)
 		{
-			gi.dprintf ("Matchmode Enabled - Forcing teamplay on\n");
+			gi.Com_PrintFmt ("Matchmode Enabled - Forcing teamplay on\n");
 			gi.cvar_forceset(teamplay->name, "1");
 		}
 		if (use_tourney->value)
 		{
-			gi.dprintf ("Matchmode Enabled - Forcing Tourney off\n");
+			gi.Com_PrintFmt ("Matchmode Enabled - Forcing Tourney off\n");
 			gi.cvar_forceset(use_tourney->name, "0");
 		}
 	}
@@ -1075,7 +920,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 		if (!teamplay->value)
 		{
-			gi.dprintf ("Tourney Enabled - Forcing teamplay on\n");
+			gi.Com_PrintFmt ("Tourney Enabled - Forcing teamplay on\n");
 			gi.cvar_forceset(teamplay->name, "1");
 		}
 	}
@@ -1098,7 +943,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	if (matchmode->value)
 	{
 		gameSettings |= GS_MATCHMODE;
-		gi.dprintf ("Matchmode Enabled - Forcing g_spawn_items off\n");
+		gi.Com_PrintFmt ("Matchmode Enabled - Forcing g_spawn_items off\n");
 		gi.cvar_forceset(g_spawn_items->name, "0"); // Turn off spawning of items for matchmode games
 	}
 	if (use_3teams->value)
@@ -1106,7 +951,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 		teamCount = 3;
 		if (!use_oldspawns->value)
 		{
-			gi.dprintf ("3 Teams Enabled - Forcing use_oldspawns on\n");
+			gi.Com_PrintFmt ("3 Teams Enabled - Forcing use_oldspawns on\n");
 			gi.cvar_forceset(use_oldspawns->name, "1");
 		}
 	}
@@ -1193,7 +1038,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 		ED_CallSpawn (ent);
 	}
 
-	gi.dprintf ("%i entities inhibited\n", inhibit);
+	gi.Com_PrintFmt ("%i entities inhibited\n", inhibit);
 
 	// AQ2:TNG Igor adding .flg files
 
@@ -1205,7 +1050,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 			if ((!G_Find(NULL, FOFS (classname), "item_flag_team1") ||
 				 !G_Find(NULL, FOFS (classname), "item_flag_team2")))
 			{
-				gi.dprintf ("No native CTF map, loading flag positions from file\n");
+				gi.Com_PrintFmt ("No native CTF map, loading flag positions from file\n");
 				if (LoadFlagsFromFile(level.mapname))
 					ChangePlayerSpawns ();
 			}
@@ -1586,8 +1431,8 @@ void SP_worldspawn (edict_t * ent)
 		{
 			if (teams[i].skin_index[0] == 0) {
 				// If the action.ini file isn't found, set default skins rather than kill the server
-				gi.dprintf("WARNING: No skin was specified for team %i in config file, server either could not find it or is does not exist.\n", i);
-				gi.dprintf("Setting default team names, skins and skin indexes.\n", i);
+				gi.Com_PrintFmt("WARNING: No skin was specified for team %i in config file, server either could not find it or is does not exist.\n", i);
+				gi.Com_PrintFmt("Setting default team names, skins and skin indexes.\n", i);
 				Q_strncpyz(teams[TEAM1].name, "RED", sizeof(teams[TEAM1].name));
 				Q_strncpyz(teams[TEAM2].name, "BLUE", sizeof(teams[TEAM2].name));
 				Q_strncpyz(teams[TEAM3].name, "GREEN", sizeof(teams[TEAM3].name));
@@ -1768,12 +1613,12 @@ int LoadFlagsFromFile (const char *mapname)
 	Com_sprintf(buf, sizeof(buf), "%s/tng/%s.flg", GAMEVERSION, mapname);
 	fp = fopen(buf, "r");
 	if (!fp)  {
-		gi.dprintf("Warning: No flag definition file for map %s.\n", mapname);
+		gi.Com_PrintFmt("Warning: No flag definition file for map %s.\n", mapname);
 		return 0;
 	}
 
 	// FIXME: remove this functionality completely in the future
-	gi.dprintf("Warning: .flg files are deprecated, use .ctf ones for more control!\n");
+	gi.Com_PrintFmt("Warning: .flg files are deprecated, use .ctf ones for more control!\n");
 
 	while (fgets(buf, 1000, fp) != NULL)
 	{
@@ -1838,7 +1683,7 @@ void ChangePlayerSpawns ()
 	flag2 = G_Find (flag2, FOFS(classname), "item_flag_team2");
 
 	if(!flag1 || !flag2) {
-		gi.dprintf("Warning: ChangePlayerSpawns() requires both flags!\n");
+		gi.Com_PrintFmt("Warning: ChangePlayerSpawns() requires both flags!\n");
 		return;
 	}
 
@@ -1875,25 +1720,25 @@ void ChangePlayerSpawns ()
 
 	if (spot1)
 	{
-		// gi.dprintf ("Ersetze info_player_deathmatch auf <%f %f %f> durch info_player_team1\n", spot1->s.origin[0], spot1->s.origin[1], spot1->s.origin[2]);
+		// gi.Com_PrintFmt ("Ersetze info_player_deathmatch auf <%f %f %f> durch info_player_team1\n", spot1->s.origin[0], spot1->s.origin[1], spot1->s.origin[2]);
 		strcpy (spot1->classname, "info_player_team1");
 	}
 
 	if (spot2)
 	{
-		// gi.dprintf ("Ersetze info_player_deathmatch auf <%f %f %f> durch info_player_team2\n", spot2->s.origin[0], spot2->s.origin[1], spot2->s.origin[2]);
+		// gi.Com_PrintFmt ("Ersetze info_player_deathmatch auf <%f %f %f> durch info_player_team2\n", spot2->s.origin[0], spot2->s.origin[1], spot2->s.origin[2]);
 		strcpy (spot2->classname, "info_player_team2");
 	}
 
 	if (spot3)
 	{
-		// gi.dprintf ("Ersetze info_player_deathmatch auf <%f %f %f> durch info_player_team1\n", spot3->s.origin[0], spot3->s.origin[1], spot3->s.origin[2]);
+		// gi.Com_PrintFmt ("Ersetze info_player_deathmatch auf <%f %f %f> durch info_player_team1\n", spot3->s.origin[0], spot3->s.origin[1], spot3->s.origin[2]);
 		strcpy (spot3->classname, "info_player_team1");
 	}
 
 	if (spot4)
 	{
-		// gi.dprintf ("Ersetze info_player_deathmatch auf <%f %f %f> durch info_player_team2\n", spot4->s.origin[0], spot4->s.origin[1], spot4->s.origin[2]);
+		// gi.Com_PrintFmt ("Ersetze info_player_deathmatch auf <%f %f %f> durch info_player_team2\n", spot4->s.origin[0], spot4->s.origin[1], spot4->s.origin[2]);
 		strcpy (spot4->classname, "info_player_team2");
 	}
 

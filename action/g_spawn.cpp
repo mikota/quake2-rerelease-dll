@@ -464,14 +464,6 @@ void ED_CallSpawn(edict_t *ent)
 
 	ent->sv.init = false;
 
-	// FIXME - PMM classnames hack
-	if (!strcmp(ent->classname, "weapon_nailgun"))
-		ent->classname = GetItemByIndex(IT_WEAPON_ETF_RIFLE)->classname;
-	if (!strcmp(ent->classname, "ammo_nails"))
-		ent->classname = GetItemByIndex(IT_AMMO_FLECHETTES)->classname;
-	if (!strcmp(ent->classname, "weapon_heatbeam"))
-		ent->classname = GetItemByIndex(IT_WEAPON_PLASMABEAM)->classname;
-	// pmm
 
 	// check item spawn functions
 	for (i = 0, item = itemlist; i < IT_TOTAL; i++, item++)
@@ -504,7 +496,39 @@ void ED_CallSpawn(edict_t *ent)
 	{
 		if (!strcmp(s.name, ent->classname))
 		{ // found it
-			s.spawn(ent);
+			// s.spawn(ent);
+
+			//FIXME: We do same checks in SpawnItem, do we need these here? -M
+			if ((gameSettings & GS_TEAMPLAY) && g_spawn_items->value && !matchmode->value) // Force spawn ammo/items/weapons for teamplay, non-matchmode
+			{
+				SpawnItem(ent, item);
+			}
+			else if (gameSettings & GS_DEATHMATCH)
+			{
+				if ((gameSettings & GS_WEAPONCHOOSE) && g_spawn_items->value) // Force spawn ammo/items/weapons for DM modes
+					SpawnItem(ent, item);
+				else if (gameSettings & GS_WEAPONCHOOSE) // Traditional teamplay / dm_choose 1 mode
+					G_FreeEdict( ent );
+				else if (item->flags & (IT_AMMO|IT_WEAPON))
+					SpawnItem(ent, item);
+				else if ((item->flags & IT_ITEM) && item_respawnmode->value)
+					SpawnItem( ent, item );
+				else
+					G_FreeEdict(ent);
+			}
+			else if (ctf->value || esp->value)
+			{
+				if(item->flags & IT_FLAG)
+					SpawnItem(ent, item);
+				else if(ctf->value == 2 && (item->flags & (IT_AMMO|IT_WEAPON|IT_ITEM|IT_POWERUP)))
+					SpawnItem(ent, item);
+				else
+					G_FreeEdict(ent);
+			}
+			else
+			{
+				G_FreeEdict(ent);
+			}
 
 			// Paril: swap classname with stored constant if we didn't change it
 			if (strcmp(ent->classname, s.name) == 0)
@@ -1134,6 +1158,200 @@ static void G_PrecacheStartItems()
 	}
 }
 
+//Precaches and enables download options for user sounds. All sounds
+//have to be listed within "sndlist.ini". called from g_spawn.c -> SP_worldspawn
+static void PrecacheUserSounds(void)
+{
+	int count = 0;
+	size_t lenght;
+	FILE *soundlist;
+	char buf[1024], fullpath[MAX_QPATH];
+
+	soundlist = fopen(GAMEVERSION "/sndlist.ini", "r");
+	if (!soundlist) { // no "sndlist.ini" file...
+		gi.Com_PrintFmt("Cannot load %s, sound download is disabled.\n", GAMEVERSION "/sndlist.ini");
+		return;
+	}
+
+	// read the sndlist.ini file
+	while (fgets(buf, sizeof(buf), soundlist) != NULL)
+	{
+		lenght = strlen(buf);
+		//first remove trailing spaces
+		while (lenght > 0 && buf[lenght - 1] <= ' ')
+			buf[--lenght] = '\0';
+
+		//Comments are marked with # or // at line start
+		if (lenght < 5 || buf[0] == '#' || !strncmp(buf, "//", 2))
+			continue;
+
+		Q_strncpyz(fullpath, PG_SNDPATH, sizeof(fullpath));
+		Q_strncatz(fullpath, buf, sizeof(fullpath));
+		gi.soundindex(fullpath);
+		//gi.Com_PrintFmt("Sound %s: precache %i",fullpath, gi.soundindex(fullpath)); 
+		count++;
+		if (count == 100)
+			break;
+	}
+	fclose(soundlist);
+	if (!count)
+		gi.Com_PrintFmt("%s is empty, no sounds to precache.\n", GAMEVERSION "/sndlist.ini");
+	else
+		gi.Com_PrintFmt("%i user sounds precached.\n", count);
+}
+
+void G_LoadLocations( void )
+{
+	//AQ2:TNG New Location Code
+	char	locfile[MAX_QPATH], buffer[256];
+	FILE	*f;
+	int		i, x, y, z, rx, ry, rz;
+	char	*locationstr, *param, *line;
+	cvar_t	*game_cvar;
+	placedata_t *loc;
+
+	memset( ml_creator, 0, sizeof( ml_creator ) );
+	ml_count = 0;
+
+	game_cvar = gi.cvar ("game", "action", 0);
+
+	if (!*game_cvar->string)
+		Com_sprintf(locfile, sizeof(locfile), "%s/tng/%s.aqg", GAMEVERSION, level.mapname);
+	else
+		Com_sprintf(locfile, sizeof(locfile), "%s/tng/%s.aqg", game_cvar->string, level.mapname);
+
+	f = fopen( locfile, "r" );
+	if (!f) {
+		gi.Com_PrintFmt( "No location file for %s\n", level.mapname );
+		return;
+	}
+
+	gi.Com_PrintFmt( "Location file: %s\n", level.mapname );
+
+	do
+	{
+		line = fgets( buffer, sizeof( buffer ), f );
+		if (!line) {
+			break;
+		}
+
+		if (strlen( line ) < 12)
+			continue;
+
+		if (line[0] == '#')
+		{
+			param = line + 1;
+			while (*param == ' ') { param++; }
+			if (*param && !Q_strnicmp(param, "creator", 7))
+			{
+				param += 8;
+				while (*param == ' ') { param++; }
+				for (i = 0; *param >= ' ' && i < sizeof( ml_creator ) - 1; i++) {
+					ml_creator[i] = *param++;
+				}
+				ml_creator[i] = 0;
+				while (i > 0 && ml_creator[i - 1] == ' ') //Remove railing spaces
+					ml_creator[--i] = 0;
+			}
+			continue;
+		}
+
+		param = strtok( line, " :\r\n\0" );
+		// TODO: better support for file comments
+		if (!param || param[0] == '#')
+			continue;
+
+		x = atoi( param );
+
+		param = strtok( NULL, " :\r\n\0" );
+		if (!param)
+			continue;
+		y = atoi( param );
+
+		param = strtok( NULL, " :\r\n\0" );
+		if (!param)
+			continue;
+		z = atoi( param );
+
+		param = strtok( NULL, " :\r\n\0" );
+		if (!param)
+			continue;
+		rx = atoi( param );
+
+		param = strtok( NULL, " :\r\n\0" );
+		if (!param)
+			continue;
+		ry = atoi( param );
+
+		param = strtok( NULL, " :\r\n\0" );
+		if (!param)
+			continue;
+		rz = atoi( param );
+
+		param = strtok( NULL, "\r\n\0" );
+		if (!param)
+			continue;
+		locationstr = param;
+
+		loc = &locationbase[ml_count++];
+		loc->x = x;
+		loc->y = y;
+		loc->z = z;
+		loc->rx = rx;
+		loc->ry = ry;
+		loc->rz = rz;
+		Q_strncpyz( loc->desc, locationstr, sizeof( loc->desc ) );
+
+		if (ml_count >= MAX_LOCATIONS_IN_BASE) {
+			gi.Com_PrintFmt( "Cannot read more than %d locations.\n", MAX_LOCATIONS_IN_BASE );
+			break;
+		}
+	} while (1);
+
+	fclose( f );
+	gi.Com_PrintFmt( "Found %d locations.\n", ml_count );
+}
+
+
+
+int Gamemode(void) // These are distinct game modes; you cannot have a teamdm tourney mode, for example
+{
+	int gamemode = 0;
+	if (teamdm->value) {
+		gamemode = GM_TEAMDM;
+	} else if (ctf->value) {
+		gamemode = GM_CTF;
+	} else if (teamplay->value) {
+		gamemode = GM_TEAMPLAY;
+	} else if (esp->value) {
+		gamemode = GM_ESPIONAGE;
+	} else if (deathmatch->value) {
+		gamemode = GM_DEATHMATCH;
+	}
+	return gamemode;
+}
+
+int Gamemodeflag(void)
+// These are gamemode flags that change the rules of gamemodes.
+// For example, you can have a darkmatch matchmode 3team teamplay server
+{
+	int gamemodeflag = 0;
+	char gmfstr[16];
+
+	if (use_3teams->value) {
+		gamemodeflag += GMF_3TEAMS;
+	}
+	if (darkmatch->value) {
+		gamemodeflag += GMF_DARKMATCH;
+	}
+	if (matchmode->value) {
+		gamemodeflag += GMF_MATCHMODE;
+	}
+	sprintf(gmfstr, "%d", gamemodeflag);
+	gi.cvar_forceset("gmf", gmfstr);
+	return gamemodeflag;
+}
+
 /*
 ==============
 SpawnEntities
@@ -1145,14 +1363,321 @@ parsing textual entity definitions out of an ent file.
 void SpawnEntities(const char *mapname, const char *entities, const char *spawnpoint)
 {
 	edict_t *ent;
-	int		 inhibit;
+	gclient_t   *client;
+	client_persistant_t pers;
+	int		 i, inhibit = 0;
 	const char	 *com_token;
+	int saved_team;
 
 	int skill_level = clamp(skill->integer, 0, 3);
 	if (skill->integer != skill_level)
 		gi.cvar_forceset("skill", G_Fmt("{}", skill_level).data());
 
 	SaveClientData();
+
+	// Reset teamplay stuff
+	for(i = TEAM1; i < TEAM_TOP; i++)
+	{
+		teams[i].score = teams[i].total = 0;
+		teams[i].ready = teams[i].locked = 0;
+		teams[i].pauses_used = teams[i].wantReset = 0;
+		teams[i].captain = NULL;
+		if (esp->value) {
+			teams[i].leader = NULL;
+			teams[i].leader_dead = false;
+		}
+		gi.cvar_forceset(teams[i].teamscore->name, "0");
+	}
+
+	day_cycle_at = 0;
+	team_round_going = team_game_going = team_round_countdown = 0;
+	lights_camera_action = holding_on_tie_check = 0;
+	timewarning = fragwarning = 0;
+
+	teamCount = 2;
+	gameSettings = 0;
+
+	if (jump->value)
+	{
+	gi.cvar_forceset(gm->name, "jump");
+
+	// Force disable settings for jump mode
+	disablecvar(stat_logs, GMN_JUMP);
+	disablecvar(dm_choose, GMN_JUMP);
+	disablecvar(uvtime, GMN_JUMP);
+	disablecvar(am, GMN_JUMP);
+	disablecvar(ltk_loadbots, GMN_JUMP);
+	// gi.cvar_forceset(stat_logs->name, "0"); // Turn off stat logs for jump mode
+	// gi.cvar_forceset(dm_choose->name, "0"); // Turn off dm_choose for jump mode
+	// gi.cvar_forceset(uvtime->name, "0"); // Turn off uvtime in jump mode
+	gi.cvar_forceset(unique_items->name, "6"); // Enables holding all items at once, if toggled
+	// gi.cvar_forceset(am->name, "0"); // Turns off attract mode
+	// gi.cvar_forceset(ltk_loadbots->name, "0"); // Turns off bots
+	//
+		if (teamplay->value)
+		{
+			gi.dprintf ("Jump Enabled - Forcing teamplay ff\n");
+			gi.cvar_forceset(teamplay->name, "0");
+		}
+		if (use_3teams->value)
+		{
+			gi.dprintf ("Jump Enabled - Forcing 3Teams off\n");
+			gi.cvar_forceset(use_3teams->name, "0");
+		}
+		if (teamdm->value)
+		{
+			gi.dprintf ("Jump Enabled - Forcing Team DM off\n");
+			gi.cvar_forceset(teamdm->name, "0");
+		}
+		if (use_tourney->value)
+		{
+			gi.dprintf ("Jump Enabled - Forcing Tourney off\n");
+			gi.cvar_forceset(use_tourney->name, "0");
+		}
+		if (ctf->value)
+		{
+			gi.dprintf ("Jump Enabled - Forcing CTF off\n");
+			gi.cvar_forceset(ctf->name, "0");
+		}
+		if (dom->value)
+		{
+			gi.dprintf ("Jump Enabled - Forcing Domination off\n");
+			gi.cvar_forceset(dom->name, "0");
+		}
+		if (use_randoms->value)
+		{
+			gi.dprintf ("Jump Enabled - Forcing Random weapons and items off\n");
+			gi.cvar_forceset(use_randoms->name, "0");
+		}
+	}
+	else if (ctf->value)
+	{
+	gi.cvar_forceset(gm->name, "ctf");
+		if (ctf->value == 2)
+			gi.cvar_forceset(ctf->name, "1"); //for now
+
+		gameSettings |= GS_WEAPONCHOOSE;
+
+		// Make sure teamplay is enabled
+		if (!teamplay->value)
+		{
+			gi.dprintf ("CTF Enabled - Forcing teamplay on\n");
+			gi.cvar_forceset(teamplay->name, "1");
+		}
+		if (use_3teams->value)
+		{
+			gi.dprintf ("CTF Enabled - Forcing 3Teams off\n");
+			gi.cvar_forceset(use_3teams->name, "0");
+		}
+		if(teamdm->value)
+		{
+			gi.dprintf ("CTF Enabled - Forcing Team DM off\n");
+			gi.cvar_forceset(teamdm->name, "0");
+		}
+		if (use_tourney->value)
+		{
+			gi.dprintf ("CTF Enabled - Forcing Tourney off\n");
+			gi.cvar_forceset(use_tourney->name, "0");
+		}
+		if (dom->value)
+		{
+			gi.dprintf ("CTF Enabled - Forcing Domination off\n");
+			gi.cvar_forceset(dom->name, "0");
+		}
+		if (!DMFLAGS(DF_NO_FRIENDLY_FIRE))
+		{
+			gi.dprintf ("CTF Enabled - Forcing Friendly Fire off\n");
+			gi.cvar_forceset(dmflags->name, va("%i", (int)dmflags->value | DF_NO_FRIENDLY_FIRE));
+		}
+		if (use_randoms->value)
+		{
+			gi.dprintf ("CTF Enabled - Forcing Random weapons and items off\n");
+			gi.cvar_forceset(use_randoms->name, "0");
+		}
+		Q_strncpyz(teams[TEAM1].name, "RED", sizeof(teams[TEAM1].name));
+		Q_strncpyz(teams[TEAM2].name, "BLUE", sizeof(teams[TEAM2].name));
+		Q_strncpyz(teams[TEAM1].skin, "male/ctf_r", sizeof(teams[TEAM1].skin));
+		Q_strncpyz(teams[TEAM2].skin, "male/ctf_b", sizeof(teams[TEAM2].skin));
+		Q_strncpyz(teams[TEAM1].skin_index, "i_ctf1", sizeof(teams[TEAM1].skin_index));
+		Q_strncpyz(teams[TEAM2].skin_index, "i_ctf2", sizeof(teams[TEAM2].skin_index));
+	}
+	else if (esp->value)
+	{
+	gi.cvar_forceset(gm->name, "esp");
+		//gameSettings |= GS_WEAPONCHOOSE;
+		gameSettings |= (GS_ROUNDBASED | GS_WEAPONCHOOSE);
+
+		// Make sure teamplay is enabled
+		if (!teamplay->value)
+		{
+			gi.dprintf ("Espionage Enabled - Forcing teamplay on\n");
+			gi.cvar_forceset(teamplay->name, "1");
+		}
+		// ETV mode doesn't support 3 teams, but ATL does
+		if(espsettings.mode == 1) {
+			if (use_3teams->value)
+			{
+				gi.dprintf ("Espionage ETV Enabled - Incompatible with 3 Teams, reverting to ATL mode\n");
+				espsettings.mode = 0;
+			}
+		}
+		if(teamdm->value)
+		{
+			gi.dprintf ("Espionage Enabled - Forcing Team DM off\n");
+			gi.cvar_forceset(teamdm->name, "0");
+		}
+		if (use_tourney->value)
+		{
+			gi.dprintf ("Espionage Enabled - Forcing Tourney off\n");
+			gi.cvar_forceset(use_tourney->name, "0");
+		}
+		if (dom->value)
+		{
+			gi.dprintf ("Espionage Enabled - Forcing Domination off\n");
+			gi.cvar_forceset(dom->name, "0");
+		}
+		if (!DMFLAGS(DF_NO_FRIENDLY_FIRE))
+		{
+			gi.dprintf ("Espionage Enabled - Forcing Friendly Fire off\n");
+			gi.cvar_forceset(dmflags->name, va("%i", (int)dmflags->value | DF_NO_FRIENDLY_FIRE));
+		}
+		// Espionage respawns do not have uvtime
+		if (uvtime->value)
+		{
+			gi.cvar_forceset(uvtime->name, "0");
+		}
+	}
+	else if (dom->value)
+	{
+		gi.cvar_forceset(gm->name, "dom");
+		gameSettings |= GS_WEAPONCHOOSE;
+		if (!teamplay->value)
+		{
+			gi.dprintf ("Domination Enabled - Forcing teamplay on\n");
+			gi.cvar_forceset(teamplay->name, "1");
+		}
+		if (teamdm->value)
+		{
+			gi.dprintf ("Domination Enabled - Forcing Team DM off\n");
+			gi.cvar_forceset(teamdm->name, "0");
+		}
+		if (use_tourney->value)
+		{
+			gi.dprintf ("Domination Enabled - Forcing Tourney off\n");
+			gi.cvar_forceset(use_tourney->name, "0");
+		}
+		if (use_randoms->value)
+		{
+			gi.dprintf ("Domination Enabled - Forcing Random weapons and items off\n");
+			gi.cvar_forceset(use_randoms->name, "0");
+		}
+		Q_strncpyz(teams[TEAM1].name, "RED", sizeof(teams[TEAM1].name));
+		Q_strncpyz(teams[TEAM2].name, "BLUE", sizeof(teams[TEAM2].name));
+		Q_strncpyz(teams[TEAM3].name, "GREEN", sizeof(teams[TEAM3].name));
+		Q_strncpyz(teams[TEAM1].skin, "male/ctf_r", sizeof(teams[TEAM1].skin));
+		Q_strncpyz(teams[TEAM2].skin, "male/ctf_b", sizeof(teams[TEAM2].skin));
+		Q_strncpyz(teams[TEAM3].skin, "male/commando", sizeof(teams[TEAM3].skin));
+		Q_strncpyz(teams[TEAM1].skin_index, "i_ctf1", sizeof(teams[TEAM1].skin_index));
+		Q_strncpyz(teams[TEAM2].skin_index, "i_ctf2", sizeof(teams[TEAM2].skin_index));
+		Q_strncpyz(teams[TEAM3].skin_index, "i_pack", sizeof(teams[TEAM3].skin_index));
+	}
+	else if(teamdm->value)
+	{
+		gi.cvar_forceset(gm->name, "tdm");
+		gameSettings |= GS_DEATHMATCH;
+
+		if (dm_choose->value)
+			gameSettings |= GS_WEAPONCHOOSE;
+
+		if (!teamplay->value)
+		{
+			gi.dprintf ("Team Deathmatch Enabled - Forcing teamplay on\n");
+			gi.cvar_forceset(teamplay->name, "1");
+		}
+		if (use_tourney->value)
+		{
+			gi.dprintf ("Team Deathmatch Enabled - Forcing Tourney off\n");
+			gi.cvar_forceset(use_tourney->name, "0");
+		}
+	}
+	else if (use_3teams->value)
+	{
+		gi.cvar_forceset(gm->name, "tp");
+		gameSettings |= (GS_ROUNDBASED | GS_WEAPONCHOOSE);
+
+		if (!teamplay->value)
+		{
+			gi.dprintf ("3 Teams Enabled - Forcing teamplay on\n");
+			gi.cvar_forceset(teamplay->name, "1");
+		}
+		if (use_tourney->value)
+		{
+			gi.dprintf ("3 Teams Enabled - Forcing Tourney off\n");
+			gi.cvar_forceset(use_tourney->name, "0");
+		}
+	}
+	else if (matchmode->value)
+	{
+		gameSettings |= (GS_ROUNDBASED | GS_WEAPONCHOOSE);
+		if (!teamplay->value)
+		{
+			gi.dprintf ("Matchmode Enabled - Forcing teamplay on\n");
+			gi.cvar_forceset(teamplay->name, "1");
+		}
+		if (use_tourney->value)
+		{
+			gi.dprintf ("Matchmode Enabled - Forcing Tourney off\n");
+			gi.cvar_forceset(use_tourney->name, "0");
+		}
+	}
+	else if (use_tourney->value)
+	{
+		gi.cvar_forceset(gm->name, "tourney");
+		gameSettings |= (GS_ROUNDBASED | GS_WEAPONCHOOSE);
+
+		if (!teamplay->value)
+		{
+			gi.dprintf ("Tourney Enabled - Forcing teamplay on\n");
+			gi.cvar_forceset(teamplay->name, "1");
+		}
+	}
+	else if (teamplay->value)
+	{
+		gi.cvar_forceset(gm->name, "tp");
+		gameSettings |= (GS_ROUNDBASED | GS_WEAPONCHOOSE);
+	}
+	else { //Its deathmatch
+		gi.cvar_forceset(gm->name, "dm");
+		gameSettings |= GS_DEATHMATCH;
+		if (dm_choose->value)
+			gameSettings |= GS_WEAPONCHOOSE;
+	}
+
+	if (teamplay->value)
+	{
+		gameSettings |= GS_TEAMPLAY;
+	}
+	if (matchmode->value)
+	{
+		gameSettings |= GS_MATCHMODE;
+		gi.dprintf ("Matchmode Enabled - Forcing g_spawn_items off\n");
+		gi.cvar_forceset(g_spawn_items->name, "0"); // Turn off spawning of items for matchmode games
+	}
+	if (use_3teams->value)
+	{
+		teamCount = 3;
+		if (!use_oldspawns->value)
+		{
+			gi.dprintf ("3 Teams Enabled - Forcing use_oldspawns on\n");
+			gi.cvar_forceset(use_oldspawns->name, "1");
+		}
+	}
+
+
+	gi.cvar_forceset(maptime->name, "0:00");
+
+	// Set serverinfo correctly for gamemodeflags
+	Gamemodeflag();
 
 	gi.FreeTags(TAG_LEVEL);
 

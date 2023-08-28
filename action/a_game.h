@@ -107,11 +107,11 @@ void unicastSound(edict_t *ent, int soundIndex, float volume);
 int KickDoor (trace_t * tr_old, edict_t * ent, vec3_t forward);
 
 // Prototypes of base Q2 functions that weren't included in any Q2 header
-qboolean loc_CanSee (edict_t *, edict_t *);
+bool loc_CanSee (edict_t *, edict_t *);
 void ParseSayText (edict_t *, char *, size_t size);
 
 void AttachToEntity( edict_t *self, edict_t *onto );
-qboolean CanBeAttachedTo( const edict_t *ent );
+bool CanBeAttachedTo( const edict_t *ent );
 
 //PG BUND - BEGIN
 //void ParseSayText(edict_t *, char *);
@@ -121,7 +121,7 @@ void GetHealth (edict_t * ent, char *buf);
 void GetAmmo (edict_t * ent, char *buf);
 void GetNearbyTeammates (edict_t * self, char *buf);
 
-void ResetScores (qboolean playerScores);
+void ResetScores (bool playerScores);
 void AddKilledPlayer (edict_t * self, edict_t * ent);
 void VideoCheckClient (edict_t * ent);
 //AQ2:TNG END

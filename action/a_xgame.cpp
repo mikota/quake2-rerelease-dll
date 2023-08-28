@@ -71,7 +71,7 @@
 #include "g_local.h"
 
 // DetermineViewedPlayer: determine the current player you're viewing (only looks for live Enemy/Teammate)
-edict_t *DetermineViewedPlayer(edict_t *ent, qboolean teammate)
+edict_t *DetermineViewedPlayer(edict_t *ent, bool teammate)
 {
 	vec3_t forward, dir;
 	trace_t tr;
@@ -195,7 +195,7 @@ static void GetLastDamagedPlayers(edict_t *self, char *buf)
 // Modifies the the location areas by value of "mod"
 // in the coord-inside-area tests
 //
-static qboolean GetLocation(int xo, int yo, int zo, int mod, char *buf)
+static bool GetLocation(int xo, int yo, int zo, int mod, char *buf)
 {
 	int count;
 	int lx, ly, lz, rlx, rly, rlz;
@@ -238,7 +238,7 @@ static qboolean GetLocation(int xo, int yo, int zo, int mod, char *buf)
 
 // Get the player location
 //
-qboolean GetPlayerLocation(edict_t *self, char *buf)
+bool GetPlayerLocation(edict_t *self, char *buf)
 {
 	if (GetLocation((int)self->s.origin[0], (int)self->s.origin[1], (int)self->s.origin[2], 0, buf))
 		return true;
@@ -311,7 +311,7 @@ static void GetEnemyPosition(edict_t *self, char *buf)
 			strcat (buf, "east");
 		if (rel_xy_pos & RP_WEST)
 			strcat (buf, "west");
-		//gi.dprintf ("rel_xy_pos: %i\n", rel_xy_pos);
+		//gi.Com_PrintFmt ("rel_xy_pos: %i\n", rel_xy_pos);
 		//last but not least, the height of enemy, limit for up/down: 64
 		if (fabs(rel_pos[2]) > 64.0)
 		{

@@ -32,7 +32,7 @@ extern cvar_t *esp;
 
 int EspFlagOwner( edict_t *flag );
 void EspRemember( const edict_t *ent, const gitem_t *item );
-qboolean EspLoadConfig( const char *mapname );
+bool EspLoadConfig( const char *mapname );
 void EspSetupStatusbar( void );
 void SetEspStats( edict_t *ent );
 
@@ -48,8 +48,8 @@ typedef struct espsettings_s
 	int mode;
 	char author[MAX_ESP_STRLEN*3];
 	char name[MAX_ESP_STRLEN];
-	qboolean custom_spawns;
-	qboolean custom_skins;
+	bool custom_spawns;
+	bool custom_skins;
 	int halftime;
 	int capturestreak;
 	int escortcap;
@@ -87,7 +87,7 @@ int EspGetRespawnTime(edict_t *ent);
 
 void Cmd_Volunteer_f(edict_t * ent);
 void EspSetLeader( int teamNum, edict_t *ent );
-qboolean AllTeamsHaveLeaders(void);
+bool AllTeamsHaveLeaders(void);
 void EspLeaderLeftTeam( edict_t *ent );
 void EspPunishment(int teamNum);
 void EspRespawnPlayer(edict_t *ent);
@@ -95,14 +95,14 @@ void EspRespawnPlayer(edict_t *ent);
 edict_t *SelectEspSpawnPoint (edict_t * ent);
 int EspReportLeaderDeath(edict_t *ent);
 void EspResetFlag(void);
-void GenerateMedKit(qboolean instant);
+void GenerateMedKit(bool instant);
 
 void EspTouchFlag( edict_t *marker, edict_t *player, cplane_t *plane, csurface_t *surf );
 void EspScoreBonuses(edict_t * targ, edict_t * inflictor, edict_t * attacker);
 void EspCheckHurtLeader (edict_t * targ, edict_t * attacker);
 
-qboolean EspCheckRules (void);
-qboolean HasFlag (edict_t * ent);
+bool EspCheckRules (void);
+bool HasFlag (edict_t * ent);
 
 void ResetPlayers ();
 void GetEspScores(int *t1score, int *t2score);

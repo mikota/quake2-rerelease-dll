@@ -25,7 +25,7 @@ static XMENU_TITLE xRaw[] = {
   "\x80\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x81\x82"  // double line
 };
 
-qboolean xMenu_Add (edict_t * ent, char *name,
+bool xMenu_Add (edict_t * ent, char *name,
 	   void (*SelectFunc) (edict_t * ent, pmenu_t * p))
 {
 	xmenu_t *x_menu = &ent->client->pers.x_menu;
@@ -152,7 +152,7 @@ void xMenu_Set (edict_t * ent)
 	}
 }
 
-qboolean
+bool
 xMenu_New (edict_t * ent, char *title, char *subtitle,
 	   void (*DoAddMenu) (edict_t * ent, int fromix))
 {

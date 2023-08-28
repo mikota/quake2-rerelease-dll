@@ -84,7 +84,7 @@ int KickDoor(trace_t * tr_old, edict_t * ent, vec3_t forward)
 		     ((tr.ent->moveinfo.state == STATE_TOP) || (tr.ent->moveinfo.state == STATE_UP))))
 #endif
 		{
-			//gi.dprintf( "Kicking a closed door\n" );
+			//gi.Com_PrintFmt( "Kicking a closed door\n" );
 
 			// Find out if we are on the "outside"
 
@@ -109,9 +109,9 @@ int KickDoor(trace_t * tr_old, edict_t * ent, vec3_t forward)
 				d = -d;
 			// d = sin( acos( d ) );
 			if (d > 0.0) {
-				// gi.dprintf( "we think we are on the outside\n" );
+				// gi.Com_PrintFmt( "we think we are on the outside\n" );
 				//if ( tr.ent->spawnflags & DOOR_REVERSE )
-				//  gi.dprintf( "but DOOR_REVERSE is set\n" );
+				//  gi.Com_PrintFmt( "but DOOR_REVERSE is set\n" );
 				// Only use the door if it's not already opening
 				if ((!(tr.ent->spawnflags & DOOR_START_OPEN) &&
 				     !(tr.ent->moveinfo.state == STATE_UP)) ||
@@ -125,7 +125,7 @@ int KickDoor(trace_t * tr_old, edict_t * ent, vec3_t forward)
 				if (!((tr.surface) && (tr.surface->flags & SURF_SKY))) {
 					if (tr.fraction < 1.0) {
 						if (tr.ent->client) {
-							//gi.dprintf("we found a client on the other side\n");
+							//gi.Com_PrintFmt("we found a client on the other side\n");
 							*tr_old = tr;
 							return (1);
 						}

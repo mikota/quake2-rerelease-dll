@@ -366,7 +366,7 @@ Cmd_PrintCubeState_f (edict_t * self)
 void Cmd_WhereAmI_f( edict_t * self )
 {
 	char location[ 128 ] = "";
-	qboolean found = GetPlayerLocation( self, location );
+	bool found = GetPlayerLocation( self, location );
 
 	if( found )
 		gi.cprintf( self, PRINT_MEDIUM, "Location: %s\n", location );
@@ -451,7 +451,7 @@ void Cmd_FlashGrenade_f(edict_t *ent)
 
 // Old g_cmds.c START
 //-----------------------------------------------------------------------------
-qboolean FloodCheck (edict_t *ent)
+bool FloodCheck (edict_t *ent)
 {
 	if (flood_threshold->value)
 	{
@@ -474,7 +474,7 @@ LookupPlayer
 Look up a player by partial subname, full name or client id. If multiple
 matches, show a list. Return NULL on failure. Case insensitive.
 */
-edict_t *LookupPlayer(edict_t *ent, const char *text, qboolean checkNUM, qboolean checkNick)
+edict_t *LookupPlayer(edict_t *ent, const char *text, bool checkNUM, bool checkNick)
 {
 	edict_t		*p = NULL, *entMatch = NULL;
 	int			i, matchCount, numericMatch;
@@ -593,7 +593,7 @@ char *ClientTeam (edict_t * ent)
 	return ++p;
 }
 
-qboolean OnSameTeam (edict_t * ent1, edict_t * ent2)
+bool OnSameTeam (edict_t * ent1, edict_t * ent2)
 {
 	char ent1Team[128], ent2Team[128];
 
@@ -717,7 +717,7 @@ static void Cmd_Give_f (edict_t * ent)
 	gitem_t *it;
 	int index;
 	int i;
-	qboolean give_all;
+	bool give_all;
 	edict_t *it_ent;
 	edict_t etemp;
 
@@ -865,7 +865,7 @@ static void Cmd_Give_f (edict_t * ent)
 		it = FindItem (name);
 		if (!it)
 		{
-			gi.dprintf ("unknown item\n");
+			gi.Com_PrintFmt ("unknown item\n");
 			return;
 		}
 	}
@@ -876,7 +876,7 @@ static void Cmd_Give_f (edict_t * ent)
 
 	if (!it->pickup)
 	{
-		gi.dprintf ("non-pickup item\n");
+		gi.Com_PrintFmt ("non-pickup item\n");
 		return;
 	}
 
@@ -1499,13 +1499,13 @@ static void Cmd_Wave_f (edict_t * ent)
 Cmd_Say_f
 ==================
 */
-void Cmd_Say_f (edict_t * ent, qboolean team, qboolean arg0, qboolean partner_msg)
+void Cmd_Say_f (edict_t * ent, bool team, bool arg0, bool partner_msg)
 {
 	int j, offset_of_text;
 	edict_t *other;
 	char *args, text[256], *s;
 	int meing = 0, isadmin = 0;
-	qboolean show_info = false;
+	bool show_info = false;
 
 	if (gi.argc() < 2 && !arg0)
 		return;

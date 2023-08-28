@@ -94,7 +94,7 @@ void Stats_AddShot( edict_t *ent, int gun )
 		return;
 
 	if ((unsigned)gun >= MAX_GUNSTAT) {
-		gi.dprintf( "Stats_AddShot: Bad gun number!\n" );
+		gi.Com_PrintFmt( "Stats_AddShot: Bad gun number!\n" );
 		return;
 	}
 
@@ -129,7 +129,7 @@ void Stats_AddHit( edict_t *ent, int gun, int hitPart )
 		}
 	}
 	else {
-		gi.dprintf( "Stats_AddHit: Bad gun number!\n" );
+		gi.Com_PrintFmt( "Stats_AddHit: Bad gun number!\n" );
 		return;
 	}
 }
@@ -453,7 +453,7 @@ void A_ScoreboardEndLevel (edict_t * ent, edict_t * killer)
 	
 	if (strlen(string) > 1023)	// for debugging...
 	{
-		gi.dprintf("Warning: scoreboard string neared or exceeded max length\nDump:\n%s\n---\n", string);
+		gi.Com_PrintFmt("Warning: scoreboard string neared or exceeded max length\nDump:\n%s\n---\n", string);
 		string[1023] = '\0';
 	}
 
@@ -476,7 +476,7 @@ void Cmd_Statmode_f(edict_t* ent)
 	i = atoi (arg);
 
 	if (i > 2 || i < 0) {
-		gi.dprintf("Warning: stat_mode set to %i by %s\n", i, ent->client->pers.netname);
+		gi.Com_PrintFmt("Warning: stat_mode set to %i by %s\n", i, ent->client->pers.netname);
 
 		// Force the old mode if it is valid else force 0
 		if (ent->client->resp.stat_mode > 0 && ent->client->resp.stat_mode < 3)

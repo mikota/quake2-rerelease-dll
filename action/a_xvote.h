@@ -34,7 +34,7 @@ typedef struct
 
   void (*NewRound) (void);	// called when round ends (teamplay)
 
-    qboolean (*CheckVote) (void);	// if true, we'll leave level...
+    bool (*CheckVote) (void);	// if true, we'll leave level...
 
   char *VoteTitle;		// votemenu menuentry
   // called if vote was selected in votemenu
@@ -51,5 +51,5 @@ void vExitLevel(char *NextMap);
 void vInitClient(edict_t *ent);
 void vClientDisconnect(edict_t *ent);
 void vNewRound(void);
-qboolean vCheckVote(void);
+bool vCheckVote(void);
 void vShowMenu(edict_t *ent, char *menu);

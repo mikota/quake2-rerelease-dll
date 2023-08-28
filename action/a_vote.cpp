@@ -72,7 +72,7 @@
 //==========================================================================
 
 void _printplayerlist (edict_t * self, char *buf,
-		  qboolean (*markthis) (edict_t * self, edict_t * other))
+		  bool (*markthis) (edict_t * self, edict_t * other))
 {
 	int count = 0, i;
 	edict_t *other;
@@ -140,7 +140,7 @@ votelist_t *map_votes;
 int map_num_maps;
 int map_num_votes;
 int map_num_clients;
-qboolean map_need_to_check_votes;
+bool map_need_to_check_votes;
 
 cvar_t *mapvote_min;
 cvar_t *mapvote_need;
@@ -159,7 +159,7 @@ votelist_t *MapWithMostVotes(float *p);
 votelist_t *MapWithMostAllVotes(void);
 int AddVoteToMap(const char *mapname, edict_t * ent);
 void ReadMaplistFile(void);
-qboolean _iCheckMapVotes(void);
+bool _iCheckMapVotes(void);
 
 //
 static void Votemap(edict_t *ent, const char *mapname)
@@ -418,7 +418,7 @@ void _MapExitLevel (char *NextMap)
 }
 
 //
-qboolean _CheckMapVotes (void)
+bool _CheckMapVotes (void)
 {
 	if (use_mapvote->value == 2 && !matchmode->value) //Change to voted map only at mapchange
 		return false;
@@ -432,7 +432,7 @@ qboolean _CheckMapVotes (void)
 }
 
 //
-qboolean _MostVotesStr (char *buf)
+bool _MostVotesStr (char *buf)
 {
 	float p_most = 0.0f;
 	votelist_t *most;
@@ -509,9 +509,9 @@ cvar_t *_InitMapVotelist (ini_t * ini)
 
 //---------------
 
-qboolean _iCheckMapVotes (void)
+bool _iCheckMapVotes (void)
 {
-	static qboolean enough = false;
+	static bool enough = false;
 	float p;
 	votelist_t *tmp;
 
@@ -852,7 +852,7 @@ cvar_t *kickvote_need;
 cvar_t *kickvote_pass;
 cvar_t *kickvote_tempban;
 
-qboolean kickvotechanged = false;
+bool kickvotechanged = false;
 edict_t *Mostkickvotes = NULL;
 float Allkickvotes = 0.0;
 float Mostkickpercent = 0.0;
@@ -1051,7 +1051,7 @@ void _AddKickuserToMenu (edict_t * ent, int fromix)
 {
 	int i, j;
 	edict_t *other;
-	qboolean erg;
+	bool erg;
 	char buf[256];
 
 	j = 0;
@@ -1146,7 +1146,7 @@ void Cmd_Votekicknum_f(edict_t *ent)
 	Votekicknum(ent, gi.args());
 }
 
-qboolean _vkMarkThis(edict_t *self, edict_t *other)
+bool _vkMarkThis(edict_t *self, edict_t *other)
 {
 	if (self->client->resp.kickvote == other)
 		return true;
@@ -1193,7 +1193,7 @@ configlist_t *config_votes;
 int config_num_configs;
 int config_num_votes;
 int config_num_clients;
-qboolean config_need_to_check_votes;
+bool config_need_to_check_votes;
 
 cvar_t *cvote_min;
 cvar_t *cvote_need;
@@ -1207,7 +1207,7 @@ char configlistpath[MAX_STR_LEN];
 configlist_t *ConfigWithMostVotes(float *p);
 int AddVoteToConfig(const char *configname, edict_t *ent);
 void ReadConfiglistFile(void);
-qboolean _iCheckConfigVotes(void);
+bool _iCheckConfigVotes(void);
 
 //
 static void Voteconfig(edict_t *ent, const char *config)
@@ -1400,7 +1400,7 @@ void _ConfigExitLevel (char *NextMap)
 }
 
 //
-qboolean _CheckConfigVotes (void)
+bool _CheckConfigVotes (void)
 {
 	if (_iCheckConfigVotes () == true)
 	{
@@ -1412,7 +1412,7 @@ qboolean _CheckConfigVotes (void)
 }
 
 //
-qboolean _ConfigMostVotesStr (char *buf)
+bool _ConfigMostVotesStr (char *buf)
 {
 	float p_most = 0.0f;
 	configlist_t *most;
@@ -1468,9 +1468,9 @@ cvar_t *_InitConfiglist (ini_t * ini)
 
 //---------------
 
-qboolean _iCheckConfigVotes (void)
+bool _iCheckConfigVotes (void)
 {
-	static qboolean enough = false;
+	static bool enough = false;
 	float p;
 	configlist_t *tmp;
 
@@ -1728,7 +1728,7 @@ int IsInIgnoreList (edict_t * source, edict_t * subject)
 }
 
 //Adds an edict to ignore list. If allready in, it will be removed
-void _AddOrDelIgnoreSubject (edict_t * source, edict_t * subject, qboolean silent)
+void _AddOrDelIgnoreSubject (edict_t * source, edict_t * subject, bool silent)
 {
 	int i;
 
@@ -1894,7 +1894,7 @@ void Cmd_Ignorenum_f(edict_t *self)
 	IgnorePlayer(self, gi.args());
 }
 
-qboolean _ilMarkThis (edict_t *self, edict_t *other)
+bool _ilMarkThis (edict_t *self, edict_t *other)
 {
 	if (IsInIgnoreList (self, other))
 		return true;
@@ -1942,7 +1942,7 @@ void _AddIgnoreuserToMenu (edict_t * ent, int fromix)
 {
 	int i, j;
 	edict_t *other;
-	qboolean erg;
+	bool erg;
 	char buf[256];
 
 	j = 0;
@@ -1997,7 +1997,7 @@ cvar_t *_InitScrambleVote (ini_t * ini)
 	return (use_scramblevote);
 }
 
-qboolean ScrambleTeams(void)
+bool ScrambleTeams(void)
 {
 	int i, j, numplayers, newteam;
 	edict_t *ent, *players[MAX_CLIENTS], *oldCaptains[TEAM_TOP] = {NULL};

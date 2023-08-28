@@ -155,8 +155,8 @@ extern long Q_ftol (float f);
 
 
 void AddPointToBounds (const vec3_t v, vec3_t mins, vec3_t maxs);
-vec_t VectorNormalize (vec3_t v);	// returns vector length
-vec_t VectorNormalize2 (const vec3_t v, vec3_t out);
+vec3_t VectorNormalize (vec3_t v);	// returns vector length
+vec3_t VectorNormalize2 (const vec3_t v, vec3_t out);
 
 int Q_log2 (int val);
 

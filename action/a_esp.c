@@ -63,7 +63,7 @@ void EspFlagThink( edict_t *flag)
 
 			// Commented out but may still be useful at some point
 			// This grabs the map location name
-			    // qboolean has_loc = false;
+			    // bool has_loc = false;
 				// char location[ 128 ] = "(";
 				// has_loc = GetPlayerLocation( flag, location + 1 );
 				// if( has_loc )
@@ -217,7 +217,7 @@ void EspSetTeamSpawns(int team, char *str)
 	do {
 		
 		if (sscanf(next, "<%f %f %f %f>", &pos[0], &pos[1], &pos[2], &angle) != 4) {
-			gi.dprintf("EspSetTeamSpawns: invalid spawn point: %s, expected <x y z a>\n", next);
+			gi.Com_PrintFmt("EspSetTeamSpawns: invalid spawn point: %s, expected <x y z a>\n", next);
 			continue;
 		}
 		spawn = G_Spawn ();
@@ -233,20 +233,20 @@ void EspSetTeamSpawns(int team, char *str)
 
 void EspEnforceDefaultSettings(char *defaulttype)
 {
-	qboolean default_team = (Q_stricmp(defaulttype,"team")==0) ? true : false;
-	qboolean default_respawn = (Q_stricmp(defaulttype,"respawn")==0) ? true : false;
-	qboolean default_author = (Q_stricmp(defaulttype,"author")==0) ? true : false;
+	bool default_team = (Q_stricmp(defaulttype,"team")==0) ? true : false;
+	bool default_respawn = (Q_stricmp(defaulttype,"respawn")==0) ? true : false;
+	bool default_author = (Q_stricmp(defaulttype,"author")==0) ? true : false;
 
-	//gi.dprintf("I was called to set the default for %s\n", defaulttype);
+	//gi.Com_PrintFmt("I was called to set the default for %s\n", defaulttype);
 
 	if(default_author) {
 		espsettings.mode = ESPMODE_ATL;
 		Q_strncpyz(espsettings.author, "AQ2World Team", sizeof(espsettings.author));
 		Q_strncpyz(espsettings.name, "Time for Action!", sizeof(espsettings.name));
 
-		gi.dprintf(" Author           : %s\n", espsettings.author);
-		gi.dprintf(" Name		  : %s\n", espsettings.name);
-		gi.dprintf(" Game type        : Assassinate the Leader\n");
+		gi.Com_PrintFmt(" Author           : %s\n", espsettings.author);
+		gi.Com_PrintFmt(" Name		  : %s\n", espsettings.name);
+		gi.Com_PrintFmt(" Game type        : Assassinate the Leader\n");
 	}
 
 	if(default_respawn) {
@@ -255,7 +255,7 @@ void EspEnforceDefaultSettings(char *defaulttype)
 		if (teamCount == 3){
 			teams[TEAM3].respawn_timer = ESP_RESPAWN_TIME;
 		}
-		gi.dprintf("  Respawn Rate: %d seconds\n", ESP_RESPAWN_TIME);
+		gi.Com_PrintFmt("  Respawn Rate: %d seconds\n", ESP_RESPAWN_TIME);
 	}
 
 	if(default_team) {
@@ -276,44 +276,44 @@ void EspEnforceDefaultSettings(char *defaulttype)
 			Q_strncpyz(teams[TEAM3].leader_name, ESP_GREEN_LEADER_NAME, sizeof(teams[TEAM3].leader_name));
 			Q_strncpyz(teams[TEAM3].leader_skin, ESP_GREEN_LEADER_SKIN, sizeof(teams[TEAM3].leader_skin));
 		}
-		gi.dprintf("  Red Team: %s -- Skin: %s\n", ESP_RED_TEAM, ESP_RED_SKIN);
-		gi.dprintf("  Red Leader: %s -- Skin: %s\n", ESP_RED_LEADER_NAME, ESP_RED_LEADER_SKIN);
-		gi.dprintf("  Blue Team: %s -- Skin: %s\n", ESP_BLUE_TEAM, ESP_BLUE_SKIN);
-		gi.dprintf("  Blue Leader: %s -- Skin: %s\n", ESP_BLUE_LEADER_NAME, ESP_BLUE_LEADER_SKIN);
+		gi.Com_PrintFmt("  Red Team: %s -- Skin: %s\n", ESP_RED_TEAM, ESP_RED_SKIN);
+		gi.Com_PrintFmt("  Red Leader: %s -- Skin: %s\n", ESP_RED_LEADER_NAME, ESP_RED_LEADER_SKIN);
+		gi.Com_PrintFmt("  Blue Team: %s -- Skin: %s\n", ESP_BLUE_TEAM, ESP_BLUE_SKIN);
+		gi.Com_PrintFmt("  Blue Leader: %s -- Skin: %s\n", ESP_BLUE_LEADER_NAME, ESP_BLUE_LEADER_SKIN);
 		if(teamCount == 3){
-			gi.dprintf("  Green Team: %s -- Skin: %s\n", ESP_GREEN_TEAM, ESP_GREEN_SKIN);
-			gi.dprintf("  Green Leader: %s -- Skin: %s\n", ESP_GREEN_LEADER_NAME, ESP_GREEN_LEADER_SKIN);
+			gi.Com_PrintFmt("  Green Team: %s -- Skin: %s\n", ESP_GREEN_TEAM, ESP_GREEN_SKIN);
+			gi.Com_PrintFmt("  Green Leader: %s -- Skin: %s\n", ESP_GREEN_LEADER_NAME, ESP_GREEN_LEADER_SKIN);
 		}
 	}
 }
 
-qboolean EspLoadConfig(const char *mapname)
+bool EspLoadConfig(const char *mapname)
 {
 	char buf[1024];
 	char *ptr;
-	qboolean no_file = false;
+	bool no_file = false;
 	FILE *fh;
 
 	memset(&espsettings, 0, sizeof(espsettings));
 
 	esp_flag = gi.modelindex("models/items/bcase/g_bc1.md2");
 
-	gi.dprintf("Trying to load Espionage configuration file\n", mapname);
+	gi.Com_PrintFmt("Trying to load Espionage configuration file\n", mapname);
 
 	sprintf (buf, "%s/tng/%s.esp", GAMEVERSION, mapname);
 	fh = fopen (buf, "r");
 	if (!fh) {
 		//Default to ATL mode in this case
-		gi.dprintf ("Warning: Espionage configuration file \" %s \" was not found.\n", buf);
+		gi.Com_PrintFmt ("Warning: Espionage configuration file \" %s \" was not found.\n", buf);
 		espsettings.mode = 0;
 		sprintf (buf, "%s/tng/default.esp", GAMEVERSION);
 		fh = fopen (buf, "r");
 		if (!fh){
-			gi.dprintf ("Warning: Default Espionage configuration file was not found.\n");
-			gi.dprintf ("Using hard-coded Assassinate the Leader scenario settings.\n");
+			gi.Com_PrintFmt ("Warning: Default Espionage configuration file was not found.\n");
+			gi.Com_PrintFmt ("Using hard-coded Assassinate the Leader scenario settings.\n");
 			no_file = true;
 		} else {
-			gi.dprintf("Found %s, attempting to load it...\n", buf);
+			gi.Com_PrintFmt("Found %s, attempting to load it...\n", buf);
 		}
 	}
 
@@ -321,8 +321,8 @@ qboolean EspLoadConfig(const char *mapname)
 	if(no_file){
 		espsettings.mode = 0;
 		// TODO: A better GHUD method to display this?
-		gi.dprintf("-------------------------------------\n");
-		gi.dprintf("Hard-coded Espionage configuration loaded\n");
+		gi.Com_PrintFmt("-------------------------------------\n");
+		gi.Com_PrintFmt("Hard-coded Espionage configuration loaded\n");
 
 		// Set game type to ATL
 		/// Default game settings
@@ -334,24 +334,24 @@ qboolean EspLoadConfig(const char *mapname)
 		espsettings.custom_spawns = false;
 	} else {
 
-		gi.dprintf("-------------------------------------\n");
-		gi.dprintf("Espionage configuration found at %s\n", buf);
+		gi.Com_PrintFmt("-------------------------------------\n");
+		gi.Com_PrintFmt("Espionage configuration found at %s\n", buf);
 		ptr = INI_Find(fh, "esp", "author");
 		if(ptr) {
-			gi.dprintf("- Author    : %s\n", ptr);
+			gi.Com_PrintFmt("- Author    : %s\n", ptr);
 			Q_strncpyz(espsettings.author, ptr, sizeof(espsettings.author));
 		}
 		ptr = INI_Find(fh, "esp", "name");
 		if(ptr) {
-			gi.dprintf("- Name      : %s\n", ptr);
+			gi.Com_PrintFmt("- Name      : %s\n", ptr);
 			Q_strncpyz(espsettings.name, ptr, sizeof(espsettings.name));
 		}
 
 		ptr = INI_Find(fh, "esp", "type");
 		char *gametypename = ESPMODE_ATL_NAME;
 		if(!strcmp(ptr, ESPMODE_ATL_SNAME) && !strcmp(ptr, ESPMODE_ETV_SNAME)){
-			gi.dprintf("Warning: Value for '[esp] type is not 'etv' or 'atl', forcing ATL mode\n");
-		    gi.dprintf("- Game type : %s\n", ESPMODE_ATL_NAME);
+			gi.Com_PrintFmt("Warning: Value for '[esp] type is not 'etv' or 'atl', forcing ATL mode\n");
+		    gi.Com_PrintFmt("- Game type : %s\n", ESPMODE_ATL_NAME);
 		} else if (!esp_mode->value) {
 			espsettings.mode = ESPMODE_ATL;
 			gametypename = ESPMODE_ATL_NAME;
@@ -371,15 +371,15 @@ qboolean EspLoadConfig(const char *mapname)
 				espsettings.mode = ESPMODE_ATL;
 				gametypename = ESPMODE_ATL_NAME;
 			}
-			gi.dprintf("- Game type : %s\n", gametypename);
+			gi.Com_PrintFmt("- Game type : %s\n", gametypename);
 		}
 		// Force ATL mode trying to get ETV mode going with 3teams
 		if (espsettings.mode == ESPMODE_ETV && use_3teams->value){
-			gi.dprintf("%s and use_3team are incompatible, defaulting to %s", ESPMODE_ETV_NAME, ESPMODE_ATL_NAME);
+			gi.Com_PrintFmt("%s and use_3team are incompatible, defaulting to %s", ESPMODE_ETV_NAME, ESPMODE_ATL_NAME);
 			espsettings.mode = ESPMODE_ATL;
 		}
 
-		gi.dprintf("- Respawn times\n");
+		gi.Com_PrintFmt("- Respawn times\n");
 		char *r_respawn_time, *b_respawn_time, *g_respawn_time;
 
 		r_respawn_time = INI_Find(fh, "respawn", "red");
@@ -390,20 +390,20 @@ qboolean EspLoadConfig(const char *mapname)
 			g_respawn_time = NULL;
 
 		if ((!r_respawn_time || !b_respawn_time) || (teamCount == 3 && !g_respawn_time)){
-			gi.dprintf("Warning: Malformed or missing settings for respawn times\nEnforcing defaults\n");
+			gi.Com_PrintFmt("Warning: Malformed or missing settings for respawn times\nEnforcing defaults\n");
 			EspEnforceDefaultSettings("respawn");
 		} else {
 			if(r_respawn_time) {
-				gi.dprintf("    Red     : %s seconds\n", r_respawn_time);
+				gi.Com_PrintFmt("    Red     : %s seconds\n", r_respawn_time);
 				teams[TEAM1].respawn_timer = atoi(r_respawn_time);
 			}
 			if(b_respawn_time) {
-				gi.dprintf("    Blue    : %s seconds\n", b_respawn_time);
+				gi.Com_PrintFmt("    Blue    : %s seconds\n", b_respawn_time);
 				teams[TEAM2].respawn_timer = atoi(b_respawn_time);
 			}
 			if (teamCount == 3){
 				if(g_respawn_time) {
-					gi.dprintf("    Green   : %s seconds\n", g_respawn_time);
+					gi.Com_PrintFmt("    Green   : %s seconds\n", g_respawn_time);
 					teams[TEAM3].respawn_timer = atoi(g_respawn_time);
 				}
 			}
@@ -411,7 +411,7 @@ qboolean EspLoadConfig(const char *mapname)
 
 		// Only set the flag if the scenario is ETV
 		if(espsettings.mode == ESPMODE_ETV) {
-			gi.dprintf("- Target\n");
+			gi.Com_PrintFmt("- Target\n");
 			ptr = INI_Find(fh, "target", "escort");
 			if(ptr) {
 				ptr = strchr( ptr, '<' );
@@ -443,9 +443,9 @@ qboolean EspLoadConfig(const char *mapname)
 				}
 
 				if( esp_flag_count )
-					gi.dprintf( "Espionage ETV mode: %i target generated.\n", esp_flag_count );
+					gi.Com_PrintFmt( "Espionage ETV mode: %i target generated.\n", esp_flag_count );
 				else {
-					gi.dprintf( "Warning: Espionage needs escort target in: tng/%s.esp\n", mapname );
+					gi.Com_PrintFmt( "Warning: Espionage needs escort target in: tng/%s.esp\n", mapname );
 					espsettings.mode = ESPMODE_ATL;
 				}
 
@@ -453,15 +453,15 @@ qboolean EspLoadConfig(const char *mapname)
 				size_t ptr_len = strlen(ptr);
 				if(ptr) {
 					if (ptr_len <= MAX_ESP_STRLEN) {
-						gi.dprintf("    Area    : %s\n", ptr);
+						gi.Com_PrintFmt("    Area    : %s\n", ptr);
 					} else {
-						gi.dprintf("Warning: [target] name > 32 characters, setting to \"The Spot\"");
+						gi.Com_PrintFmt("Warning: [target] name > 32 characters, setting to \"The Spot\"");
 						ptr = "The Spot";
 					}
 					Q_strncpyz(espsettings.target_name, ptr, sizeof(espsettings.target_name));
 				}
 			} else {
-				gi.dprintf( "Warning: Escort target coordinates not found in tng/%s.esp, setting to ATL mode\n", mapname );
+				gi.Com_PrintFmt( "Warning: Escort target coordinates not found in tng/%s.esp, setting to ATL mode\n", mapname );
 				espsettings.mode = ESPMODE_ATL;
 			}
 		}
@@ -481,17 +481,17 @@ qboolean EspLoadConfig(const char *mapname)
 					espsettings.custom_spawns = true;
 				}
 				if(!ptr) {
-					gi.dprintf("Spawn point read failed\nEnforcing normal spawnpoints\n");
+					gi.Com_PrintFmt("Spawn point read failed\nEnforcing normal spawnpoints\n");
 					espsettings.custom_spawns = false;
 
 				}
 			} else {
-				gi.dprintf("Custom Spawns Disabled\nEnforcing normal spawnpoints\n");
+				gi.Com_PrintFmt("Custom Spawns Disabled\nEnforcing normal spawnpoints\n");
 				espsettings.custom_spawns = false;
 			}
 		}
 
-		gi.dprintf("- Teams\n");
+		gi.Com_PrintFmt("- Teams\n");
 
 		// char team_attrs[3][4][32];
 		// char* team_names[] = {"red_team", "blue_team", "green_team"};
@@ -538,27 +538,27 @@ qboolean EspLoadConfig(const char *mapname)
 		if((!teams[TEAM1].skin || !teams[TEAM1].name || !teams[TEAM1].leader_name || !teams[TEAM1].leader_skin ||
 		!teams[TEAM2].skin || !teams[TEAM2].name || !teams[TEAM2].leader_name || !teams[TEAM2].leader_skin) || 
 		((teamCount == 3) && (!teams[TEAM3].skin || !teams[TEAM3].name || !teams[TEAM3].leader_name || !teams[TEAM3].leader_skin))){
-			gi.dprintf("Warning: Could not read value for team skin, name, leader or leader_skin, review your file\n");
-			gi.dprintf("Enforcing defaults\n");
+			gi.Com_PrintFmt("Warning: Could not read value for team skin, name, leader or leader_skin, review your file\n");
+			gi.Com_PrintFmt("Enforcing defaults\n");
 			EspEnforceDefaultSettings("team");
 			espsettings.custom_skins = false;
 		} else {
 			espsettings.custom_skins = true;
 
-			gi.dprintf("    Red Team: %s, Skin: %s\n", 
+			gi.Com_PrintFmt("    Red Team: %s, Skin: %s\n", 
 			teams[TEAM1].name, teams[TEAM1].skin);
-			gi.dprintf("    Red Leader: %s, Skin: %s\n\n", 
+			gi.Com_PrintFmt("    Red Leader: %s, Skin: %s\n\n", 
 			teams[TEAM1].leader_name, teams[TEAM1].leader_skin);
 			
-			gi.dprintf("    Blue Team: %s, Skin: %s\n", 
+			gi.Com_PrintFmt("    Blue Team: %s, Skin: %s\n", 
 			teams[TEAM2].name, teams[TEAM2].skin);
-			gi.dprintf("    Blue Leader: %s, Skin: %s\n\n", 
+			gi.Com_PrintFmt("    Blue Leader: %s, Skin: %s\n\n", 
 			teams[TEAM2].leader_name, teams[TEAM2].leader_skin);
 
 			if(teamCount == 3) {
-				gi.dprintf("    Green Team: %s, Skin: %s\n", 
+				gi.Com_PrintFmt("    Green Team: %s, Skin: %s\n", 
 				teams[TEAM3].name, teams[TEAM3].skin);
-				gi.dprintf("    Green Leader: %s, Skin: %s\n", 
+				gi.Com_PrintFmt("    Green Leader: %s, Skin: %s\n", 
 				teams[TEAM3].leader_name, teams[TEAM3].leader_skin);
 			}
 		}
@@ -568,7 +568,7 @@ qboolean EspLoadConfig(const char *mapname)
 	// if(!espgame.custom_spawns)
 	// 	ChangePlayerSpawns();
 
-	gi.dprintf("-------------------------------------\n");
+	gi.Com_PrintFmt("-------------------------------------\n");
 
 	if (fh)
 		fclose(fh);
@@ -579,12 +579,12 @@ qboolean EspLoadConfig(const char *mapname)
 	Com_sprintf(teams[TEAM3].skin_index, sizeof(teams[TEAM3].skin_index), "players/%s_i", teams[TEAM3].skin);
 
 
-	// gi.dprintf("Debugging:\n");
-	// gi.dprintf("Espionage mode: %d\n", espsettings.mode);
-	// gi.dprintf("Skin index: %s\n", teams[TEAM1].skin_index);
+	// gi.Com_PrintFmt("Debugging:\n");
+	// gi.Com_PrintFmt("Espionage mode: %d\n", espsettings.mode);
+	// gi.Com_PrintFmt("Skin index: %s\n", teams[TEAM1].skin_index);
 
 	if((espsettings.mode == ESPMODE_ETV) && teamCount == 3){
-		gi.dprintf("Warning: ETV mode requested with use_3teams enabled, forcing ATL mode");
+		gi.Com_PrintFmt("Warning: ETV mode requested with use_3teams enabled, forcing ATL mode");
 		espsettings.mode = ESPMODE_ATL;
 	}
 
@@ -685,7 +685,7 @@ void EspRespawnPlayer(edict_t *ent)
 
 	// Don't respawn until the current framenum is more than the respawn timer's framenum
 	if (level.framenum > ent->client->respawn_framenum) {
-		//gi.dprintf("Level framenum is %d, respawn timer was %d for %s\n", level.framenum, ent->client->respawn_framenum, ent->client->pers.netname);
+		//gi.Com_PrintFmt("Level framenum is %d, respawn timer was %d for %s\n", level.framenum, ent->client->respawn_framenum, ent->client->pers.netname);
 		// If your leader is alive, you can respawn
 		if (espsettings.mode == ESPMODE_ATL && IS_ALIVE(teams[ent->client->resp.team].leader)) {
 			respawn(ent);
@@ -778,7 +778,7 @@ edict_t *SelectEspSpawnPoint(edict_t * ent)
 		respawn_coords[2] += 9;
 		VectorCopy (spot->s.angles, angles);
 
-		gi.dprintf("Team %i leader x y z is %i %i %i", 
+		gi.Com_PrintFmt("Team %i leader x y z is %i %i %i", 
 		ent->client->resp.team, respawn_coords[0], respawn_coords[1], respawn_coords[2]);
 
 		return spot;
@@ -1026,7 +1026,7 @@ void EspSwapTeams()
 	teams_changed = true;
 }
 
-qboolean EspCheckRules(void)
+bool EspCheckRules(void)
 {
 	// Espionage ETV uses the same capturelimit cvars as CTF
 	if(espsettings.mode == ESPMODE_ETV) {
@@ -1069,7 +1069,7 @@ qboolean EspCheckRules(void)
 	return false;
 }
 
-qboolean AllTeamsHaveLeaders(void)
+bool AllTeamsHaveLeaders(void)
 {
 	int teamsWithLeaders = 0;
 
@@ -1093,7 +1093,7 @@ qboolean AllTeamsHaveLeaders(void)
 		return true;
 	}
 
-	//gi.dprintf("Leadercount: %d\n", teamsWithLeaders);
+	//gi.Com_PrintFmt("Leadercount: %d\n", teamsWithLeaders);
 	return false;
 }
 
@@ -1296,7 +1296,7 @@ This adds a medkit to the player's inventory, up to the medkit_max value
 Passing a true parameter instantly provides this medkit
 Passing a false parameter assumes you want to generate one at a time interval set by medkit_time
 */
-void GenerateMedKit(qboolean instant)
+void GenerateMedKit(bool instant)
 {
 	int i = 0;
 	edict_t *ent;
@@ -1314,10 +1314,10 @@ void GenerateMedKit(qboolean instant)
 				ent->client->resp.medkit_award_time = roundseconds;
 				ent->client->medkit++;
 
-				// gi.dprintf("I generated a medkit for %s, %d seconds since the round started, %d frames in\n", ent->client->pers.netname, roundseconds, roundseconds);
-				// gi.dprintf("%s has %d medkits now\n", ent->client->pers.netname, ent->client->medkit);
+				// gi.Com_PrintFmt("I generated a medkit for %s, %d seconds since the round started, %d frames in\n", ent->client->pers.netname, roundseconds, roundseconds);
+				// gi.Com_PrintFmt("%s has %d medkits now\n", ent->client->pers.netname, ent->client->medkit);
 			}
-			//gi.dprintf("Current seconds in round is %d\n", roundseconds);
+			//gi.Com_PrintFmt("Current seconds in round is %d\n", roundseconds);
 		}
 	}
 }

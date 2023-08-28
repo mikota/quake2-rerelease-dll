@@ -3,7 +3,7 @@
 /* GRAPPLE                                                                */
 /*------------------------------------------------------------------------*/
 
-qboolean CheckTeamDamage( edict_t *targ, edict_t *attacker );
+bool CheckTeamDamage( edict_t *targ, edict_t *attacker );
 void Weapon_Generic( edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, int FRAME_RELOAD_LAST, int FRAME_LASTRD_LAST, int *pause_frames, int *fire_frames, void (*fire)( edict_t * ent ) );
 
 cvar_t *use_grapple = NULL;
@@ -30,7 +30,7 @@ void CTFResetGrapple(edict_t *self)
 		cl->ctf_grapple = NULL;
 		cl->ctf_grapplereleaseframe = level.framenum;
 		cl->ctf_grapplestate = CTF_GRAPPLE_STATE_FLY; // we're firing, not on hook
-		cl->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+		cl->ps.pmove.pm_flags &= ~PMF_NO_POSITIONAL_PREDICTION;
 		G_FreeEdict(self);
 	}
 }
@@ -211,7 +211,7 @@ void CTFGrapplePull(edict_t *self)
 			if (self->owner->client->silencer_shots)
 				volume = 0.2;
 
-			self->owner->client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
+			self->owner->client->ps.pmove.pm_flags |= PMF_NO_POSITIONAL_PREDICTION;
 			gi.sound (self->owner, CHAN_RELIABLE+CHAN_WEAPON, gi.soundindex("weapons/grapple/grhang.wav"), volume, ATTN_NORM, 0);
 			self->owner->client->ctf_grapplestate = CTF_GRAPPLE_STATE_HANG;
 		}

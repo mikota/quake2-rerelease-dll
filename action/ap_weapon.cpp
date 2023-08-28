@@ -98,7 +98,7 @@
 #include "m_player.h"
 
 
-static qboolean is_quad;
+static bool is_quad;
 
 
 void P_ProjectSource(gclient_t* client, vec3_t point, vec3_t distance,
@@ -201,11 +201,11 @@ void SetSpecWeapHolder(edict_t* ent)
 	gi.linkentity(ent);
 }
 
-qboolean Pickup_Weapon(edict_t* ent, edict_t* other)
+bool Pickup_Weapon(edict_t* ent, edict_t* other)
 {
 	int index, index2;
 	gitem_t* ammo;
-	qboolean addAmmo;
+	bool addAmmo;
 	int special = 0;
 	int band = 0;
 
@@ -1004,7 +1004,7 @@ void DropExtraSpecial(edict_t* ent)
 	else if (INV_AMMO(ent, M4_NUM) > 0 && M4_NUM != itemNum)
 		Drop_Weapon(ent, GET_ITEM(M4_NUM));
 	else
-		gi.dprintf("Couldn't find the appropriate weapon to drop.\n");
+		gi.Com_PrintFmt("Couldn't find the appropriate weapon to drop.\n");
 }
 
 //zucc ready special weapon
@@ -1256,7 +1256,7 @@ Weapon_Generic(edict_t* ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 				break;
 			}
 			default:
-				gi.dprintf("No weapon choice for reloading (sounds).\n");
+				gi.Com_PrintFmt("No weapon choice for reloading (sounds).\n");
 				break;
 
 			}
@@ -1371,7 +1371,7 @@ Weapon_Generic(edict_t* ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 				break;
 			}
 			default:
-				gi.dprintf("No weapon choice for reloading.\n");
+				gi.Com_PrintFmt("No weapon choice for reloading.\n");
 				break;
 			}
 
@@ -1561,7 +1561,7 @@ Weapon_Generic(edict_t* ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 			break;
 
 		default:
-			gi.dprintf("Activated unknown weapon.\n");
+			gi.Com_PrintFmt("Activated unknown weapon.\n");
 			break;
 		}
 
@@ -1998,7 +1998,7 @@ GRENADE
 #define GRENADE_MINSPEED        400
 #define GRENADE_MAXSPEED        800
 
-void weapon_grenade_fire(edict_t* ent, qboolean held)
+void weapon_grenade_fire(edict_t* ent, bool held)
 {
 	vec3_t offset;
 	vec3_t forward, right;

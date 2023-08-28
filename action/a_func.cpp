@@ -80,7 +80,7 @@
 
 // zucc function to deal with special items that might get destroyed (Handle_Unique_Items)
 // Modified by Raptor007 to clean up blocked functions and avoid doors squishing items.
-static void DestroyItem( edict_t *ent, qboolean by_door )
+static void DestroyItem( edict_t *ent, bool by_door )
 {
 	if( ! (ent && ent->inuse) )
 		return;
@@ -962,7 +962,7 @@ NOMONSTER       monsters will not trigger this door
 4)      heavy
 */
 
-static void door_use_areaportals(edict_t *self, qboolean open)
+static void door_use_areaportals(edict_t *self, bool open)
 {
 	edict_t *t = NULL;
 
@@ -1397,7 +1397,7 @@ void SP_func_door_rotating(edict_t *ent)
 		VectorNegate(ent->movedir, ent->movedir);
 
 	if (!st.distance) {
-		gi.dprintf("%s at %s with no distance set\n", ent->classname, vtos(ent->s.origin));
+		gi.Com_PrintFmt("%s at %s with no distance set\n", ent->classname, vtos(ent->s.origin));
 		st.distance = 90;
 	}
 
@@ -1635,18 +1635,18 @@ static void train_next(edict_t *self)
 {
 	edict_t *ent;
 	vec3_t dest;
-	qboolean first;
+	bool first;
 
 	first = true;
 	again:
 	if (!self->target) {
-//      gi.dprintf("train_next: no next target\n");
+//      gi.Com_PrintFmt("train_next: no next target\n");
 		return;
 	}
 
 	ent = G_PickTarget(self->target);
 	if (!ent) {
-		gi.dprintf("train_next: bad target %s\n", self->target);
+		gi.Com_PrintFmt("train_next: bad target %s\n", self->target);
 		return;
 	}
 
@@ -1655,7 +1655,7 @@ static void train_next(edict_t *self)
 	// check for a teleport path_corner
 	if (ent->spawnflags & 1) {
 		if (!first) {
-			gi.dprintf("connected teleport path_corners, see %s at %s\n", ent->classname, vtos (ent->s.origin));
+			gi.Com_PrintFmt("connected teleport path_corners, see %s at %s\n", ent->classname, vtos (ent->s.origin));
 			return;
 		}
 		first = false;
@@ -1704,12 +1704,12 @@ void func_train_find(edict_t *self)
 	edict_t *ent;
 
 	if (!self->target) {
-		gi.dprintf("train_find: no target\n");
+		gi.Com_PrintFmt("train_find: no target\n");
 		return;
 	}
 	ent = G_PickTarget(self->target);
 	if (!ent) {
-		gi.dprintf("train_find: target %s not found\n", self->target);
+		gi.Com_PrintFmt("train_find: target %s not found\n", self->target);
 		return;
 	}
 	self->target = ent->target;
@@ -1780,7 +1780,7 @@ void SP_func_train(edict_t *self)
 		// a chance to spawn
 		NEXT_FRAME(self, func_train_find);
 	} else {
-		gi.dprintf("func_train without a target at %s\n", vtos(self->absmin));
+		gi.Com_PrintFmt("func_train without a target at %s\n", vtos(self->absmin));
 	}
 }
 
@@ -1792,18 +1792,18 @@ static void trigger_elevator_use(edict_t *self, edict_t *other, edict_t *activat
 	edict_t *target;
 
 	if (self->movetarget->nextthink) {
-//      gi.dprintf("elevator busy\n");
+//      gi.Com_PrintFmt("elevator busy\n");
 		return;
 	}
 
 	if (!other->pathtarget) {
-		gi.dprintf("elevator used with no pathtarget\n");
+		gi.Com_PrintFmt("elevator used with no pathtarget\n");
 		return;
 	}
 
 	target = G_PickTarget(other->pathtarget);
 	if (!target) {
-		gi.dprintf("elevator used with bad pathtarget: %s\n", other->pathtarget);
+		gi.Com_PrintFmt("elevator used with bad pathtarget: %s\n", other->pathtarget);
 		return;
 	}
 
@@ -1814,16 +1814,16 @@ static void trigger_elevator_use(edict_t *self, edict_t *other, edict_t *activat
 static void trigger_elevator_init(edict_t *self)
 {
 	if (!self->target) {
-		gi.dprintf("trigger_elevator has no target\n");
+		gi.Com_PrintFmt("trigger_elevator has no target\n");
 		return;
 	}
 	self->movetarget = G_PickTarget (self->target);
 	if (!self->movetarget) {
-		gi.dprintf ("trigger_elevator unable to find target %s\n", self->target);
+		gi.Com_PrintFmt ("trigger_elevator unable to find target %s\n", self->target);
 		return;
 	}
 	if (strcmp(self->movetarget->classname, "func_train") != 0) {
-		gi.dprintf("trigger_elevator target %s is not a train\n", self->target);
+		gi.Com_PrintFmt("trigger_elevator target %s is not a train\n", self->target);
 		return;
 	}
 
@@ -1884,7 +1884,7 @@ void SP_func_timer(edict_t *self)
 
 	if (self->random >= self->wait) {
 		self->random = self->wait - FRAMETIME;
-		gi.dprintf("func_timer at %s has random >= wait\n", vtos(self->s.origin));
+		gi.Com_PrintFmt("func_timer at %s has random >= wait\n", vtos(self->s.origin));
 	}
 
 	if (self->spawnflags & 1) {
