@@ -893,8 +893,6 @@ enum
 enum item_id_t : int32_t {
 	IT_NULL, // must always be zero
 
-	IT_ARMOR_JACKET,
-
 	IT_WEAPON_GRAPPLE,
 	IT_WEAPON_MK23,
 	IT_WEAPON_MP5,
@@ -911,15 +909,13 @@ enum item_id_t : int32_t {
 	IT_AMMO_M4,
 	IT_AMMO_MAG,
 	IT_AMMO_SNIPER,
-	IT_AMMO_MAGSLUG,
-	IT_AMMO_FLECHETTES,
-	IT_AMMO_PROX,
-	IT_AMMO_NUKE,
-	IT_AMMO_ROUNDS,
 
 	IT_ITEM_QUIET,
 	IT_ITEM_SLIPPERS,
 	IT_ITEM_BANDOLIER,
+	IT_ITEM_LASERSIGHT,
+	IT_ITEM_HELM,
+	IT_ITEM_VEST,
 	
 	IT_ITEM_IR_GOGGLES,
 	IT_ITEM_TAG_TOKEN,
@@ -2965,6 +2961,8 @@ extern cvar_t* e_enhancedSlippers;
 // 2023
 extern cvar_t* use_killcounts;
 extern cvar_t* zoom_comp;
+extern cvar_t* item_kit_mode;  // Toggles item kit mode
+extern cvar_t* printrules;  // Centerprint game rules when the countdown begins
 
 // 2022
 extern cvar_t* mapvote_next_limit; // Time left that disables map voting
@@ -2994,7 +2992,7 @@ gitem_t* FindItemByClassname(char* classname);
 gitem_t* FindItemByNum(int num);
 #define ITEM_INDEX(x) ((x)-itemlist)
 #define INV_AMMO(ent, num) ((ent)->client->inventory[items[(num)].index])
-#define GET_ITEM(num) (&itemlist[items[(num)].index])
+#define GetItemByIndex(num) (&itemlist[items[(num)].index])
 edict_t* Drop_Item(edict_t* ent, gitem_t* item);
 void SetRespawn(edict_t* ent, float delay);
 void ChangeWeapon(edict_t* ent);

@@ -219,7 +219,7 @@ void Cmd_Reload_f(edict_t * ent)
 		if (ent->client->inventory[ent->client->ammo_index] == 1) {
 			gitem_t *it;
 
-			it = GET_ITEM(MK23_NUM);
+			it = GetItemByIndex(IT_WEAPON_MK23);
 			it->use(ent, it);
 			ent->client->autoreloading = true;
 			return;
@@ -670,7 +670,7 @@ void Cmd_Bandage_f(edict_t *ent)
 
 		INV_AMMO(ent, GRENADE_NUM)--;
 		if (INV_AMMO(ent, GRENADE_NUM) <= 0) {
-			ent->client->newweapon = GET_ITEM(MK23_NUM);
+			ent->client->newweapon = GetItemByIndex(IT_WEAPON_MK23);
 		}
 	}
 
@@ -818,7 +818,7 @@ int GetWeaponNumFromArg(const char *s)
 
 	for (i = 0; i < WEAPON_MAX - 1; i++) {
 		itemNum = MK23_NUM + i;
-		item = GET_ITEM(itemNum);
+		item = GetItemByIndex(itemNum);
 		if (item->pickup_name && !strcmp(s, item->pickup_name))
 			return itemNum;
 	}
@@ -851,7 +851,7 @@ int GetItemNumFromArg(const char *s)
 
 	for (i = 0; i < ITEM_MAX - 1; i++) {
 		itemNum = NO_ITEM_NUM + i;
-		item = GET_ITEM(itemNum);
+		item = GetItemByIndex(itemNum);
 		if (item->pickup_name && !strcmp(s, item->pickup_name))
 			return itemNum;
 	}
@@ -903,7 +903,7 @@ void Cmd_Choose_f(edict_t * ent)
 		// 	gi.Center_Print(ent, "Weapon disabled on this server.\n");
 		// 	return;
 		// }
-		ent->client->pers.chosenWeapon = GET_ITEM(itemNum);
+		ent->client->pers.chosenWeapon = GetItemByIndex(itemNum);
 		break;
 	}
 
@@ -919,7 +919,7 @@ void Cmd_Choose_f(edict_t * ent)
 		// 	gi.Center_Print(ent, "Item disabled on this server.\n");
 		// 	return;
 		// }
-		ent->client->pers.chosenItem = GET_ITEM(itemNum);
+		ent->client->pers.chosenItem = GetItemByIndex(itemNum);
 		break;
 	}
 

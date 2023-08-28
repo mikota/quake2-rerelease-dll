@@ -80,7 +80,7 @@ void SpawnSpecs(edict_t * ent)
 		// if (!ITF_ALLOWED(itemNum))
 		// 	continue;
 
-		if ((spec = GET_ITEM(itemNum)) != NULL && (spot = FindSpecSpawn()) != NULL) {
+		if ((spec = GetItemByIndex(itemNum)) != NULL && (spot = FindSpecSpawn()) != NULL) {
 			SpawnSpec(spec, spot);
 		}
 	}
@@ -155,7 +155,7 @@ void DeadDropSpec(edict_t * ent)
 	{
 		itemNum = NO_ITEM_NUM + i;
 		if (INV_AMMO(ent, itemNum) > 0) {
-			spec = GET_ITEM(itemNum);
+			spec = GetItemByIndex(itemNum);
 			dropped = Drop_Item(ent, spec);
 			// hack the velocity to make it bounce random
 			dropped->velocity[0] = (rand() % 600) - 300;

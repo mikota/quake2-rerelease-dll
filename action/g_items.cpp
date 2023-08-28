@@ -289,50 +289,6 @@ void Use_Adrenaline(edict_t *ent, gitem_t *item)
 	ent->client->pers.inventory[item->id]--;
 }
 
-bool Pickup_LegacyHead(edict_t *ent, edict_t *other)
-{
-	other->max_health += 5;
-	other->health += 5;
-
-	if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED) && deathmatch->integer)
-		SetRespawn(ent, gtime_t::from_sec(ent->item->quantity));
-
-	return true;
-}
-
-void G_CheckPowerArmor(edict_t *ent)
-{
-	bool has_enough_cells;
-
-	if (!ent->client->pers.inventory[IT_AMMO_M4])
-		has_enough_cells = false;
-	else if (ent->client->pers.autoshield >= AUTO_SHIELD_AUTO)
-		has_enough_cells = !(ent->flags & FL_WANTS_POWER_ARMOR) || ent->client->pers.inventory[IT_AMMO_M4] > ent->client->pers.autoshield;
-	else
-		has_enough_cells = true;
-
-	if (ent->flags & FL_POWER_ARMOR)
-	{
-		if (!has_enough_cells)
-		{
-			// ran out of cells for power armor
-			ent->flags &= ~FL_POWER_ARMOR;
-			gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power2.wav"), 1, ATTN_NORM, 0);
-		}
-	}
-	else
-	{
-		// special case for power armor, for auto-shields
-		if (ent->client->pers.autoshield != AUTO_SHIELD_MANUAL &&
-			has_enough_cells && (ent->client->pers.inventory[IT_ITEM_POWER_SCREEN] ||
-				ent->client->pers.inventory[IT_ITEM_POWER_SHIELD]))
-		{
-			ent->flags |= FL_POWER_ARMOR;
-			gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power1.wav"), 1, ATTN_NORM, 0);
-		}
-	}
-}
-
 inline bool G_AddAmmoAndCap(edict_t *other, item_id_t item, int32_t max, int32_t quantity)
 {
 	if (other->client->pers.inventory[item] >= max)
@@ -358,59 +314,6 @@ inline void G_AdjustAmmoCap(edict_t *other, ammo_t ammo, int16_t new_max)
 	other->client->pers.max_ammo[ammo] = max(other->client->pers.max_ammo[ammo], new_max);
 }
 
-bool Pickup_Bandolier(edict_t *ent, edict_t *other)
-{
-	G_AdjustAmmoCap(other, AMMO_BULLETS, 250);
-	G_AdjustAmmoCap(other, AMMO_SHELLS, 150);
-	G_AdjustAmmoCap(other, AMMO_M4, 250);
-	G_AdjustAmmoCap(other, AMMO_SNIPER, 75);
-	G_AdjustAmmoCap(other, AMMO_MAGSLUG, 75);
-	G_AdjustAmmoCap(other, AMMO_FLECHETTES, 250);
-	G_AdjustAmmoCap(other, AMMO_DISRUPTOR, 21);
-
-	G_AddAmmoAndCapQuantity(other, AMMO_BULLETS);
-	G_AddAmmoAndCapQuantity(other, AMMO_SHELLS);
-
-	if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED) && deathmatch->integer)
-		SetRespawn(ent, gtime_t::from_sec(ent->item->quantity));
-
-	return true;
-}
-
-bool Pickup_Pack(edict_t *ent, edict_t *other)
-{
-	G_AdjustAmmoCap(other, AMMO_BULLETS, 300);
-	G_AdjustAmmoCap(other, AMMO_SHELLS, 200);
-	G_AdjustAmmoCap(other, AMMO_MAG, 100);
-	G_AdjustAmmoCap(other, AMMO_GRENADES, 100);
-	G_AdjustAmmoCap(other, AMMO_M4, 300);
-	G_AdjustAmmoCap(other, AMMO_SNIPER, 100);
-	G_AdjustAmmoCap(other, AMMO_MAGSLUG, 100);
-	G_AdjustAmmoCap(other, AMMO_FLECHETTES, 300);
-	G_AdjustAmmoCap(other, AMMO_DISRUPTOR, 30);
-
-	G_AddAmmoAndCapQuantity(other, AMMO_BULLETS);
-	G_AddAmmoAndCapQuantity(other, AMMO_SHELLS);
-	G_AddAmmoAndCapQuantity(other, AMMO_M4);
-	G_AddAmmoAndCapQuantity(other, AMMO_GRENADES);
-	G_AddAmmoAndCapQuantity(other, AMMO_MAG);
-	G_AddAmmoAndCapQuantity(other, AMMO_SNIPER);
-
-	// RAFAEL
-	G_AddAmmoAndCapQuantity(other, AMMO_MAGSLUG);
-	// RAFAEL
-
-	// ROGUE
-	G_AddAmmoAndCapQuantity(other, AMMO_FLECHETTES);
-	G_AddAmmoAndCapQuantity(other, AMMO_DISRUPTOR);
-	// ROGUE
-
-	if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED) && deathmatch->integer)
-		SetRespawn(ent, gtime_t::from_sec(ent->item->quantity));
-
-	return true;
-}
-
 //======================================================================
 
 void Use_Quad(edict_t *ent, gitem_t *item)
@@ -433,116 +336,120 @@ void Use_Quad(edict_t *ent, gitem_t *item)
 
 	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
-// =====================================================================
 
-// RAFAEL
-void Use_QuadFire(edict_t *ent, gitem_t *item)
+//======================================================================
+
+bool Add_Ammo (edict_t * ent, gitem_t * item, int count)
 {
-	gtime_t timeout;
+	int index;
+	int max = 0;
 
-	ent->client->pers.inventory[item->id]--;
 
-	if (quad_fire_drop_timeout_hack)
-	{
-		timeout = quad_fire_drop_timeout_hack;
-		quad_fire_drop_timeout_hack = 0_ms;
+	if (!ent->client)
+		return false;
+
+	switch(item->typeNum) {
+	case MK23_ANUM:
+		max = ent->client->max_pistolmags;
+		break;
+	case SHELL_ANUM:
+		max = ent->client->max_shells;
+		break;
+	case MP5_ANUM:
+		max = ent->client->max_mp5mags;
+		break;
+	case M4_ANUM:
+		max = ent->client->max_m4mags;
+		break;
+	case SNIPER_ANUM:
+		max = ent->client->max_sniper_rnds;
+		break;
+	default:
+		return false;
 	}
-	else
-	{
-		timeout = 30_sec;
-	}
 
-	ent->client->quadfire_time = max(level.time, ent->client->quadfire_time) + timeout;
+	index = ITEM_INDEX (item);
 
-	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/quadfire1.wav"), 1, ATTN_NORM, 0);
-}
-// RAFAEL
+	if (ent->client->inventory[index] == max)
+		return false;
 
-//======================================================================
+	ent->client->inventory[index] += count;
 
-void Use_Breather(edict_t *ent, gitem_t *item)
-{
-	ent->client->pers.inventory[item->id]--;
+	if (ent->client->inventory[index] > max)
+		ent->client->inventory[index] = max;
 
-	ent->client->breather_time = max(level.time, ent->client->breather_time) + 30_sec;
-
-	//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
-}
-
-//======================================================================
-
-void Use_Envirosuit(edict_t *ent, gitem_t *item)
-{
-	ent->client->pers.inventory[item->id]--;
-
-	ent->client->enviro_time = max(level.time, ent->client->enviro_time) + 30_sec;
-
-	//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
-}
-
-//======================================================================
-
-void Use_Invulnerability(edict_t *ent, gitem_t *item)
-{
-	ent->client->pers.inventory[item->id]--;
-
-	ent->client->invincible_time = max(level.time, ent->client->invincible_time) + 30_sec;
-
-	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/protect.wav"), 1, ATTN_NORM, 0);
-}
-
-void Use_Invisibility(edict_t *ent, gitem_t *item)
-{
-	ent->client->pers.inventory[item->id]--;
-
-	ent->client->invisible_time = max(level.time, ent->client->invisible_time) + 30_sec;
-
-	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/protect.wav"), 1, ATTN_NORM, 0);
-}
-
-//======================================================================
-
-void Use_Silencer(edict_t *ent, gitem_t *item)
-{
-	ent->client->pers.inventory[item->id]--;
-	ent->client->silencer_shots += 30;
-
-	//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
-}
-
-//======================================================================
-
-bool Pickup_Key(edict_t *ent, edict_t *other)
-{
-	if (coop->integer)
-	{
-		if (ent->item->id == IT_KEY_POWER_CUBE || ent->item->id == IT_KEY_EXPLOSIVE_CHARGES)
-		{
-			if (other->client->pers.power_cubes & ((ent->spawnflags & SPAWNFLAG_EDITOR_MASK).value >> 8))
-				return false;
-			other->client->pers.inventory[ent->item->id]++;
-			other->client->pers.power_cubes |= ((ent->spawnflags & SPAWNFLAG_EDITOR_MASK).value >> 8);
-		}
-		else
-		{
-			if (other->client->pers.inventory[ent->item->id])
-				return false;
-			other->client->pers.inventory[ent->item->id] = 1;
-		}
-		return true;
-	}
-	other->client->pers.inventory[ent->item->id]++;
 	return true;
 }
 
-//======================================================================
-
-bool Add_Ammo(edict_t *ent, gitem_t *item, int count)
+bool Pickup_Ammo (edict_t * ent, edict_t * other)
 {
-	if (!ent->client || item->tag < AMMO_BULLETS || item->tag >= AMMO_MAX)
+	int count;
+	bool weapon;
+
+	weapon = (ent->item->flags & IT_WEAPON);
+	if ((weapon) && g_infinite_ammo->integer)
+		count = 1000;
+	else if (ent->count)
+		count = ent->count;
+	else
+		count = ent->item->quantity;
+
+	if (!Add_Ammo (other, ent->item, count))
 		return false;
 
-	return G_AddAmmoAndCap(ent, item->id, ent->client->pers.max_ammo[item->tag], count);
+	if (!(ent->spawnflags & (SPAWNFLAG_ITEM_DROPPED | SPAWNFLAG_ITEM_DROPPED_PLAYER)))
+		SetRespawn (ent, ammo_respawn->value);
+
+	return true;
+}
+
+void Drop_Ammo (edict_t * ent, gitem_t * item)
+{
+	edict_t *dropped;
+	int index;
+
+	if (ent->client->weaponstate == WEAPON_RELOADING)
+	{
+		gi.LocClient_Print(ent, PRINT_HIGH, "Cant drop ammo while reloading\n");
+		return;
+	}
+
+	index = ITEM_INDEX (item);
+	dropped = Drop_Item (ent, item);
+	if (ent->client->inventory[index] >= item->quantity)
+		dropped->count = item->quantity;
+	else
+		dropped->count = ent->client->inventory[index];
+	ent->client->inventory[index] -= dropped->count;
+	ValidateSelectedItem (ent);
+}
+
+void AddItem(edict_t *ent, gitem_t *item)
+{
+	ent->client->inventory[ITEM_INDEX (item)]++;
+	ent->client->unique_item_total++;
+	if (item == LASER_NUM)
+	{
+		SP_LaserSight(ent, item);	//ent->item->use(other, ent->item);
+	}
+	else if (item->typeNum == BAND_NUM)
+	{
+
+		if (ent->client->max_pistolmags < 4)
+			ent->client->max_pistolmags = 4;
+		if (ent->client->max_shells < 28)
+			ent->client->max_shells = 28;
+		if (ent->client->max_m4mags < 2)
+			ent->client->max_m4mags = 2;
+		if (ent->client->max_sniper_rnds < 40)
+			ent->client->max_sniper_rnds = 40;
+		if (ent->client->max_mp5mags < 4)
+			ent->client->max_mp5mags = 4;
+		if (ent->client->knife_max < 20)
+			ent->client->knife_max = 20;
+		if (ent->client->grenade_max < 4)
+			ent->client->grenade_max = 4;
+	}
 }
 
 // we just got weapon `item`, check if we should switch to it
@@ -568,7 +475,7 @@ void G_CheckAutoSwitch(edict_t *ent, gitem_t *item, bool is_new)
 		return;
 	else if (ent->client->pers.autoswitch == auto_switch_t::SMART)
 	{
-		bool using_blaster = ent->client->pers.weapon && ent->client->pers.weapon->id == IT_WEAPON_BLASTER;
+		bool using_blaster = ent->client->pers.weapon && ent->client->pers.weapon->id == IT_WEAPON_MK23;
 
 		// smartness algorithm: in DM, we will always switch if we have the blaster out
 		// otherwise leave our active weapon alone
@@ -634,23 +541,6 @@ void Drop_Ammo(edict_t *ent, gitem_t *item)
 	G_CheckPowerArmor(ent);
 }
 
-//======================================================================
-
-THINK(MegaHealth_think) (edict_t *self) -> void
-{
-	if (self->owner->health > self->owner->max_health)
-	{
-		self->nextthink = level.time + 1_sec;
-		self->owner->health -= 1;
-		return;
-	}
-
-	if (!(self->spawnflags & SPAWNFLAG_ITEM_DROPPED) && deathmatch->integer)
-		SetRespawn(self, 20_sec);
-	else
-		G_FreeEdict(self);
-}
-
 bool Pickup_Health(edict_t *ent, edict_t *other)
 {
 	int health_flags = (ent->style ? ent->style : ent->item->tag);
@@ -712,10 +602,6 @@ item_id_t ArmorIndex(edict_t *ent)
 	{
 		if (ent->client->pers.inventory[IT_ARMOR_JACKET] > 0)
 			return IT_ARMOR_JACKET;
-		else if (ent->client->pers.inventory[IT_ARMOR_COMBAT] > 0)
-			return IT_ARMOR_COMBAT;
-		else if (ent->client->pers.inventory[IT_ARMOR_BODY] > 0)
-			return IT_ARMOR_BODY;
 	}
 
 	return IT_NULL;
@@ -735,18 +621,7 @@ bool Pickup_Armor(edict_t *ent, edict_t *other)
 
 	old_armor_index = ArmorIndex(other);
 
-	// handle armor shards specially
-	if (ent->item->id == IT_ARMOR_SHARD)
-	{
-		if (!old_armor_index)
-			other->client->pers.inventory[IT_ARMOR_JACKET] = 2;
-		else
-			other->client->pers.inventory[old_armor_index] += 2;
-	}
-
-	// if player has no armor, just use it
-	else if (!old_armor_index)
-	{
+	if (!old_armor_index) {
 		other->client->pers.inventory[ent->item->id] = newinfo->base_count;
 	}
 
@@ -756,10 +631,6 @@ bool Pickup_Armor(edict_t *ent, edict_t *other)
 		// get info on old armor
 		if (old_armor_index == IT_ARMOR_JACKET)
 			oldinfo = &jacketarmor_info;
-		else if (old_armor_index == IT_ARMOR_COMBAT)
-			oldinfo = &combatarmor_info;
-		else
-			oldinfo = &bodyarmor_info;
 
 		if (newinfo->normal_protection > oldinfo->normal_protection)
 		{
@@ -799,81 +670,6 @@ bool Pickup_Armor(edict_t *ent, edict_t *other)
 
 	return true;
 }
-
-//======================================================================
-
-item_id_t PowerArmorType(edict_t *ent)
-{
-	if (!ent->client)
-		return IT_NULL;
-
-	if (!(ent->flags & FL_POWER_ARMOR))
-		return IT_NULL;
-
-	if (ent->client->pers.inventory[IT_ITEM_POWER_SHIELD] > 0)
-		return IT_ITEM_POWER_SHIELD;
-
-	if (ent->client->pers.inventory[IT_ITEM_POWER_SCREEN] > 0)
-		return IT_ITEM_POWER_SCREEN;
-
-	return IT_NULL;
-}
-
-void Use_PowerArmor(edict_t *ent, gitem_t *item)
-{
-	if (ent->flags & FL_POWER_ARMOR)
-	{
-		ent->flags &= ~(FL_POWER_ARMOR | FL_WANTS_POWER_ARMOR);
-		gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power2.wav"), 1, ATTN_NORM, 0);
-	}
-	else
-	{
-		if (!ent->client->pers.inventory[IT_AMMO_M4])
-		{
-			gi.LocClient_Print(ent, PRINT_HIGH, "$g_no_cells_power_armor");
-			return;
-		}
-
-		ent->flags |= FL_POWER_ARMOR;
-
-		if (ent->client->pers.autoshield != AUTO_SHIELD_MANUAL &&
-			ent->client->pers.inventory[IT_AMMO_M4] > ent->client->pers.autoshield)
-			ent->flags |= FL_WANTS_POWER_ARMOR;
-
-		gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power1.wav"), 1, ATTN_NORM, 0);
-	}
-}
-
-bool Pickup_PowerArmor(edict_t *ent, edict_t *other)
-{
-	int quantity;
-
-	quantity = other->client->pers.inventory[ent->item->id];
-
-	other->client->pers.inventory[ent->item->id]++;
-
-	if (deathmatch->integer)
-	{
-		if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED))
-			SetRespawn(ent, gtime_t::from_sec(ent->item->quantity));
-		// auto-use for DM only if we didn't already have one
-		if (!quantity)
-			G_CheckPowerArmor(other);
-	}
-	else
-		G_CheckPowerArmor(other);
-
-	return true;
-}
-
-void Drop_PowerArmor(edict_t *ent, gitem_t *item)
-{
-	if ((ent->flags & FL_POWER_ARMOR) && (ent->client->pers.inventory[item->id] == 1))
-		Use_PowerArmor(ent, item);
-	Drop_General(ent, item);
-}
-
-//======================================================================
 
 bool Entity_IsVisibleToPlayer(edict_t* ent, edict_t* player)
 {
@@ -1605,36 +1401,6 @@ static void Use_Compass(edict_t *ent, gitem_t *inv)
 gitem_t	itemlist[] = 
 {
 	{ },	// leave index 0 alone
-
-	//
-	// ARMOR
-	//
-	
-/*QUAKED item_armor_jacket (.3 .3 1) (-16 -16 -16) (16 16 16)
-*/
-	{
-		/* id */ IT_ARMOR_JACKET,
-		/* classname */ "item_armor_jacket", 
-		/* pickup */ Pickup_Armor,
-		/* use */ nullptr,
-		/* drop */ nullptr,
-		/* weaponthink */ nullptr,
-		/* pickup_sound */ "misc/ar1_pkup.wav",
-		/* world_model */ "models/items/armor/jacket/tris.md2",
-		/* world_model_flags */ EF_ROTATE | EF_BOB,
-		/* view_model */ nullptr,
-		/* icon */ "i_jacketarmor",
-		/* use_name */  "Jacket Armor",
-		/* pickup_name */  "$item_jacket_armor",
-		/* pickup_name_definite */ "$item_jacket_armor_def",
-		/* quantity */ 0,
-		/* ammo */ IT_NULL,
-		/* chain */ IT_NULL,
-		/* flags */ IF_ARMOR,
-		/* vwep_model */ nullptr,
-		/* armor_info */ &jacketarmor_info
-	},
-
 	//
 	// WEAPONS 
 	//
@@ -1659,7 +1425,7 @@ always owned, never in the world
 		/* pickup_name_definite */ "$item_grapple_def",
 		/* quantity */ 0,
 		/* ammo */ IT_NULL,
-		/* chain */ IT_WEAPON_BLASTER,
+		/* chain */ IT_NULL,
 		/* flags */ IF_WEAPON | IF_NO_HASTE | IF_POWERUP_WHEEL | IF_NOT_RANDOM,
 		/* vwep_model */ "#w_grapple.md2",
 		/* armor_info */ nullptr,
@@ -2058,6 +1824,34 @@ model="models/items/ammo/mag/medium/tris.md2"
 	//
 	// POWERUP ITEMS
 	//
+
+/*QUAKED item_vest (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+	{
+		/* id */ IT_ITEM_VEST,
+		/* classname */ "item_vest", 
+		/* pickup */ Pickup_Special,
+		/* use */ nullptr,
+		/* drop */ Drop_Special,
+		/* weaponthink */ nullptr,
+		/* pickup_sound */ "misc/veston.wav",
+		/* world_model */ "models/items/armor/jacket/tris.md2",
+		/* world_model_flags */ EF_NONE,
+		/* view_model */ nullptr,
+		/* icon */ "i_jacketarmor",
+		/* use_name */  KEV_NAME,
+		/* pickup_name */  "$item_vest",
+		/* pickup_name_definite */ "$item_vest_def",
+		/* quantity */ 1,
+		/* ammo */ IT_NULL,
+		/* chain */ IT_NULL,
+		/* flags */ IF_POWERUP,
+		/* vwep_model */ nullptr,
+		/* armor_info */ nullptr,
+		/* tag */ POWERUP_VEST,
+		/* precaches */ ""
+	},
+
 /*QUAKED item_quiet (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
 	{

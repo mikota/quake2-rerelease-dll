@@ -238,6 +238,122 @@ inline bool G_WeaponShouldStay()
 
 void G_CheckAutoSwitch(edict_t *ent, gitem_t *item, bool is_new);
 
+
+//zucc pickup function for special items
+bool Pickup_Special (edict_t * ent, edict_t * other)
+{
+	if (other->client->unique_item_total >= unique_items->value)
+		return false;
+
+	// Don't allow picking up multiple of the same special item.
+	if( (! allow_hoarding->value) && other->client->inventory[ITEM_INDEX(ent->item)] )
+		return false;
+
+	AddItem(other, ent->item);
+
+	if(!(ent->spawnflags & (SPAWNFLAG_ITEM_DROPPED | SPAWNFLAG_ITEM_DROPPED_PLAYER)) && item_respawnmode->value)
+		SetRespawn (ent, item_respawn->value);
+
+	return true;
+}
+
+
+
+void Drop_Special (edict_t * ent, gitem_t * item)
+{
+	int count;
+
+	ent->client->unique_item_total--;
+	if (item->typeNum == BAND_NUM && INV_AMMO(ent, BAND_NUM) <= 1)
+	{
+		if (gameSettings & GS_DEATHMATCH)
+			count = 2;
+		else
+			count = 1;
+
+		ent->client->max_pistolmags = count;
+		if (INV_AMMO(ent, MK23_ANUM) > count)
+			INV_AMMO(ent, MK23_ANUM) = count;
+
+		if (!(gameSettings & GS_DEATHMATCH)) {
+			if(ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_HANDCANNON))
+				count = 12;
+			else
+				count = 7;
+		} else {
+			count = 14;
+		}
+		ent->client->max_shells = count;
+		if (INV_AMMO(ent, SHELL_ANUM) > count)
+			INV_AMMO(ent, SHELL_ANUM) = count;
+
+		ent->client->max_m4mags = 1;
+		if (INV_AMMO(ent, M4_ANUM) > 1)
+			INV_AMMO(ent, M4_ANUM) = 1;
+
+		ent->client->grenade_max = 2;
+		if (use_buggy_bandolier->value == 0) {
+			if ((gameSettings & GS_DEATHMATCH) && INV_AMMO(ent, GRENADE_NUM) > 2)
+				INV_AMMO(ent, GRENADE_NUM) = 2;
+			else if (teamplay->value) {
+				if (ent->client->curr_weap == GRENADE_NUM)
+					INV_AMMO(ent, GRENADE_NUM) = 1;
+				else
+					INV_AMMO(ent, GRENADE_NUM) = 0;
+			}
+		} else {
+			if (INV_AMMO(ent, GRENADE_NUM) > 2)
+				INV_AMMO(ent, GRENADE_NUM) = 2;
+		}
+		if (gameSettings & GS_DEATHMATCH)
+			count = 2;
+		else
+			count = 1;
+		ent->client->max_mp5mags = count;
+		if (INV_AMMO(ent, MP5_ANUM) > count)
+			INV_AMMO(ent, MP5_ANUM) = count;
+
+		ent->client->knife_max = 10;
+		if (INV_AMMO(ent, KNIFE_NUM) > 10)
+			INV_AMMO(ent, KNIFE_NUM) = 10;
+
+		if (gameSettings & GS_DEATHMATCH)
+			count = 20;
+		else
+			count = 10;
+		ent->client->max_sniper_rnds = count;
+		if (INV_AMMO(ent, SNIPER_ANUM) > count)
+			INV_AMMO(ent, SNIPER_ANUM) = count;
+
+		if (ent->client->unique_weapon_total > unique_weapons->value && !allweapon->value)
+		{
+			DropExtraSpecial (ent);
+			gi.LocCenter_Print(ent, PRINT_HIGH, "One of your guns is dropped with the bandolier.\n");
+		}
+	}
+	Drop_Spec(ent, item);
+	ValidateSelectedItem(ent);
+	SP_LaserSight(ent, item);
+}
+
+// called by the "drop item" command
+void DropSpecialItem (edict_t * ent)
+{
+	// this is the order I'd probably want to drop them in...       
+	if (INV_AMMO(ent, LASER_NUM))
+		Drop_Special (ent, GetItemByIndex(IT_ITEM_LASERSIGHT));
+	else if (INV_AMMO(ent, SLIP_NUM))
+		Drop_Special (ent, GetItemByIndex(IT_ITEM_SLIPPERS));
+	else if (INV_AMMO(ent, SIL_NUM))
+		Drop_Special (ent, GetItemByIndex(IT_ITEM_QUIET));
+	else if (INV_AMMO(ent, BAND_NUM))
+		Drop_Special (ent, GetItemByIndex(IT_ITEM_BANDOLIER));
+	else if (INV_AMMO(ent, HELM_NUM))
+		Drop_Special (ent, GetItemByIndex(IT_ITEM_HELM));
+	else if (INV_AMMO(ent, KEV_NUM))
+		Drop_Special (ent, GetItemByIndex(IT_ITEM_VEST));
+}
+
 bool Pickup_Weapon(edict_t *ent, edict_t *other)
 {
 	item_id_t index;
@@ -412,6 +528,8 @@ void NoAmmoWeaponChange(edict_t *ent, bool sound)
 		IT_ITEM_QUIET,
 		IT_ITEM_SLIPPERS,
 		IT_ITEM_BANDOLIER,
+		IT_ITEM_LASERSIGHT,
+		IT_ITEM_HELM,
 		
 		IT_ITEM_IR_GOGGLES,
 		IT_ITEM_TAG_TOKEN,

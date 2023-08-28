@@ -241,7 +241,7 @@ void LeaveTeams (edict_t * ent, pmenu_t * p)
 
 void SelectWeapon2(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenWeapon = GET_ITEM(MP5_NUM);
+	ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_SNIPER);
 	PMenu_Close(ent);
 	if(!item_kit_mode->integer){
 		OpenItemMenu(ent);
@@ -253,7 +253,7 @@ void SelectWeapon2(edict_t *ent, pmenu_t *p)
 
 void SelectWeapon3(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenWeapon = GET_ITEM(M3_NUM);
+	ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_M3);
 	PMenu_Close(ent);
 	if(!item_kit_mode->integer){
 		OpenItemMenu(ent);
@@ -265,7 +265,7 @@ void SelectWeapon3(edict_t *ent, pmenu_t *p)
 
 void SelectWeapon4(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenWeapon = GET_ITEM(HC_NUM);
+	ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_HANDCANNON);
 	PMenu_Close(ent);
 	if(!item_kit_mode->value){
 		OpenItemMenu(ent);
@@ -277,7 +277,7 @@ void SelectWeapon4(edict_t *ent, pmenu_t *p)
 
 void SelectWeapon5(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenWeapon = GET_ITEM(SNIPER_NUM);
+	ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_SNIPER);
 	PMenu_Close(ent);
 	if(!item_kit_mode->value){
 		OpenItemMenu(ent);
@@ -289,7 +289,7 @@ void SelectWeapon5(edict_t *ent, pmenu_t *p)
 
 void SelectWeapon6(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenWeapon = GET_ITEM(M4_NUM);
+	ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_M4);
 	PMenu_Close(ent);
 	if(!item_kit_mode->value){
 		OpenItemMenu(ent);
@@ -301,7 +301,7 @@ void SelectWeapon6(edict_t *ent, pmenu_t *p)
 
 void SelectWeapon0(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenWeapon = GET_ITEM(KNIFE_NUM);
+	ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_KNIFE);
 	PMenu_Close(ent);
 	if(!item_kit_mode->value){
 		OpenItemMenu(ent);
@@ -313,7 +313,7 @@ void SelectWeapon0(edict_t *ent, pmenu_t *p)
 
 void SelectWeapon9(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenWeapon = GET_ITEM(DUAL_NUM);
+	ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_DUALMK23);
 	PMenu_Close(ent);
 	if(!item_kit_mode->value){
 		OpenItemMenu(ent);
@@ -325,7 +325,7 @@ void SelectWeapon9(edict_t *ent, pmenu_t *p)
 
 void SelectItem1(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GET_ITEM(KEV_NUM);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ARMOR_JACKET);
 	if(item_kit_mode->value){
 		// This is so it clears the chosenItem2 if a previous kit was chosen
 		ent->client->pers.chosenItem2 = NULL;
@@ -336,35 +336,35 @@ void SelectItem1(edict_t *ent, pmenu_t *p)
 
 void SelectItem2(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GET_ITEM(LASER_NUM);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ITEM_LASERSIGHT);
 	PMenu_Close(ent);
 	unicastSound(ent, gi.soundindex("misc/lasersight.wav"), 1.0);
 }
 
 void SelectItem3(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GET_ITEM(SLIP_NUM);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ITEM_SLIPPERS);
 	PMenu_Close(ent);
 	unicastSound(ent, gi.soundindex("misc/veston.wav"), 1.0);
 }
 
 void SelectItem4(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GET_ITEM(SIL_NUM);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ITEM_QUIET);
 	PMenu_Close(ent);
 	unicastSound(ent, gi.soundindex("misc/screw.wav"), 1.0);
 }
 
 void SelectItem5(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GET_ITEM(BAND_NUM);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ITEM_BANDOLIER);
 	PMenu_Close(ent);
 	unicastSound(ent, gi.soundindex("misc/veston.wav"), 1.0);
 }
 
 void SelectItem6(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GET_ITEM(HELM_NUM);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ITEM_HELM);
 	PMenu_Close(ent);
 	unicastSound(ent, gi.soundindex("misc/veston.wav"), 1.0);
 }
@@ -372,8 +372,8 @@ void SelectItem6(edict_t *ent, pmenu_t *p)
 // Commando kit
 void SelectKit1(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GET_ITEM(BAND_NUM);
-	ent->client->pers.chosenItem2 = GET_ITEM(HELM_NUM);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ITEM_BANDOLIER);
+	ent->client->pers.chosenItem2 = GetItemByIndex(IT_ITEM_HELM);
 
 	PMenu_Close(ent);
 	unicastSound(ent, gi.soundindex("misc/veston.wav"), 1.0);
@@ -382,8 +382,8 @@ void SelectKit1(edict_t *ent, pmenu_t *p)
 // Stealth kit
 void SelectKit2(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GET_ITEM(SLIP_NUM);
-	ent->client->pers.chosenItem2= GET_ITEM(SIL_NUM);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ITEM_SLIPPERS);
+	ent->client->pers.chosenItem2= GetItemByIndex(IT_ITEM_QUIET);
 
 	PMenu_Close(ent);
 	unicastSound(ent, gi.soundindex("misc/screw.wav"), 1.0);
@@ -392,8 +392,8 @@ void SelectKit2(edict_t *ent, pmenu_t *p)
 // Assassin kit
 void SelectKit3(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GET_ITEM(LASER_NUM);
-	ent->client->pers.chosenItem2= GET_ITEM(SIL_NUM);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ITEM_LASERSIGHT);
+	ent->client->pers.chosenItem2= GetItemByIndex(IT_ITEM_QUIET);
 
 	PMenu_Close(ent);
 	unicastSound(ent, gi.soundindex("misc/lasersight.wav"), 1.0);
@@ -428,7 +428,7 @@ void SelectRandomWeapon(edict_t *ent, pmenu_t *p)
 		}
 	}
 	
-	ent->client->pers.chosenWeapon = GET_ITEM(selected_weapon.num);
+	ent->client->pers.chosenWeapon = GetItemByIndex(selected_weapon.num);
 	unicastSound(ent, gi.soundindex(selected_weapon.sound), 1.0);
 	gi.LocClient_Print(ent, PRINT_HIGH, "You selected %s", selected_weapon.name);
 	PMenu_Close(ent);
@@ -489,7 +489,7 @@ void SelectRandomItem(edict_t *ent, pmenu_t *p)
 		}
 	}
 
-	ent->client->pers.chosenItem = GET_ITEM(selected_item.num);
+	ent->client->pers.chosenItem = GetItemByIndex(selected_item.num);
 	unicastSound(ent, gi.soundindex(selected_item.sound), 1.0);
 	gi.LocClient_Print(ent, PRINT_HIGH, "You selected %s", selected_item.name);
 	PMenu_Close(ent);
@@ -519,7 +519,7 @@ void SelectRandomWeaponAndItem(edict_t *ent, pmenu_t *p)
 		}
 	}
 	
-	ent->client->pers.chosenWeapon = GET_ITEM(selected_weapon.num);
+	ent->client->pers.chosenWeapon = GetItemByIndex(selected_weapon.num);
 	unicastSound(ent, gi.soundindex(selected_weapon.sound), 1.0);
 
 	// ITEM
@@ -567,7 +567,7 @@ void SelectRandomWeaponAndItem(edict_t *ent, pmenu_t *p)
 		gi.LocClient_Print(ent, PRINT_HIGH, "%i %s\n", item_list[i].num, item_list[i].name);
 	}
 
-	ent->client->pers.chosenItem = GET_ITEM(selected_item.num);
+	ent->client->pers.chosenItem = GetItemByIndex(selected_item.num);
 	unicastSound(ent, gi.soundindex(selected_item.sound), 1.0);
 	gi.LocClient_Print(ent, PRINT_HIGH, "You selected %s and %s", selected_weapon.name, selected_item.name);
 	PMenu_Close(ent);
@@ -974,7 +974,7 @@ void Team_f (edict_t * ent)
 
 	//PG BUND - BEGIN (Tourney extension)
 	if (use_tourney->value) {
-		gi.cprintf(ent, PRINT_MEDIUM, "Currently running tourney mod, team selection is disabled.");
+		gi.LocCenter_Print(ent, PRINT_MEDIUM, "Currently running tourney mod, team selection is disabled.");
 		return;
 	}
 	//PG BUND - END (Tourney extension)
@@ -985,29 +985,29 @@ void Team_f (edict_t * ent)
 	if (!*t)
 	{
 		if (ctf->value)
-			gi.cprintf(ent, PRINT_HIGH, "You are on %s.\n", CTFTeamName(ent->client->resp.team));
+			gi.LocCenter_Print(ent, PRINT_HIGH, "You are on %s.\n", CTFTeamName(ent->client->resp.team));
 		else
-			gi.cprintf(ent, PRINT_HIGH, "You are on %s.\n", TeamName(ent->client->resp.team));
+			gi.LocCenter_Print(ent, PRINT_HIGH, "You are on %s.\n", TeamName(ent->client->resp.team));
 
 		return;
 	}
 
 	if( (ent->client->resp.joined_team > 0) && (level.realFramenum - ent->client->resp.joined_team < 5 * HZ) )
 	{
-		gi.cprintf(ent, PRINT_HIGH, "You must wait 5 seconds before changing teams again.\n");
+		gi.LocCenter_Print(ent, PRINT_HIGH, "You must wait 5 seconds before changing teams again.\n");
 		return;
 	}
 
 	desired_team = TP_GetTeamFromArg(t);
 	if (desired_team == -1) {
-		gi.cprintf(ent, PRINT_HIGH, "Unknown team '%s'.\n", t);
+		gi.LocCenter_Print(ent, PRINT_HIGH, "Unknown team '%s'.\n", t);
 		return;
 	}
 
 	if (desired_team == NOTEAM)
 	{
 		if (ent->client->resp.team == NOTEAM)
-			gi.cprintf(ent, PRINT_HIGH, "You're not on a team.\n");
+			gi.LocCenter_Print(ent, PRINT_HIGH, "You're not on a team.\n");
 		else
 			LeaveTeam(ent);
 
@@ -1015,7 +1015,7 @@ void Team_f (edict_t * ent)
 	}
 
 	if (ent->client->resp.team == desired_team) {
-		gi.cprintf(ent, PRINT_HIGH, "You are already on %s.\n", TeamName(ent->client->resp.team));
+		gi.LocCenter_Print(ent, PRINT_HIGH, "You are already on %s.\n", TeamName(ent->client->resp.team));
 		return;
 	}
 
@@ -1044,7 +1044,7 @@ void JoinTeam (edict_t * ent, int desired_team, int skip_menuclose)
 	{
 		if (mm_allowlock->value && teams[desired_team].locked) {
 			if (skip_menuclose)
-				gi.cprintf(ent, PRINT_HIGH, "Cannot join %s (locked)\n", TeamName(desired_team));
+				gi.LocCenter_Print(ent, PRINT_HIGH, "Cannot join %s (locked)\n", TeamName(desired_team));
 			else
 				gi.centerprintf(ent, "Cannot join %s (locked)", TeamName(desired_team));
 
@@ -1560,7 +1560,7 @@ void CenterPrintAll (const char *msg)
 	int i;
 	edict_t *ent;
 
-	gi.cprintf (NULL, PRINT_HIGH, "%s\n", msg);	// so it goes to the server console...
+	gi.LocCenter_Print (NULL, PRINT_HIGH, "%s\n", msg);	// so it goes to the server console...
 
 	for (i = 0; i < game.maxclients; i++)
 	{
@@ -1774,18 +1774,18 @@ static void SpawnPlayers(void)
 		// make sure teamplay spawners always have some weapon, warmup starts only after weapon selected
 		if (!ent->client->pers.chosenWeapon) {
 			if (WPF_ALLOWED(MP5_NUM)) {
-				ent->client->pers.chosenWeapon = GET_ITEM(MP5_NUM);
+				ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_SNIPER);
 			} else if (WPF_ALLOWED(MK23_NUM)) {
-				ent->client->pers.chosenWeapon = GET_ITEM(MK23_NUM);
+				ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_MK23);
 			} else if (WPF_ALLOWED(KNIFE_NUM)) {
-				ent->client->pers.chosenWeapon = GET_ITEM(KNIFE_NUM);
+				ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_KNIFE);
 			} else {
-				ent->client->pers.chosenWeapon = GET_ITEM(MK23_NUM);
+				ent->client->pers.chosenWeapon = GetItemByIndex(IT_WEAPON_MK23);
 			}
 		}
 
 		if (!ent->client->pers.chosenItem) {
-			ent->client->pers.chosenItem = GET_ITEM(KEV_NUM);
+			ent->client->pers.chosenItem = GetItemByIndex(IT_ARMOR_JACKET);
 		}
 
 		// Random weapons and items mode.

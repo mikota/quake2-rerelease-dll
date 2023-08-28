@@ -276,11 +276,6 @@ cvar_t *g_spawn_items;
 
 // 2023
 cvar_t *use_killcounts;  // Display kill counts in console to clients on frag
-cvar_t *am;  // Attract mode toggle
-cvar_t *am_newnames;  // Attract mode new names, use new LTK bot names
-cvar_t *am_botcount;  // Attract mode botcount, how many bots at minimum at all times
-cvar_t *am_delay;  // Attract mode delay, unused at the moment
-cvar_t *am_team;  // Attract mode team, which team do you want the bots to join
 cvar_t *zoom_comp; // Compensates zoom-in frames with ping (high ping = fewer frames)
 cvar_t *item_kit_mode;  // Toggles item kit mode
 cvar_t *printrules;  // Centerprint game rules when the countdown begins

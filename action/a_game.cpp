@@ -1062,7 +1062,7 @@ void GetItemName( edict_t *ent, char *buf )
 			itemNum = NO_ITEM_NUM + i;
 			if( INV_AMMO( ent, itemNum ) )
 			{
-				strcpy( buf, GET_ITEM(itemNum)->pickup_name );
+				strcpy( buf, GetItemByIndex(itemNum)->pickup_name );
 				return;
 			}
 		}

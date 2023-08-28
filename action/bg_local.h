@@ -90,6 +90,7 @@ enum ammo_t : uint8_t
 // powerup IDs
 enum powerup_t : uint8_t
 {
+	POWERUP_VEST,
 	POWERUP_QUIET,
 	POWERUP_SLIPPERS,
 	POWERUP_BANDOLIER,
