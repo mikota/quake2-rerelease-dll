@@ -1,10 +1,7 @@
 cmake_minimum_required(VERSION 3.23.1)
 project(game)
 set(CMAKE_CXX_STANDARD 17)
-<<<<<<< HEAD
 set(CMAKE_CXX_STANDARD_REQUIRED on)
-=======
->>>>>>> 3de4b33d4adb4a1b411d50027d337d8fc8417e7c
 
 set(GAME_SRC 
     ${CMAKE_CURRENT_SOURCE_DIR}/bots/bot_debug.cpp 
