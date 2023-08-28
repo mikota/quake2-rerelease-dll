@@ -36,7 +36,7 @@ void CalculatePlayers(int *players)
 }
 
 /* parameter can be current (dead) player or null */
-qboolean CheckForUnevenTeams (edict_t *ent)
+bool CheckForUnevenTeams (edict_t *ent)
 {
 	edict_t *swap_ent = NULL;
 	int i, other_team, players[TEAM_TOP] = {0}, leastPlayers, mostPlayers;
@@ -60,7 +60,7 @@ qboolean CheckForUnevenTeams (edict_t *ent)
 	}
 
 	if(swap_ent && (!ent || ent == swap_ent)) {
-		gi.centerprintf (swap_ent, "You have been swapped to the other team to even the game.");
+		gi.LocCenter_Print(swap_ent, "You have been swapped to the other team to even the game.");
 		unicastSound(swap_ent, gi.soundindex("misc/talk1.wav"), 1.0);
 		swap_ent->client->team_force = true;
 		JoinTeam(swap_ent, other_team, 1);
@@ -70,7 +70,7 @@ qboolean CheckForUnevenTeams (edict_t *ent)
 	return false;
 }
 
-qboolean IsAllowedToJoin(edict_t *ent, int desired_team)
+bool IsAllowedToJoin(edict_t *ent, int desired_team)
 {
 	int i, players[TEAM_TOP] = {0}, mostPlayers;
 

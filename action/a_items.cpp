@@ -138,7 +138,7 @@ void Drop_Spec(edict_t * ent, gitem_t * item)
 
 	spec = Drop_Item(ent, item);
 	//gi.cprintf(ent, PRINT_HIGH, "Dropping special item.\n");
-	spec->nextthink = level.framenum + 1 * HZ;
+	spec->nextthink = level.time + 1_sec;
 	spec->think = MakeTouchSpecThink;
 	//zucc this and the one below should probably be -- not = 0, if
 	// a server turns on multiple item pickup.

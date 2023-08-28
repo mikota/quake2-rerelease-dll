@@ -325,7 +325,7 @@ void SelectWeapon9(edict_t *ent, pmenu_t *p)
 
 void SelectItem1(edict_t *ent, pmenu_t *p)
 {
-	ent->client->pers.chosenItem = GetItemByIndex(IT_ARMOR_JACKET);
+	ent->client->pers.chosenItem = GetItemByIndex(IT_ITEM_VEST);
 	if(item_kit_mode->value){
 		// This is so it clears the chosenItem2 if a previous kit was chosen
 		ent->client->pers.chosenItem2 = NULL;
@@ -421,7 +421,7 @@ void SelectRandomWeapon(edict_t *ent, pmenu_t *p)
 	menu_list_weapon selected_weapon = weapon_list[rand];
 	// prevent picking current weapon
 	if (ent->client->pers.chosenWeapon) {
-		while (selected_weapon.num == ent->client->pers.chosenWeapon->typeNum)
+		while (selected_weapon.num == ent->client->pers.chosenWeapon->id)
 		{
 			rand = newrand(7);
 			selected_weapon = weapon_list[rand];
@@ -441,7 +441,7 @@ void SelectRandomWeapon(edict_t *ent, pmenu_t *p)
 
 void SelectRandomItem(edict_t *ent, pmenu_t *p)
 {
-	int selected_weapon = ent->client->pers.chosenWeapon->typeNum;
+	int selected_weapon = ent->client->pers.chosenWeapon->id;
 
 	// Create array with limited items on certain weapons to not have silly kombos
 	menu_list_item item_list[6] = {
@@ -476,7 +476,7 @@ void SelectRandomItem(edict_t *ent, pmenu_t *p)
 	menu_list_item selected_item = item_list[rand];
 
 	if (ent->client->pers.chosenItem) {
-		while (selected_item.num == ent->client->pers.chosenItem->typeNum && selected_item.num < SIL_NUM)
+		while (selected_item.num == ent->client->pers.chosenItem.id && selected_item.num < SIL_NUM)
 		{
 			rand = newrand(listCount);
 			selected_item = item_list[rand];
@@ -512,7 +512,7 @@ void SelectRandomWeaponAndItem(edict_t *ent, pmenu_t *p)
 	menu_list_weapon selected_weapon = weapon_list[rand];
 	// prevent picking current weapon
 	if (ent->client->pers.chosenWeapon) {
-		while (selected_weapon.num == ent->client->pers.chosenWeapon->typeNum)
+		while (selected_weapon.num == ent->client->pers.chosenWeapon->id)
 		{
 			rand = newrand(7);
 			selected_weapon = weapon_list[rand];
@@ -556,7 +556,7 @@ void SelectRandomWeaponAndItem(edict_t *ent, pmenu_t *p)
 	menu_list_item selected_item = item_list[rand];
 
 	if (ent->client->pers.chosenItem) {
-		while (selected_item.num == ent->client->pers.chosenItem->typeNum)
+		while (selected_item.num == ent->client->pers.chosenItem.id)
 		{
 			rand = newrand(listCount);
 			selected_item = item_list[rand];
