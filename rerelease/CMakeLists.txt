@@ -3,6 +3,9 @@ project(game)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
+set(CMAKE_C_COMPILER "gcc")
+set(CMAKE_CXX_COMPILER "g++")
+
 set(GAME_SRC 
     ${CMAKE_CURRENT_SOURCE_DIR}/bots/bot_debug.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/bots/bot_exports.cpp 
