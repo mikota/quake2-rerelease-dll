@@ -1020,8 +1020,10 @@ enum mod_id_t : uint8_t
 	MOD_GRAPPLE,
 	MOD_TOTAL,
 	MOD_FRIENDLY_FIRE
-
 };
+
+// Only tracking gun/knife stats
+#define MAX_GUNSTAT MOD_GRENADE
 
 struct mod_t
 {
@@ -1089,6 +1091,14 @@ struct game_locals_t
 	std::array<level_entry_t, MAX_LEVELS_PER_UNIT> level_entries;
 	int32_t max_lag_origins;
 	vec3_t *lag_origins; // maxclients * max_lag_origins
+
+	// items
+	int32_t num_items;
+		
+	// stats
+	int32_t gamemode;
+	int32_t gamemodeflags;
+	int32_t roundNum;
 };
 
 constexpr size_t MAX_HEALTH_BARS = 2;
@@ -2027,6 +2037,15 @@ enum damageflags_t
 MAKE_ENUM_BITFLAGS(damageflags_t);
 
 //
+// a_team.c
+//
+void killPlayer(edict_t *ent, qboolean suicidePunish);
+int TP_GetTeamFromArg(const char *name);
+int G_SortedClients( gclient_t **sortedList );
+int G_NotSortedClients( gclient_t **sortedList );
+void A_ScoreboardMessage( edict_t * ent, edict_t * killer );
+
+//
 // g_combat.c
 //
 bool OnSameTeam(edict_t *ent1, edict_t *ent2);
@@ -2710,7 +2729,8 @@ enum damage_locations_t
 	LOC_LDAM,			// Leg damage
 	LOC_KVLR_HELMET,	// Kevlar Helmet damage
 	LOC_KVLR_VEST,		// Kevlar Vest damage
-	LOC_NO				// Non-specific location damage (handcannon, shotgun..)
+	LOC_NO,				// Non-specific location damage (handcannon, shotgun..)
+	LOC_MAX
 };
 
 enum action_awards_t
@@ -3377,6 +3397,7 @@ struct client_persistant_t
 	gtime_t n64_crouch_warning;
 
 	// action
+	int32_t admin;
 	int32_t firing_style;
 	gitem_t *chosenItem;		// item for teamplay
 	gitem_t *chosenWeapon;	// weapon for teamplay
@@ -3421,54 +3442,55 @@ struct client_respawn_t
 	ghost_t *ghost; // for ghost codes
 					// ZOID
 	
-	int sniper_mode;		//level of zoom
+	int32_t sniper_mode;		//level of zoom
 
-  int kills;			// real kills
+    int32_t kills;			// real kills
 
-  int deaths;			// deaths
+    int32_t deaths;			// deaths
 
-  int damage_dealt;		// keep track of damage dealt by player to other players
+    int32_t damage_dealt;		// keep track of damage dealt by player to other players
 
-  int team;			// team the player is on
-  int subteam;
+    int32_t team;			// team the player is on
+    int32_t subteam;
 
-  int joined_team;		// last frame # at which the player joined a team
-  int lastWave;			//last time used wave
+    int32_t joined_team;		// last frame # at which the player joined a team
+    int32_t lastWave;			//last time used wave
 
-  radio_t radio;
+    radio_t radio;
  
-  int motd_refreshes;
-  int last_motd_refresh;
-  edict_t *last_chase_target;	// last person they chased, to resume at the same place later...
+    int32_t motd_refreshes;
+    int32_t last_motd_refresh;
+    edict_t *last_chase_target;	// last person they chased, to resume at the same place later...
 
   // Number of team kills this game
-  int team_kills;
-  int team_wounds;
+    int32_t team_kills;
+    int32_t team_wounds;
   
-  int idletime;
-  int totalidletime;
-  int tourneynumber;
-  edict_t *kickvote;
+    int32_t idletime;
+    int32_t totalidletime;
+    int32_t tourneynumber;
+    edict_t *kickvote;
 
-  char *mapvote;		// pointer to map voted on (if any)
-  char *cvote;			// pointer to config voted on (if any)
-  bool scramblevote;	// want scramble
+    char *mapvote;		// pointer to map voted on (if any)
+    char *cvote;			// pointer to config voted on (if any)
+    bool scramblevote;	// want scramble
 
-  int ignore_time;		// framenum when the player called ignore - to prevent spamming
+    int32_t ignore_time;		// framenum when the player called ignore - to prevent spamming
 	
-  int stat_mode;    		// Automatical Send of statistics to client
-  int stat_mode_intermission;
+    int32_t stat_mode;    		// Automatical Send of statistics to client
+    int32_t stat_mode_intermission;
 
-  int shotsTotal;					//Total number of shots
-  int hitsTotal;					//Total number of hits
-  int streakKills;					//Kills in a row
-  int streakHS;						//Headshots in a Row
-  int streakKillsHighest;			//Highest kills in a row
-  int streakHSHighest;				//Highest headshots in a Row
+    int32_t penalty;
 
-  int hitsLocations[LOC_MAX];		//Number of hits for different locations
-  gunStats_t gunstats[MOD_TOTAL]; //Number of shots/hits for different guns, adjusted to MOD_TOTAL to allow grenade, kick and punch stats
+    int32_t shotsTotal;					//Total number of shots
+    int32_t hitsTotal;					//Total number of hits
+    int32_t streakKills;					//Kills in a row
+    int32_t streakHS;						//Headshots in a Row
+    int32_t streakKillsHighest;			//Highest kills in a row
+    int32_t streakHSHighest;				//Highest headshots in a Row
 
+    int32_t hitsLocations[LOC_MAX];		//Number of hits for different locations
+    gunStats_t gunstats[MOD_TOTAL]; //Number of shots/hits for different guns, adjusted to MOD_TOTAL to allow grenade, kick and punch stats
 };
 
 // [Paril-KEX] seconds until we are fully invisible after
@@ -3679,120 +3701,121 @@ struct gclient_t
 	gtime_t	 last_attacker_time;
 
 	// Action
-	int			weapon_last_activity;
-	int			ammo_index;
+	int32_t			weapon_last_activity;
+	int32_t			ammo_index;
 
 	edict_t		*chase_target;
-	int			chase_mode;
-	int			selected_item;
-	int			inventory[MAX_ITEMS];
+	int32_t			chase_mode;
+	int32_t			selected_item;
+	int32_t			inventory[MAX_ITEMS];
+	int32_t			respawn_framenum;
 
 	// ammo capacities
-	int			max_pistolmags;
-	int			max_shells;
-	int			max_mp5mags;
-	int			max_m4mags;
-	int			max_sniper_rnds;
+	int32_t			max_pistolmags;
+	int32_t			max_shells;
+	int32_t			max_mp5mags;
+	int32_t			max_m4mags;
+	int32_t			max_sniper_rnds;
 
-	int			mk23_max;
-	int			mk23_rds;
+	int32_t			mk23_max;
+	int32_t			mk23_rds;
 
-	int			dual_max;
-	int			dual_rds;
-	int			shot_max;
-	int			shot_rds;
-	int			sniper_max;
-	int			sniper_rds;
-	int			mp5_max;
-	int			mp5_rds;
-	int			m4_max;
-	int			m4_rds;
-	int			cannon_max;
-	int			cannon_rds;
-	int			knife_max;
-	int			grenade_max;
+	int32_t			dual_max;
+	int32_t			dual_rds;
+	int32_t			shot_max;
+	int32_t			shot_rds;
+	int32_t			sniper_max;
+	int32_t			sniper_rds;
+	int32_t			mp5_max;
+	int32_t			mp5_rds;
+	int32_t			m4_max;
+	int32_t			m4_rds;
+	int32_t			cannon_max;
+	int32_t			cannon_rds;
+	int32_t			knife_max;
+	int32_t			grenade_max;
 
 	gitem_t*	weapon;
 	gitem_t*	lastweapon;
 
-	int			curr_weap;		// uses NAME_NUM values
+	int32_t			curr_weap;		// uses NAME_NUM values
 
-	int			fired;			// keep track of semi auto
-	int			burst;			// remember if player is bursting or not
-	int			fast_reload;	// for shotgun/sniper rifle
-	int			idle_weapon;	// how many frames to keep our weapon idle
-	int			desired_fov;	// what fov does the player want? (via zooming)
-	int			desired_zoom;	// either 0, 1, 2, 4 or 6. This is set to 0 if no zooming shall be done, and is set to 0 after zooming is done.
+	int32_t			fired;			// keep track of semi auto
+	int32_t			burst;			// remember if player is bursting or not
+	int32_t			fast_reload;	// for shotgun/sniper rifle
+	int32_t			idle_weapon;	// how many frames to keep our weapon idle
+	int32_t			desired_fov;	// what fov does the player want? (via zooming)
+	int32_t			desired_zoom;	// either 0, 1, 2, 4 or 6. This is set to 0 if no zooming shall be done, and is set to 0 after zooming is done.
 
-	int			unique_weapon_total;
-	int			unique_item_total;
-	int			drop_knife;
-	int			knife_sound;		// we attack several times when slashing but only want 1 sound
+	int32_t			unique_weapon_total;
+	int32_t			unique_item_total;
+	int32_t			drop_knife;
+	int32_t			knife_sound;		// we attack several times when slashing but only want 1 sound
 
-	int			punch_framenum;
+	int32_t			punch_framenum;
 	bool		punch_desired;	//controlled in ClientThink
 
-	int			reload_attempts;
-	int			weapon_attempts;
+	int32_t			reload_attempts;
+	int32_t			weapon_attempts;
 
 	bool		autoreloading;	//used for dual -> mk23 change with reloading
 
-	int			took_damage;		//Took damage from multihit weapons
+	int32_t			took_damage;		//Took damage from multihit weapons
 
-	int			no_sniper_display;
+	int32_t			no_sniper_display;
 
-	int			bandaging;
-	int			bandage_stopped;
+	int32_t			bandaging;
+	int32_t			bandage_stopped;
 	bool		weapon_after_bandage_warned;	// to fix message bug when calling weapon while bandaging
 
-	int			leg_damage;
-	int			leg_dam_count;
-	int			leg_noise;
-	int			leghits;
+	int32_t			leg_damage;
+	int32_t			leg_dam_count;
+	int32_t			leg_noise;
+	int32_t			leghits;
 
-	int			bleeding;			//remaining points to bleed away
-	int			bleed_remain;
+	int32_t			bleeding;			//remaining points to bleed away
+	int32_t			bleed_remain;
 	vec3_t		bleedloc_offset;	// location of bleeding (from origin)
-	int			bleeddelay;			// how long until we bleed again
+	int32_t			bleeddelay;			// how long until we bleed again
 
-	int			doortoggle;			// set by player with opendoor command
+	int32_t			doortoggle;			// set by player with opendoor command
 
 	edict_t*	attacker;		// keep track of the last person to hit us
-	int			attacker_mod;	// and how they hit us
-	int			attacker_loc;	// location of the hit
+	int32_t			attacker_mod;	// and how they hit us
+	int32_t			attacker_loc;	// location of the hit
 
-	int			push_timeout;	// timeout for how long an attacker will get fall death credit
+	int32_t			push_timeout;	// timeout for how long an attacker will get fall death credit
 
-	int			jumping;
+	int32_t			jumping;
 
 	// Number of teammate woundings this game and a "before attack" tracker
-	int			team_wounds_before;
-	int			ff_warning;
+	int32_t			team_wounds_before;
+	int32_t			ff_warning;
 
-	int			radio_num_kills;
+	int32_t			radio_num_kills;
 
-	int			last_damaged_part;
+	int32_t			last_damaged_part;
 	char		last_damaged_players[256];
 	edict_t*	last_killed_target[MAX_LAST_KILLED];
 
-	int			uvTime;
+	int32_t			uvTime;
 
 	bool		team_force;		// are we forcing a team change
 
 	edict_t*	lasersight; // laser
 	edict_t*	flashlight; // Flashlight
 
-	int			medkit;
+	int32_t			medkit;
 
 	edict_t*	ctf_grapple;		// entity of grapple
-	int			ctf_grapplestate;		// true if pulling
-	int			ctf_grapplereleaseframe;	// frame of grapple release
+	int32_t			ctf_grapplestate;		// true if pulling
+	int32_t			ctf_grapplereleaseframe;	// frame of grapple release
 
 	// used for extrapolation
 	usercmd_t	cmd_last;
 
 	// visiblity mask
-	unsigned int dimension_observe;
+	uint32_t dimension_observe;
 };
 
 // ==========================================

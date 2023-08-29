@@ -628,11 +628,66 @@ void Cmd_Use_f(edict_t *ent)
 	}
 	index = it->id;
 
+	if (!Q_stricmp(s, "special")) {
+		ReadySpecialWeapon(ent);
+		return;
+	}
+
 	// Paril: Use_Weapon handles weapon availability
 	if (!(it->flags & IF_WEAPON) && !ent->client->pers.inventory[index])
 	{
 		gi.LocClient_Print(ent, PRINT_HIGH, "$g_out_of_item", it->pickup_name);
 		return;
+	}
+
+	if (!Q_stricmp(s, "throwing combat knife"))
+	{
+		if (ent->client->curr_weap != KNIFE_NUM)
+		{
+			ent->client->pers.knife_mode = 1;
+		}
+		else // switch to throwing mode if a knife is already out
+		{
+			//if(!ent->client->pers.knife_mode)
+				Cmd_New_Weapon_f(ent);
+		}
+		itemNum = KNIFE_NUM;
+	}
+	else if (!Q_stricmp(s, "slashing combat knife"))
+	{
+		if (ent->client->curr_weap != KNIFE_NUM)
+		{
+			ent->client->pers.knife_mode = 0;
+		}
+		else // switch to slashing mode if a knife is already out
+		{
+			//if(ent->client->pers.knife_mode)
+				Cmd_New_Weapon_f(ent);
+		}
+		itemNum = KNIFE_NUM;
+	}
+
+	if (!itemNum) {
+		itemNum = GetWeaponNumFromArg(s);
+		if (!itemNum) //Check Q2 weapon names
+		{
+			if (!Q_stricmp(s, "blaster"))
+				itemNum = MK23_NUM;
+			else if (!Q_stricmp(s, "railgun"))
+				itemNum = DUAL_NUM;
+			else if (!Q_stricmp(s, "machinegun"))
+				itemNum = HC_NUM;
+			else if (!Q_stricmp(s, "super shotgun"))
+				itemNum = MP5_NUM;
+			else if (!Q_stricmp(s, "chaingun"))
+				itemNum = SNIPER_NUM;
+			else if (!Q_stricmp(s, "bfg10k"))
+				itemNum = KNIFE_NUM;
+			else if (!Q_stricmp(s, "grenade launcher"))
+				itemNum = M4_NUM;
+			else if (!Q_stricmp(s, "grenades"))
+				itemNum = GRENADE_NUM;
+		}
 	}
 
 	// allow weapon chains for use
@@ -669,6 +724,20 @@ void Cmd_Drop_f(edict_t *ent)
 	// ZOID
 
 	s = gi.args();
+
+	//zucc check to see if the string is weapon
+	if (Q_stricmp (s, "weapon") == 0)
+	{
+		DropSpecialWeapon (ent);
+		return;
+	}
+
+	//zucc now for item
+	if (Q_stricmp (s, "item") == 0)
+	{
+		DropSpecialItem (ent);
+		return;
+	}
 
 	const char *cmd = gi.argv(0);
 
@@ -728,6 +797,27 @@ void Cmd_Inven_f(edict_t *ent)
 		return;
 	}
 	// ZOID
+
+	cl->pers.menu_shown = true;
+
+	if (teamplay->value && !ent->client->resp.team) {
+		OpenJoinMenu (ent);
+		return;
+	}
+
+	if (gameSettings & GS_WEAPONCHOOSE) {
+		OpenWeaponMenu(ent);
+		return;
+	}
+
+	if (teamplay->value)
+		return;
+
+	gi.WriteByte(svc_inventory);
+	for (i = 0; i < MAX_ITEMS; i++) {
+		gi.WriteShort(cl->inventory[i]);
+	}
+	gi.unicast(ent, true);
 
 	if (cl->showinventory)
 	{
@@ -1386,6 +1476,7 @@ void Cmd_Say_f(edict_t *ent, bool arg0)
 	edict_t *other;
 	const char	 *p_in;
 	static std::string text;
+	int meing = 0, isadmin = 0, team = 0;
 
 	if (gi.argc() < 2 && !arg0)
 		return;
@@ -1418,6 +1509,161 @@ void Cmd_Say_f(edict_t *ent, bool arg0)
 
 	if (text.back() != '\n')
 		text.push_back('\n');
+
+	
+	if (!teamplay->value) {
+		team = false;
+	}
+	else if (matchmode->value)
+	{	
+		if (ent->client->pers.admin)
+			isadmin = 1;
+
+		if (mm_forceteamtalk->value == 1)
+		{
+			if (!IS_CAPTAIN(ent) && !isadmin)
+				team = true;
+		}
+		else if (mm_forceteamtalk->value == 2)
+		{
+			if (!IS_CAPTAIN(ent) && !isadmin &&
+				(TeamsReady() || team_round_going))
+				team = true;
+		}
+	}
+
+	if (team)
+	{
+		if (ent->client->resp.team == NOTEAM)
+		{
+			gi.LocClient_Print (ent, PRINT_HIGH, "You're not on a team.\n");
+			return;
+		}
+		if (!meing)		// TempFile
+			Com_sprintf (text, sizeof (text), "%s(%s): ",
+			(teamplay->value && !IS_ALIVE(ent)) ? "[DEAD] " : "",
+			ent->client->pers.netname);
+		//TempFile - BEGIN
+		else
+			Com_sprintf (text, sizeof (text), "(%s%s ",
+			(teamplay->value && !IS_ALIVE(ent)) ? "[DEAD] " : "",
+			ent->client->pers.netname);
+		//TempFile - END
+	}
+	else
+	{
+		if (!meing)		//TempFile
+		{
+			if (isadmin)
+				Com_sprintf (text, sizeof (text), "[ADMIN] %s: ",
+				ent->client->pers.netname);
+			else
+				Com_sprintf (text, sizeof (text), "%s%s: ",
+				(teamplay->value && !IS_ALIVE(ent)) ? "[DEAD] " : "",
+				ent->client->pers.netname);
+		}
+		else
+			Com_sprintf (text, sizeof (text), "%s%s ",
+			(teamplay->value && !IS_ALIVE(ent)) ? "[DEAD] " : "",
+			ent->client->pers.netname);
+	}
+	//TempFile - END
+	
+	offset_of_text = strlen (text);	//FB 5/31/99
+	if (!meing)		//TempFile
+	{
+		if (arg0)
+		{
+			Q_strncatz(text, gi.argv (0), sizeof(text));
+			if(*args) {
+				Q_strncatz(text, " ", sizeof(text));
+				Q_strncatz(text, args, sizeof(text));
+			}
+		}
+		else
+		{	
+			if (*args == '"') {
+				args++;
+				args[strlen(args) - 1] = 0;
+			}
+			Q_strncatz(text, args, sizeof(text));
+		}
+	}
+	else			// if meing
+	{
+		if (arg0)
+		{
+			//this one is easy: gi.args() cuts /me off for us!
+			Q_strncatz(text, args, sizeof(text));
+		}
+		else
+		{
+			// we have to cut off "%me ".
+			args += meing;
+			if (args[strlen(args) - 1] == '"')
+				args[strlen(args) - 1] = 0;
+			Q_strncatz(text, args, sizeof(text));
+		}
+		
+		if (team)
+			Q_strncatz(text, ")", sizeof(text));
+	}
+	//TempFile - END
+	// don't let text be too long for malicious reasons
+	if (strlen(text) >= 254)
+		text[254] = 0;
+
+	show_info = ! strncmp( text + offset_of_text, "!actionversion", 14 );
+
+	//if( IS_ALIVE(ent) )  // Disabled so we parse dead chat too.
+	{
+		s = strchr(text + offset_of_text, '%');
+		if(s) {
+			// this will parse the % variables,
+			ParseSayText (ent, s, sizeof(text) - (s - text+1) - 2);
+		}
+	}
+
+	Q_strncatz(text, "\n", sizeof(text));
+
+	if (FloodCheck(ent))
+		return;
+	
+	if (dedicated->value) {
+		gi.LocClient_Print (NULL, PRINT_CHAT, "%s", text);
+	}
+	
+	for (j = 1; j <= game.maxclients; j++)
+	{
+		other = &g_edicts[j];
+		if (!other->inuse || !other->client)
+			continue;
+
+		if (other != ent)
+		{
+			if (team)
+			{
+				// if we are the adminent... we might want to hear (if hearall is set)
+				if (!matchmode->value || !hearall->value || !other->client->pers.admin)	// hearall isn't set and we aren't adminent
+					if (!OnSameTeam(ent, other))
+						continue;
+			}
+
+			if (team_round_going && (gameSettings & GS_ROUNDBASED))
+			{
+				if (!deadtalk->value && !IS_ALIVE(ent) && IS_ALIVE(other))
+					continue;
+			}
+
+			if (IsInIgnoreList(other, ent))
+				continue;
+		}
+
+		gi.LocClient_Print(other, PRINT_CHAT, "%s", text);
+
+		if( show_info )
+			gi.LocClient_Print( other, PRINT_CHAT, "console: AQ2:TNG %s\n", VERSION);
+	}
 
 	if (sv_dedicated->integer)
 		gi.Client_Print(nullptr, PRINT_CHAT, text.c_str());

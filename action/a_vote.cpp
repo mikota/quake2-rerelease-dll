@@ -1,65 +1,3 @@
-//-----------------------------------------------------------------------------
-// a_vote.c
-//
-// $Id: a_vote.c,v 1.14 2003/12/09 22:06:11 igor_rock Exp $
-//
-//-----------------------------------------------------------------------------
-// $Log: a_vote.c,v $
-// Revision 1.14  2003/12/09 22:06:11  igor_rock
-// added "ignorepart" commadn to ignore all players with the specified part in
-// their name (one shot function: if player changes his name/new palyers join,
-// the list will _not_ changed!)
-//
-// Revision 1.13  2003/10/01 19:39:08  igor_rock
-// corrected underflow bugs (thanks to nopcode for bug report)
-//
-// Revision 1.12  2001/11/27 20:36:32  igor_rock
-// corrected the mapvoting spamm protection
-//
-// Revision 1.11  2001/11/08 11:01:10  igor_rock
-// finally got this damn configvote bug - configvote is OK now! :-)
-//
-// Revision 1.10  2001/11/03 17:21:57  deathwatch
-// Fixed something in the time command, removed the .. message from the voice command, fixed the vote spamming with mapvote, removed addpoint command (old pb command that wasnt being used). Some cleaning up of the source at a few points.
-//
-// Revision 1.9  2001/09/28 13:48:34  ra
-// I ran indent over the sources. All .c and .h files reindented.
-//
-// Revision 1.8  2001/07/25 23:02:02  slicerdw
-// Fixed the source, added the weapons and items capping to choose command
-//
-// Revision 1.7  2001/07/16 18:28:46  ra
-// Changed a 40 second hard limit on mapvoting into a cvar.
-//
-// Revision 1.6  2001/06/20 07:21:21  igor_rock
-// added use_warnings to enable/disable time/frags left msgs
-// added use_rewards to enable/disable eimpressive, excellent and accuracy msgs
-// change the configfile prefix for modes to "mode_" instead "../mode-" because
-// they don't have to be in the q2 dir for doewnload protection (action dir is sufficient)
-// and the "-" is bad in filenames because of linux command line parameters start with "-"
-//
-// Revision 1.5  2001/06/18 11:01:42  igor_rock
-// added "mode-" prefix to votet configfiles, so all mode configs are close together
-// when someone makes a "dir" or "ls -al" command on the server (cosmetic change)
-//
-// Revision 1.4  2001/06/13 09:14:23  igor_rock
-// change the path for configs from "config/" to "../" because of possibility
-// of exploit with the "download" command if "allow_download" is set
-//
-// Revision 1.3  2001/06/13 08:39:13  igor_rock
-// changed "cvote" to "use_cvote" (like the other votecvars)
-//
-// Revision 1.2  2001/05/12 20:58:22  ra
-//
-//
-// Adding public mapvoting and kickvoting. Its controlable via cvar's mv_public
-// and vk_public (both default off)
-//
-// Revision 1.1.1.1  2001/05/06 17:25:12  igor_rock
-// This is the PG Bund Edition V1.25 with all stuff laying around here...
-//
-//-----------------------------------------------------------------------------
-
 #include "g_local.h"
 
 #ifndef MAX_STR_LEN
@@ -82,7 +20,7 @@ void _printplayerlist (edict_t * self, char *buf,
 	Q_strncatz (buf, "------------------------------------\n", MAX_STRING_CHARS);
 	for (i = 0, other = g_edicts + 1; i < game.maxclients; i++, other++)
 	{
-		if (!other->inuse || !other->client || other->client->pers.mvdspec)
+		if (!other->inuse || !other->client)
 			continue;
 
 		if (other == self)
@@ -111,7 +49,7 @@ int _numclients (void)
 	count = 0;
 	for (i = 0, other = g_edicts + 1; i < game.maxclients; i++, other++)
 	{
-		if (!other->inuse || !other->client || !other->client->pers.connected || other->client->pers.mvdspec)
+		if (!other->inuse || !other->client || !other->client->pers.connected)
 			continue;
 		count++;
 	}
@@ -124,8 +62,8 @@ Kicks the given (client) edict out of the server, reason will be printed before
 static void KickClient(edict_t * target, char *reason)
 {
 	if (target && target->client && target->inuse) {
-		gi.bprintf(PRINT_HIGH, "%s has to be KICKED from the server.\n", target->client->pers.netname);
-		gi.bprintf(PRINT_MEDIUM, "Reason: %s\n", reason);
+		gi.LocBroadcast_Print(PRINT_HIGH, "%s has to be KICKED from the server.\n", target->client->pers.netname);
+		gi.LocBroadcast_Print(PRINT_MEDIUM, "Reason: %s\n", reason);
 		Kick_Client(target);
 	}
 }
@@ -173,13 +111,13 @@ static void Votemap(edict_t *ent, const char *mapname)
 	remaining = (timelimit->value * 60) - gametime;
 
 	if (!use_mapvote->value) {
-		gi.cprintf(ent, PRINT_HIGH, "Map voting is disabled.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "Map voting is disabled.\n");
 		return;
 	}
 
 	// If timelimit is set and if mapvote_next is set, and the remaining time is less than the mapvote_next_limit, do not allow the mapvote
 	if (timelimit->value && mapvote_next->value && remaining < mapvote_next_limit->value){
-		gi.cprintf(ent, PRINT_HIGH, "It is too late to vote for the next map.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "It is too late to vote for the next map.\n");
 		return;
 	}
 
@@ -188,16 +126,16 @@ static void Votemap(edict_t *ent, const char *mapname)
 		return;
 	}
 
-	if (level.intermission_framenum) {
-		gi.cprintf(ent, PRINT_HIGH, "Mapvote disabled during intermission\n");
+	if (level.intermissiontime) {
+		gi.LocClient_Print(ent, PRINT_HIGH, "Mapvote disabled during intermission\n");
 		return;
 	}
-
-	voteWaitTime = (int)(mapvote_waittime->value * HZ);
+	// TODO: Verify timings here
+	voteWaitTime = (int)(mapvote_waittime->value * 40);
 	if (level.realFramenum < voteWaitTime)
 	{
-		gi.cprintf(ent, PRINT_HIGH, "Mapvote currently blocked - Please vote again in %d seconds\n",
-			(voteWaitTime + HZ - level.realFramenum) / HZ );
+		gi.LocClient_Print(ent, PRINT_HIGH, "Mapvote currently blocked - Please vote again in %d seconds\n",
+			(voteWaitTime + 40 - level.realFramenum) / 40 );
 		return;
 	}
 
@@ -206,22 +144,22 @@ static void Votemap(edict_t *ent, const char *mapname)
 	switch (AddVoteToMap(mapname, ent))
 	{
 	case 0:
-		gi.cprintf(ent, PRINT_HIGH, "You have voted on map \"%s\"\n", mapname);
+		gi.LocClient_Print(ent, PRINT_HIGH, "You have voted on map \"%s\"\n", mapname);
 		if (mv_public->value)
-			gi.bprintf(PRINT_HIGH, "%s voted for \"%s\"\n", ent->client->pers.netname, mapname);
+			gi.LocBroadcast_Print(PRINT_HIGH, "%s voted for \"%s\"\n", ent->client->pers.netname, mapname);
 	break;
 	case 1:
-		gi.cprintf(ent, PRINT_HIGH, "You have changed your vote to map \"%s\"\n", mapname);
+		gi.LocClient_Print(ent, PRINT_HIGH, "You have changed your vote to map \"%s\"\n", mapname);
 		if (mv_public->value && !FloodCheck(ent)) {
 			if (Q_stricmp(mapname, oldvote))
-				gi.bprintf(PRINT_HIGH, "%s changed his mind and voted for \"%s\"\n", ent->client->pers.netname, mapname);
+				gi.LocBroadcast_Print(PRINT_HIGH, "%s changed his mind and voted for \"%s\"\n", ent->client->pers.netname, mapname);
 			else
-				gi.cprintf(ent, PRINT_HIGH, "We heard you the first time!\n");
+				gi.LocClient_Print(ent, PRINT_HIGH, "We heard you the first time!\n");
 		}
 		break;
 	default:
 		//error
-		gi.cprintf(ent, PRINT_HIGH, "Map \"%s\" is not in the votelist!\n", mapname);
+		gi.LocClient_Print(ent, PRINT_HIGH, "Map \"%s\" is not in the votelist!\n", mapname);
 		break;
 	}
 }
@@ -239,7 +177,7 @@ void Cmd_Maplist_f(edict_t *ent)
 	char msg_buf[MAX_STRING_CHARS], tmp_buf[128];	//only 40 are used
 
 	if (!use_mapvote->value) {
-		gi.cprintf(ent, PRINT_HIGH, "Map voting is disabled.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "Map voting is disabled.\n");
 		return;
 	}
 
@@ -299,7 +237,7 @@ void Cmd_Maplist_f(edict_t *ent)
 
 	Q_strncatz(msg_buf, tmp_buf, sizeof(msg_buf));
 
-	gi.centerprintf (ent, "%s", msg_buf);
+	gi.LocCenter_Print(ent, "%s", msg_buf);
 
 	return;
 }
@@ -348,7 +286,7 @@ void _MapExitLevel (char *NextMap)
 	{
 		votemap = MapWithMostVotes (NULL);
 		Q_strncpyz (NextMap, votemap->mapname, MAX_QPATH);
-		gi.bprintf (PRINT_HIGH, "Next map was voted on and is %s.\n", NextMap);
+		gi.LocBroadcast_Print (PRINT_HIGH, "Next map was voted on and is %s.\n", NextMap);
 	}
 
 	//clear stats
@@ -425,7 +363,7 @@ bool _CheckMapVotes (void)
 
 	if (_iCheckMapVotes() == true)
 	{
-		gi.bprintf (PRINT_HIGH, "More than %i%% map votes reached.\n", (int)mapvote_pass->value);
+		gi.LocBroadcast_Print (PRINT_HIGH, "More than %i%% map votes reached.\n", (int)mapvote_pass->value);
 		return true;
 	}
 	return false;
@@ -458,7 +396,7 @@ void _MapWithMostVotes (void)
 	{
 		Com_sprintf(buf, sizeof(buf), "Most wanted map: %s", sbuf);
 		G_HighlightStr(buf, buf, sizeof(buf));
-		gi.bprintf(PRINT_HIGH, "%s\n", buf);
+		gi.LocBroadcast_Print(PRINT_HIGH, "%s\n", buf);
 	}
 }
 
@@ -502,7 +440,7 @@ cvar_t *_InitMapVotelist (ini_t * ini)
 		ReadIniStr (ini, MAPVOTESECTION, "mapvote_need", buf, "0"), CVAR_LATCH);
 	mapvote_pass = gi.cvar ("mapvote_pass",
 		ReadIniStr (ini, MAPVOTESECTION, "mapvote_pass", buf, "51"), CVAR_LATCH);
-	mapvote_next = gi.cvar( "mapvote_next", "1", 0 );
+	mapvote_next = gi.cvar( "mapvote_next", "1", CVAR_NOFLAGS );
 
 	return (use_mapvote);
 }
@@ -702,7 +640,7 @@ void MapVoteMenu (edict_t * ent, pmenu_t * p)
 	Com_sprintf(buf, sizeof(buf), "most: %s", sbuf);
 
 	if (xMenu_New (ent, MAPMENUTITLE, buf, AddMapToMenu) == false)
-		gi.cprintf (ent, PRINT_MEDIUM, "No map to vote for.\n");
+		gi.LocClient_Print (ent, PRINT_MEDIUM, "No map to vote for.\n");
 }
 
 votelist_t *VotelistInsert( votelist_t *start, votelist_t *insert )
@@ -742,7 +680,7 @@ void ReadMaplistFile (void)
 	map_votes = NULL;
 	map_num_maps = 0;
 
-	maplistname = gi.cvar ("maplistname", "maplist.ini", 0);
+	maplistname = gi.cvar ("maplistname", "maplist.ini", CVAR_NOFLAGS);
 	if (maplistname->string && *(maplistname->string))
 		Com_sprintf(maplistpath, sizeof(maplistpath), "%s/%s", GAMEVERSION, maplistname->string);
 	else
@@ -790,55 +728,6 @@ void ReadMaplistFile (void)
 		}
 		fclose(maplist_file);
 	}
-
-	/*
-	num_allvotes = 0;
-
-	//Igor[Rock] BEGIN
-	//load the saved values from the last run of the server
-	Q_strncatz(maplistpath, "-votes", sizeof(maplistpath));
-
-	maplist_file = fopen(maplistpath, "r");
-	if (maplist_file != NULL)
-	{
-		for (i = 0; fgets (buf, MAX_STR_LEN - 10, maplist_file) != NULL;)
-		{
-			//first remove trailing spaces
-			bs = strlen(buf);
-			while (bs > 0 && buf[bs - 1] <= ' ')
-				buf[--bs] = '\0';
-
-			if (bs < 1 || !strncmp(buf, "#", 1) || !strncmp(buf, "//", 2))
-				continue;
-
-			if (i == 0)
-			{
-				//num_allvotes = atoi(buf);  // Don't trust this; count as we go.
-			}
-			else if (map_votes)
-			{
-				// Split the buffer on the comma.
-				char *num = strrchr( buf, ',' );
-				if( ! num )
-					continue;
-				*num = '\0';
-				num ++;
-
-				for (tmp = map_votes; tmp->next != NULL; tmp = tmp->next)
-				{
-					if( Q_stricmp( tmp->mapname, buf ) == 0 )
-					{
-						tmp->num_allvotes = atoi(num);
-						num_allvotes += tmp->num_allvotes;
-						break;
-					}
-				}
-			}
-			i++;
-		}
-		fclose(maplist_file);
-	}
-	*/
 }
 
 //=== kick voting ==========================================================
@@ -864,25 +753,25 @@ void _SetKickVote (edict_t * ent, edict_t * target)
 	if (ent->client->resp.kickvote == target)
 	{
 		ent->client->resp.kickvote = NULL;
-		gi.cprintf (ent, PRINT_MEDIUM, "Your kickvote on %s is removed\n",
+		gi.LocClient_Print (ent, PRINT_MEDIUM, "Your kickvote on %s is removed\n",
 		target->client->pers.netname);
 		if (vk_public->value)
-			gi.bprintf (PRINT_HIGH, "%s doesnt want to kick %s after all\n",
+			gi.LocBroadcast_Print (PRINT_HIGH, "%s doesnt want to kick %s after all\n",
 		ent->client->pers.netname, target->client->pers.netname);
 	}
 	else
 	{
 		if (ent->client->resp.kickvote)
 		{
-			gi.cprintf (ent, PRINT_MEDIUM, "Kickvote was changed to %s\n",
+			gi.LocClient_Print (ent, PRINT_MEDIUM, "Kickvote was changed to %s\n",
 			target->client->pers.netname);
 		}
 		else
 		{
-			gi.cprintf (ent, PRINT_MEDIUM, "You voted on %s to be kicked\n",
+			gi.LocClient_Print (ent, PRINT_MEDIUM, "You voted on %s to be kicked\n",
 				target->client->pers.netname);
 			if (vk_public->value) {
-				gi.bprintf (PRINT_HIGH, "%s voted to kick %s\n",
+				gi.LocBroadcast_Print (PRINT_HIGH, "%s voted to kick %s\n",
 					ent->client->pers.netname, target->client->pers.netname);
 			}
 		}
@@ -1057,7 +946,7 @@ void _AddKickuserToMenu (edict_t * ent, int fromix)
 	j = 0;
 	for(i = 0, other = g_edicts + 1; i < game.maxclients && j < fromix; i++, other++)
 	{
-		if (!other->inuse || !other->client || other->client->pers.mvdspec)
+		if (!other->inuse || !other->client)
 			continue;
 
 		if (other != ent)
@@ -1067,7 +956,7 @@ void _AddKickuserToMenu (edict_t * ent, int fromix)
 
 	for (; i < game.maxclients && erg; i++, other++)
 	{
-		if (!other->inuse || !other->client || other->client->pers.mvdspec)
+		if (!other->inuse || !other->client)
 			continue;
 
 		if (other != ent)
@@ -1087,7 +976,7 @@ void _KickVoteSelected (edict_t * ent, pmenu_t * p)
 	PMenu_Close (ent);
 	if (xMenu_New (ent, KICKMENUTITLE, "vote for a player to kick",
 		_AddKickuserToMenu) == false)
-		gi.cprintf (ent, PRINT_MEDIUM, "No player to kick.\n");
+		gi.LocClient_Print (ent, PRINT_MEDIUM, "No player to kick.\n");
 }
 
 void Cmd_Votekick_f(edict_t *ent)
@@ -1095,22 +984,22 @@ void Cmd_Votekick_f(edict_t *ent)
 	edict_t *target;
 
 	if (!use_kickvote->value) {
-		gi.cprintf(ent, PRINT_HIGH, "Kick voting is disabled.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "Kick voting is disabled.\n");
 		return;
 	}
 
 	if (gi.argc() < 2) {
-		gi.cprintf(ent, PRINT_HIGH, "Use votekick <playername>.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "Use votekick <playername>.\n");
 		return;
 	}
 
 	target = LookupPlayer(ent, gi.args(), false, true);
 	if (!target) {
-		gi.cprintf(ent, PRINT_HIGH, "\nUse kicklist to see who can be kicked.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "\nUse kicklist to see who can be kicked.\n");
 		return;
 	}
 	if (target == ent)
-		gi.cprintf(ent, PRINT_HIGH, "You can't votekick yourself.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "You can't votekick yourself.\n");
 	else
 		_SetKickVote(ent, target);
 }
@@ -1120,22 +1009,22 @@ static void Votekicknum(edict_t *ent, const char *clientNUM)
 	edict_t *target;
 
 	if (!use_kickvote->value) {
-		gi.cprintf(ent, PRINT_HIGH, "Kick voting is disabled.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "Kick voting is disabled.\n");
 		return;
 	}
 
 	if (!*clientNUM) {
-		gi.cprintf (ent, PRINT_HIGH, "Use votekicknum <playernumber>.\n");
+		gi.LocClient_Print (ent, PRINT_HIGH, "Use votekicknum <playernumber>.\n");
 		return;
 	}
 
 	target = LookupPlayer(ent, clientNUM, true, false);
 	if (!target) {
-		gi.cprintf(ent, PRINT_HIGH, "\nUse kicklist to see who can be kicked.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "\nUse kicklist to see who can be kicked.\n");
 		return;
 	}
 	if (target == ent)
-		gi.cprintf(ent, PRINT_HIGH, "You can't votekick yourself.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "You can't votekick yourself.\n");
 	else
 		_SetKickVote(ent, target);
 
@@ -1158,7 +1047,7 @@ void Cmd_Kicklist_f(edict_t *ent)
   char buf[MAX_STRING_CHARS], tbuf[256];
 
   if (!use_kickvote->value) {
-	  gi.cprintf(ent, PRINT_HIGH, "Kick voting is disabled.\n");
+	  gi.LocClient_Print(ent, PRINT_HIGH, "Kick voting is disabled.\n");
 	  return;
   }
 
@@ -1177,10 +1066,10 @@ void Cmd_Kicklist_f(edict_t *ent)
 	   kickvote_pass->value, Mostkickpercent,
 	   Mostkickvotes == NULL ? "nobody" : Mostkickvotes->client->pers.netname,
 	   kickvote_tempban ? "will" : "won't");
-  // double percent sign! cprintf will process them as format strings.
+  // double percent sign! LocClient_Print will process them as format strings.
 
   Q_strncatz(buf, tbuf, sizeof(buf));
-  gi.cprintf(ent, PRINT_MEDIUM, "%s", buf);
+  gi.LocClient_Print(ent, PRINT_MEDIUM, "%s", buf);
 }
 
 //=== config voting ========================================================
@@ -1213,7 +1102,7 @@ bool _iCheckConfigVotes(void);
 static void Voteconfig(edict_t *ent, const char *config)
 {
 	if (!use_cvote->value) {
-		gi.cprintf(ent, PRINT_HIGH, "Config voting is disabled.\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "Config voting is disabled.\n");
 		return;
 	}
 
@@ -1222,28 +1111,28 @@ static void Voteconfig(edict_t *ent, const char *config)
 		return;
 	}
 
-	if (level.intermission_framenum) {
-		gi.cprintf (ent, PRINT_HIGH, "Configvote disabled during intermission\n");
+	if (level.intermissiontime) {
+		gi.LocClient_Print (ent, PRINT_HIGH, "Configvote disabled during intermission\n");
 		return;
 	}
 
 	if (level.realFramenum < 10 * HZ)
 	{
-		gi.cprintf (ent, PRINT_HIGH, "Configvote currently blocked - Please vote again in %d seconds\n",
+		gi.LocClient_Print (ent, PRINT_HIGH, "Configvote currently blocked - Please vote again in %d seconds\n",
 			(11 * HZ - level.realFramenum) / HZ );
 		return;
 	}
 
 	switch (AddVoteToConfig(config, ent)) {
 	case 0:
-		gi.cprintf(ent, PRINT_HIGH, "You have voted on config \"%s\"\n", config);
+		gi.LocClient_Print(ent, PRINT_HIGH, "You have voted on config \"%s\"\n", config);
 		break;
 	case 1:
-		gi.cprintf(ent, PRINT_HIGH, "You have changed your vote to config \"%s\"\n", config);
+		gi.LocClient_Print(ent, PRINT_HIGH, "You have changed your vote to config \"%s\"\n", config);
 		break;
 	default:
 		//error
-		gi.cprintf(ent, PRINT_HIGH, "Config \"%s\" is not in the votelist!\n", config);
+		gi.LocClient_Print(ent, PRINT_HIGH, "Config \"%s\" is not in the votelist!\n", config);
 		break;
 	}
 }
@@ -1263,7 +1152,7 @@ void Cmd_Configlist_f(edict_t *ent)
   char msg_buf[MAX_STRING_CHARS], tmp_buf[128];	//only 40 are used
 
   if (!use_cvote->value) {
-	  gi.cprintf(ent, PRINT_HIGH, "Config voting is disabled.\n");
+	  gi.LocClient_Print(ent, PRINT_HIGH, "Config voting is disabled.\n");
 	  return;
   }
 
@@ -1323,7 +1212,7 @@ void Cmd_Configlist_f(edict_t *ent)
 
 	Q_strncatz (msg_buf, tmp_buf, sizeof(msg_buf));
 
-	gi.centerprintf (ent, "%s", msg_buf);
+	gi.LocCenter_Print (ent, "%s", msg_buf);
 
 	return;
 }
@@ -1366,7 +1255,7 @@ void _ConfigExitLevel (char *NextMap)
 	if (_iCheckConfigVotes ())
 	{
 		voteconfig = ConfigWithMostVotes (NULL);
-		gi.bprintf (PRINT_HIGH, "A new config was voted on and is %s.\n",
+		gi.LocBroadcast_Print (PRINT_HIGH, "A new config was voted on and is %s.\n",
 			voteconfig->configname);
 		Com_sprintf (buf, sizeof (buf), "exec \"mode_%s.cfg\"\n",
 			voteconfig->configname);
@@ -1404,7 +1293,7 @@ bool _CheckConfigVotes (void)
 {
 	if (_iCheckConfigVotes () == true)
 	{
-		gi.bprintf (PRINT_HIGH, "More than %i%% config votes reached.\n",
+		gi.LocBroadcast_Print (PRINT_HIGH, "More than %i%% config votes reached.\n",
 			(int) cvote_pass->value);
 		return true;
 	}
@@ -1438,7 +1327,7 @@ void _ConfigWithMostVotes (void)
 	{
 		Com_sprintf(buf, sizeof(buf), "Most wanted config: %s", sbuf);
 		G_HighlightStr(buf, buf, sizeof(buf));
-		gi.bprintf(PRINT_HIGH, "%s\n", buf);
+		gi.LocBroadcast_Print(PRINT_HIGH, "%s\n", buf);
 	}
 }
 
@@ -1455,7 +1344,7 @@ cvar_t *_InitConfiglist (ini_t * ini)
 	config_need_to_check_votes = true;
 	ReadConfiglistFile ();
 
-	use_cvote = gi.cvar ("use_cvote", "0", 0);
+	use_cvote = gi.cvar ("use_cvote", "0", CVAR_NOFLAGS);
 
 	cvote_min = gi.cvar ("cvote_min",
 		ReadIniStr (ini, CONFIGVOTESECTION, "cvote_min", buf, "1"), CVAR_LATCH);
@@ -1623,7 +1512,7 @@ void ConfigVoteMenu (edict_t * ent, pmenu_t * p)
 	_ConfigMostVotesStr(sbuf);
 	Com_sprintf(buf, sizeof(buf), "most: %s", sbuf);
 	if (xMenu_New(ent, CONFIGMENUTITLE, buf, AddConfigToMenu) == false)
-		gi.cprintf(ent, PRINT_MEDIUM, "No config to vote for.\n");
+		gi.LocClient_Print(ent, PRINT_MEDIUM, "No config to vote for.\n");
 }
 
 void ReadConfiglistFile (void)
@@ -1634,7 +1523,7 @@ void ReadConfiglistFile (void)
 	char buf[MAX_STR_LEN];
 	cvar_t *configlistname;
 
-	configlistname = gi.cvar("configlistname", "configlist.ini", 0);
+	configlistname = gi.cvar("configlistname", "configlist.ini", CVAR_NOFLAGS);
 	if (configlistname->string && *(configlistname->string))
 		Com_sprintf(configlistpath, sizeof(configlistpath), "%s/%s", GAMEVERSION, configlistname->string);
 	else
@@ -1736,7 +1625,7 @@ void _AddOrDelIgnoreSubject (edict_t * source, edict_t * subject, bool silent)
 		return;
 	if (!subject->client || !subject->inuse)
 	{
-		gi.cprintf (source, PRINT_MEDIUM, "\nOnly valid clients may be added to ignore list!\n");
+		gi.LocClient_Print (source, PRINT_MEDIUM, "\nOnly valid clients may be added to ignore list!\n");
 		return;
 	}
 
@@ -1746,13 +1635,13 @@ void _AddOrDelIgnoreSubject (edict_t * source, edict_t * subject, bool silent)
 		//subject is in ignore list, so delete it
 		source->IGNORELIST[i] = NULL;
 		if (!silent)
-			gi.cprintf (source, PRINT_MEDIUM, "\n%s was removed from ignore list.\n",
+			gi.LocClient_Print (source, PRINT_MEDIUM, "\n%s was removed from ignore list.\n",
 				subject->client->pers.netname);
 
 		//Maybe this has to be taken out :)
 
 		if( ! silent && ! IsInIgnoreList( subject, source ) )
-			gi.cprintf (subject, PRINT_MEDIUM, "\n%s listens to your words.\n",
+			gi.LocClient_Print (subject, PRINT_MEDIUM, "\n%s listens to your words.\n",
 				source->client->pers.netname);
 
 		source->client->resp.ignore_time = level.realFramenum;
@@ -1765,20 +1654,20 @@ void _AddOrDelIgnoreSubject (edict_t * source, edict_t * subject, bool silent)
 		if (!i)
 		{
 			if (!silent)
-				gi.cprintf (source, PRINT_MEDIUM, "\nSorry, ignore list is full!\n");
+				gi.LocClient_Print (source, PRINT_MEDIUM, "\nSorry, ignore list is full!\n");
 		}
 		else
 		{
 			//we've found a place
 			source->IGNORELIST[i] = subject;
 			if (!silent)
-				gi.cprintf (source, PRINT_MEDIUM, "\n%s was added to ignore list.\n",
+				gi.LocClient_Print (source, PRINT_MEDIUM, "\n%s was added to ignore list.\n",
 					subject->client->pers.netname);
 
 			//Maybe this has to be taken out :)
 
 			if( ! silent && ! IsInIgnoreList( subject, source ) )
-				gi.cprintf (subject, PRINT_MEDIUM, "\n%s ignores you.\n",
+				gi.LocClient_Print (subject, PRINT_MEDIUM, "\n%s ignores you.\n",
 				source->client->pers.netname);
 		}
 	}
@@ -1809,18 +1698,18 @@ void Cmd_IgnorePart_f(edict_t *self)
 	char *name;
 
 	if (gi.argc() < 2) {
-		gi.cprintf(self, PRINT_MEDIUM, "Use ignorepart <part-of-playername>.\n");
+		gi.LocClient_Print(self, PRINT_MEDIUM, "Use ignorepart <part-of-playername>.\n");
 		return;
 	}
 	if (level.realFramenum < (self->client->resp.ignore_time + 10 * HZ)) {
-		gi.cprintf(self, PRINT_MEDIUM, "Wait 10 seconds before ignoring again.\n");
+		gi.LocClient_Print(self, PRINT_MEDIUM, "Wait 10 seconds before ignoring again.\n");
 		return;
 	}
 
 	name = gi.args();
 	for (i = 0, target = g_edicts + 1; i < game.maxclients; i++, target++)
 	{
-		if (!target->inuse || !target->client || target == self || target->client->pers.mvdspec)
+		if (!target->inuse || !target->client || target == self)
 			continue;
 
 		if (strstr(target->client->pers.netname, name)) {
@@ -1830,7 +1719,7 @@ void Cmd_IgnorePart_f(edict_t *self)
 	}
 
 	if (count == 0) {
-		gi.cprintf (self, PRINT_MEDIUM, "\nUse ignorelist to see who can be ignored.\n");
+		gi.LocClient_Print (self, PRINT_MEDIUM, "\nUse ignorelist to see who can be ignored.\n");
 	}
 }
 
@@ -1842,23 +1731,23 @@ void Cmd_Ignore_f(edict_t *self)
 	char *name;
 
 	if (gi.argc() < 2) {
-		gi.cprintf(self, PRINT_MEDIUM, "Use ignore <playername>.\n");
+		gi.LocClient_Print(self, PRINT_MEDIUM, "Use ignore <playername>.\n");
 		return;
 	}
 	
-	if (level.realFramenum < (self->client->resp.ignore_time + 5 * HZ)) {
-		gi.cprintf(self, PRINT_MEDIUM, "Wait 5 seconds before ignoring again.\n");
+	if (level.realFramenum < (self->client->resp.ignore_time + 5_sec)) {
+		gi.LocClient_Print(self, PRINT_MEDIUM, "Wait 5 seconds before ignoring again.\n");
 		return;
 	}
 
 	name = gi.args();
 	target = LookupPlayer(self, name, false, true);
 	if (!target) {
-		gi.cprintf(self, PRINT_MEDIUM, "\nUse ignorelist to see who can be ignored.\n");
+		gi.LocClient_Print(self, PRINT_MEDIUM, "\nUse ignorelist to see who can be ignored.\n");
 		return;
 	}
 	if (target == self)
-		gi.cprintf(self, PRINT_HIGH, "You can't ignore yourself.\n");
+		gi.LocClient_Print(self, PRINT_HIGH, "You can't ignore yourself.\n");
 	else
 		_AddOrDelIgnoreSubject(self, target, false);
 }
@@ -1869,22 +1758,22 @@ void IgnorePlayer(edict_t *self, char *clientNUM)
 	edict_t *target;
 
 	if (!*clientNUM) {
-		gi.cprintf (self, PRINT_MEDIUM, "Use ignorenum <playernumber>.\n");
+		gi.LocClient_Print (self, PRINT_MEDIUM, "Use ignorenum <playernumber>.\n");
 		return;
 	}
 
 	if (level.realFramenum < (self->client->resp.ignore_time + 5 * HZ)) {
-		gi.cprintf (self, PRINT_MEDIUM, "Wait 5 seconds before ignoring again.\n");
+		gi.LocClient_Print (self, PRINT_MEDIUM, "Wait 5 seconds before ignoring again.\n");
 		return;
 	}
 
 	target = LookupPlayer(self, clientNUM, true, false);
 	if (!target) {
-		gi.cprintf(self, PRINT_MEDIUM, "\nUse ignorelist to see who can be ignored.\n");
+		gi.LocClient_Print(self, PRINT_MEDIUM, "\nUse ignorelist to see who can be ignored.\n");
 		return;
 	}
 	if (target == self)
-		gi.cprintf(self, PRINT_HIGH, "You can't ignore yourself.\n");
+		gi.LocClient_Print(self, PRINT_HIGH, "You can't ignore yourself.\n");
 	else
 		_AddOrDelIgnoreSubject(self, target, false);
 }
@@ -1906,14 +1795,14 @@ void Cmd_Ignorelist_f(edict_t *self)
 	char buf[MAX_STRING_CHARS];
 	strcpy(buf, "Available players to ignore:\n\n");
 	_printplayerlist(self, buf, _ilMarkThis);
-	gi.cprintf(self, PRINT_MEDIUM, "%s", buf);
+	gi.LocClient_Print(self, PRINT_MEDIUM, "%s", buf);
 }
 
 //Clears ignore list - user interface :)
 void Cmd_Ignoreclear_f(edict_t *self)
 {
 	_ClearIgnoreList(self);
-	gi.cprintf(self, PRINT_MEDIUM, "Your ignorelist is now clear.\n");
+	gi.LocClient_Print(self, PRINT_MEDIUM, "Your ignorelist is now clear.\n");
 }
 
 void _IgnoreSelected (edict_t * ent, pmenu_t * p)
@@ -1970,7 +1859,7 @@ void _IgnoreVoteSelected (edict_t * ent, pmenu_t * p)
   if (xMenu_New
       (ent, IGNOREMENUTITLE, "de-/select a player to ignore",
        _AddIgnoreuserToMenu) == false)
-    gi.cprintf (ent, PRINT_MEDIUM, "No player to ignore.\n");
+    gi.LocClient_Print (ent, PRINT_MEDIUM, "No player to ignore.\n");
 }
 
 
@@ -1986,10 +1875,10 @@ cvar_t *scramblevote_pass;
 
 cvar_t *_InitScrambleVote (ini_t * ini)
 {
-	use_scramblevote = gi.cvar ("use_scramblevote", "0", 0);
-	scramblevote_min = gi.cvar ("scramblevote_min", "4", 0);
-	scramblevote_need = gi.cvar ("scramblevote_need", "0", 0);
-	scramblevote_pass = gi.cvar ("scramblevote_pass", "75", 0);
+	use_scramblevote = gi.cvar ("use_scramblevote", "0", CVAR_NOFLAGS);
+	scramblevote_min = gi.cvar ("scramblevote_min", "4", CVAR_NOFLAGS);
+	scramblevote_need = gi.cvar ("scramblevote_need", "0", CVAR_NOFLAGS);
+	scramblevote_pass = gi.cvar ("scramblevote_pass", "75", CVAR_NOFLAGS);
 
 	if(!teamplay->value)
 		return (teamplay);
@@ -2095,7 +1984,7 @@ void _CheckScrambleVote (void)
 	if (numvotes > 0) {
 		Com_sprintf(buf, sizeof(buf), "Scramble: %d votes (%.1f%%), need %.1f%%", numvotes, votes, scramblevote_pass->value);
 		G_HighlightStr(buf, buf, sizeof(buf));
-		gi.bprintf(PRINT_HIGH, "%s\n", buf);
+		gi.LocBroadcast_Print(PRINT_HIGH, "%s\n", buf);
 	}
 
 	if (playernum < scramblevote_min->value)
@@ -2123,10 +2012,10 @@ void Cmd_Votescramble_f(edict_t *ent)
 	ent->client->resp.scramblevote = !ent->client->resp.scramblevote;
 
 	if(ent->client->resp.scramblevote) {
-		gi.cprintf (ent, PRINT_HIGH, "You voted for team scramble.\n");
-		gi.bprintf (PRINT_HIGH, "%s voted for team scramble\n", ent->client->pers.netname);
+		gi.LocClient_Print (ent, PRINT_HIGH, "You voted for team scramble.\n");
+		gi.LocBroadcast_Print (PRINT_HIGH, "%s voted for team scramble\n", ent->client->pers.netname);
 	} else {
-		gi.cprintf (ent, PRINT_HIGH, "You took your scramble vote back.\n");
-		gi.bprintf (PRINT_HIGH, "%s changed his mind about team scramble\n", ent->client->pers.netname);
+		gi.LocClient_Print (ent, PRINT_HIGH, "You took your scramble vote back.\n");
+		gi.LocBroadcast_Print (PRINT_HIGH, "%s changed his mind about team scramble\n", ent->client->pers.netname);
 	}
 }

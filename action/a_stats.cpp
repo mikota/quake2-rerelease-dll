@@ -1,72 +1,3 @@
-//-----------------------------------------------------------------------------
-// Statistics Related Code
-//
-// $Id: tng_stats.c,v 1.33 2004/05/18 20:35:45 slicerdw Exp $
-//
-//-----------------------------------------------------------------------------
-// $Log: tng_stats.c,v $
-// Revision 1.33  2004/05/18 20:35:45  slicerdw
-// Fixed a bug on stats command
-//
-// Revision 1.32  2002/04/03 15:05:03  freud
-// My indenting broke something, rolled the source back.
-//
-// Revision 1.30  2002/04/01 16:08:59  freud
-// Fix in hits/shots counter for each weapon
-//
-// Revision 1.29  2002/04/01 15:30:38  freud
-// Small stat fix
-//
-// Revision 1.28  2002/04/01 15:16:06  freud
-// Stats code redone, tng_stats now much more smarter. Removed a few global
-// variables regarding stats code and added kevlar hits to stats.
-//
-// Revision 1.27  2002/03/28 12:10:12  freud
-// Removed unused variables (compiler warnings).
-// Added cvar mm_allowlock.
-//
-// Revision 1.26  2002/03/15 19:28:36  deathwatch
-// Updated with stats rifle name fix
-//
-// Revision 1.25  2002/02/26 23:09:20  freud
-// Stats <playerid> not working, fixed.
-//
-// Revision 1.24  2002/02/21 23:38:39  freud
-// Fix to a BAD stats bug. CRASH
-//
-// Revision 1.23  2002/02/18 23:47:33  freud
-// Fixed FPM if time was 0
-//
-// Revision 1.22  2002/02/18 19:31:40  freud
-// FPM fix.
-//
-// Revision 1.21  2002/02/18 17:21:14  freud
-// Changed Knife in stats to Slashing Knife
-//
-// Revision 1.20  2002/02/17 21:48:56  freud
-// Changed/Fixed allignment of Scoreboard
-//
-// Revision 1.19  2002/02/05 09:27:17  freud
-// Weapon name changes and better alignment in "stats list"
-//
-// Revision 1.18  2002/02/03 01:07:28  freud
-// more fixes with stats
-//
-// Revision 1.14  2002/01/24 11:29:34  ra
-// Cleanup's in stats code
-//
-// Revision 1.13  2002/01/24 02:24:56  deathwatch
-// Major update to Stats code (thanks to Freud)
-// new cvars:
-// stats_afterround - will display the stats after a round ends or map ends
-// stats_endmap - if on (1) will display the stats scoreboard when the map ends
-//
-// Revision 1.12  2001/12/31 13:29:06  deathwatch
-// Added revision header
-//
-//
-//-----------------------------------------------------------------------------
-
 #include "g_local.h"
 #include <time.h>
 
@@ -155,14 +86,14 @@ void Cmd_Stats_f (edict_t *targetent, char *arg)
 
 	if (arg[0] != '\0') {
 		if (strcmp (arg, "list") == 0) {
-			gi.cprintf (targetent, PRINT_HIGH, "\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n");
-			gi.cprintf (targetent, PRINT_HIGH, "PlayerID  Name                  Accuracy\n");
+			gi.LocClient_Print (targetent, PRINT_HIGH, "\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n");
+			gi.LocClient_Print (targetent, PRINT_HIGH, "PlayerID  Name                  Accuracy\n");
 
 			for (i = 0; i < game.maxclients; i++)
 			{
 				cl_ent = &g_edicts[1 + i];
 
-				if (!cl_ent->inuse || cl_ent->client->pers.mvdspec)
+				if (!cl_ent->inuse)
 					continue;
 
 				hits = total = 0;
@@ -177,9 +108,9 @@ void Cmd_Stats_f (edict_t *targetent, char *arg)
 				else
 					perc_hit = 0.0;
 
-				gi.cprintf (targetent, PRINT_HIGH, "   %-3i    %-16s        %6.2f\n", i, cl_ent->client->pers.netname, perc_hit);
+				gi.LocClient_Print (targetent, PRINT_HIGH, "   %-3i    %-16s        %6.2f\n", i, cl_ent->client->pers.netname, perc_hit);
 			}
-			gi.cprintf (targetent, PRINT_HIGH, "\n  Use \"stats <PlayerID>\" for\n  individual stats\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n");
+			gi.LocClient_Print (targetent, PRINT_HIGH, "\n  Use \"stats <PlayerID>\" for\n  individual stats\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n");
 			return;
 		}
 
@@ -207,15 +138,15 @@ void Cmd_Stats_f (edict_t *targetent, char *arg)
 	stathead[i] = 0;
 	strcat(stathead, "\x9F\n");
 
-	gi.cprintf (targetent, PRINT_HIGH, "%s", stathead);
+	gi.LocClient_Print (targetent, PRINT_HIGH, "%s", stathead);
 
 	if (!total) {
-		gi.cprintf (targetent, PRINT_HIGH, "\n  Player has not fired a shot.\n");
-		gi.cprintf (targetent, PRINT_HIGH, "\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n\n");
+		gi.LocClient_Print (targetent, PRINT_HIGH, "\n  Player has not fired a shot.\n");
+		gi.LocClient_Print (targetent, PRINT_HIGH, "\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n\n");
 		return;
 	}
 
-	gi.cprintf (targetent, PRINT_HIGH, "Weapon            Accuracy Hits/Shots Kills Headshots\n");		
+	gi.LocClient_Print (targetent, PRINT_HIGH, "Weapon            Accuracy Hits/Shots Kills Headshots\n");		
 
 	gun = ent->client->resp.gunstats;
 	for (y = 0; y < MAX_GUNSTAT; y++, gun++) {
@@ -257,15 +188,15 @@ void Cmd_Stats_f (edict_t *targetent, char *arg)
 		}
 
 		perc_hit = (double)gun->hits * 100.0 / (double)gun->shots; // Percentage of shots that hit
-		gi.cprintf( targetent, PRINT_HIGH, "%-17s  %6.2f  %4i/%-4i  %3i   %5i\n",
+		gi.LocClient_Print( targetent, PRINT_HIGH, "%-17s  %6.2f  %4i/%-4i  %3i   %5i\n",
 			string, perc_hit, gun->hits, gun->shots, gun->kills, gun->headshots );
 	}
 
-	gi.cprintf (targetent, PRINT_HIGH, "\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n");
+	gi.LocClient_Print (targetent, PRINT_HIGH, "\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n");
 
 
 	// Final Part
-	gi.cprintf (targetent, PRINT_HIGH, "Location                          Hits     (%%)\n");		
+	gi.LocClient_Print (targetent, PRINT_HIGH, "Location                          Hits     (%%)\n");		
 
 	for (y = 0; y < LOC_MAX; y++) {
 		locHits = ent->client->resp.hitsLocations[y];
@@ -301,18 +232,18 @@ void Cmd_Stats_f (edict_t *targetent, char *arg)
 		}
 
 		perc_hit = (double)locHits * 100.0 / (double)hits;
-		gi.cprintf( targetent, PRINT_HIGH, "%-27s %10i  (%6.2f)\n", string, locHits, perc_hit );
+		gi.LocClient_Print( targetent, PRINT_HIGH, "%-27s %10i  (%6.2f)\n", string, locHits, perc_hit );
 	}
-	gi.cprintf (targetent, PRINT_HIGH, "\n");
+	gi.LocClient_Print (targetent, PRINT_HIGH, "\n");
 
 	if (total > 0)
 		perc_hit = (double)hits * 100.0 / (double)total;
 	else
 		perc_hit = 0.0;
 
-	gi.cprintf (targetent, PRINT_HIGH, "Average Accuracy:                         %.2f\n", perc_hit); // Average
-	gi.cprintf (targetent, PRINT_HIGH, "\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n\n");
-	gi.cprintf(targetent, PRINT_HIGH, "Highest streaks:  kills: %d headshots: %d\n", ent->client->resp.streakKillsHighest, ent->client->resp.streakHSHighest);
+	gi.LocClient_Print (targetent, PRINT_HIGH, "Average Accuracy:                         %.2f\n", perc_hit); // Average
+	gi.LocClient_Print (targetent, PRINT_HIGH, "\n\x9D\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9E\x9F\n\n");
+	gi.LocClient_Print(targetent, PRINT_HIGH, "Highest streaks:  kills: %d headshots: %d\n", ent->client->resp.streakKillsHighest, ent->client->resp.streakHSHighest);
 }
 
 void A_ScoreboardEndLevel (edict_t * ent, edict_t * killer)
@@ -427,7 +358,8 @@ void A_ScoreboardEndLevel (edict_t * ent, edict_t * killer)
 		else
 			accuracy = 0;
 
-		secs = (level.framenum - cl->resp.enterframe) / HZ;
+		// TODO: Needs reviewed/verified
+		secs = (level.time - cl->resp.entertime).minutes() / 60;
 		if (secs > 0)
 			fpm = (double)cl->resp.score * 60.0 / (double)secs;
 		else
