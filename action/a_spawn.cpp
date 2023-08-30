@@ -1,523 +1,101 @@
 #include "g_local.h"
 
-typedef struct
-{
-  const char *name;
-  void (*spawn) (edict_t * ent);
-}
-spawn_t;
+// void SP_item_health (edict_t * self);
+// void SP_item_health_small (edict_t * self);
+// void SP_item_health_large (edict_t * self);
+// void SP_item_health_mega (edict_t * self);
 
+// void SP_info_player_start (edict_t * ent);
+// void SP_info_player_deathmatch (edict_t * ent);
+// void SP_info_player_intermission (edict_t * ent);
 
-void SP_item_health (edict_t * self);
-void SP_item_health_small (edict_t * self);
-void SP_item_health_large (edict_t * self);
-void SP_item_health_mega (edict_t * self);
+// void SP_func_plat (edict_t * ent);
+// void SP_func_rotating (edict_t * ent);
+// void SP_func_button (edict_t * ent);
+// void SP_func_door (edict_t * ent);
+// void SP_func_door_secret (edict_t * ent);
+// void SP_func_door_rotating (edict_t * ent);
+// void SP_func_water (edict_t * ent);
+// void SP_func_train (edict_t * ent);
+// void SP_func_conveyor (edict_t * self);
+// void SP_func_wall (edict_t * self);
+// void SP_func_object (edict_t * self);
+// void SP_func_explosive (edict_t * self);
+// void SP_func_timer (edict_t * self);
+// void SP_func_areaportal (edict_t * ent);
+// void SP_func_clock (edict_t * ent);
+// void SP_func_killbox (edict_t * ent);
 
-void SP_info_player_start (edict_t * ent);
-void SP_info_player_deathmatch (edict_t * ent);
-void SP_info_player_intermission (edict_t * ent);
+// void SP_trigger_always (edict_t * ent);
+// void SP_trigger_once (edict_t * ent);
+// void SP_trigger_multiple (edict_t * ent);
+// void SP_trigger_relay (edict_t * ent);
+// void SP_trigger_push (edict_t * ent);
+// void SP_trigger_hurt (edict_t * ent);
+// void SP_trigger_key (edict_t * ent);
+// void SP_trigger_counter (edict_t * ent);
+// void SP_trigger_elevator (edict_t * ent);
+// void SP_trigger_gravity (edict_t * ent);
+// void SP_trigger_monsterjump (edict_t * ent);
 
-void SP_func_plat (edict_t * ent);
-void SP_func_rotating (edict_t * ent);
-void SP_func_button (edict_t * ent);
-void SP_func_door (edict_t * ent);
-void SP_func_door_secret (edict_t * ent);
-void SP_func_door_rotating (edict_t * ent);
-void SP_func_water (edict_t * ent);
-void SP_func_train (edict_t * ent);
-void SP_func_conveyor (edict_t * self);
-void SP_func_wall (edict_t * self);
-void SP_func_object (edict_t * self);
-void SP_func_explosive (edict_t * self);
-void SP_func_timer (edict_t * self);
-void SP_func_areaportal (edict_t * ent);
-void SP_func_clock (edict_t * ent);
-void SP_func_killbox (edict_t * ent);
+// void SP_target_temp_entity (edict_t * ent);
+// void SP_target_speaker (edict_t * ent);
+// void SP_target_explosion (edict_t * ent);
+// void SP_target_changelevel (edict_t * ent);
+// void SP_target_secret (edict_t * ent);
+// void SP_target_goal (edict_t * ent);
+// void SP_target_splash (edict_t * ent);
+// void SP_target_spawner (edict_t * ent);
+// void SP_target_blaster (edict_t * ent);
+// void SP_target_crosslevel_trigger (edict_t * ent);
+// void SP_target_crosslevel_target (edict_t * ent);
+// void SP_target_laser (edict_t * self);
+// void SP_target_help (edict_t * ent);
+// void SP_target_lightramp (edict_t * self);
+// void SP_target_earthquake (edict_t * ent);
+// void SP_target_character (edict_t * ent);
+// void SP_target_string (edict_t * ent);
 
-void SP_trigger_always (edict_t * ent);
-void SP_trigger_once (edict_t * ent);
-void SP_trigger_multiple (edict_t * ent);
-void SP_trigger_relay (edict_t * ent);
-void SP_trigger_push (edict_t * ent);
-void SP_trigger_hurt (edict_t * ent);
-void SP_trigger_key (edict_t * ent);
-void SP_trigger_counter (edict_t * ent);
-void SP_trigger_elevator (edict_t * ent);
-void SP_trigger_gravity (edict_t * ent);
-void SP_trigger_monsterjump (edict_t * ent);
+// void SP_worldspawn (edict_t * ent);
+// void SP_viewthing (edict_t * ent);
 
-void SP_target_temp_entity (edict_t * ent);
-void SP_target_speaker (edict_t * ent);
-void SP_target_explosion (edict_t * ent);
-void SP_target_changelevel (edict_t * ent);
-void SP_target_secret (edict_t * ent);
-void SP_target_goal (edict_t * ent);
-void SP_target_splash (edict_t * ent);
-void SP_target_spawner (edict_t * ent);
-void SP_target_blaster (edict_t * ent);
-void SP_target_crosslevel_trigger (edict_t * ent);
-void SP_target_crosslevel_target (edict_t * ent);
-void SP_target_laser (edict_t * self);
-void SP_target_help (edict_t * ent);
-void SP_target_lightramp (edict_t * self);
-void SP_target_earthquake (edict_t * ent);
-void SP_target_character (edict_t * ent);
-void SP_target_string (edict_t * ent);
+// void SP_light (edict_t * self);
+// void SP_light_mine1 (edict_t * ent);
+// void SP_light_mine2 (edict_t * ent);
+// void SP_info_null (edict_t * self);
+// void SP_info_notnull (edict_t * self);
+// void SP_path_corner (edict_t * self);
+// void SP_point_combat (edict_t * self);
 
-void SP_worldspawn (edict_t * ent);
-void SP_viewthing (edict_t * ent);
-
-void SP_light (edict_t * self);
-void SP_light_mine1 (edict_t * ent);
-void SP_light_mine2 (edict_t * ent);
-void SP_info_null (edict_t * self);
-void SP_info_notnull (edict_t * self);
-void SP_path_corner (edict_t * self);
-void SP_point_combat (edict_t * self);
-
-void SP_misc_explobox (edict_t * self);
-void SP_misc_banner (edict_t * self);
-void SP_misc_satellite_dish (edict_t * self);
-void SP_misc_deadsoldier (edict_t * self);
-void SP_misc_viper (edict_t * self);
-void SP_misc_viper_bomb (edict_t * self);
-void SP_misc_bigviper (edict_t * self);
-void SP_misc_strogg_ship (edict_t * self);
-void SP_misc_teleporter (edict_t * self);
-void SP_misc_teleporter_dest (edict_t * self);
-void SP_misc_blackhole (edict_t * self);
+// void SP_misc_explobox (edict_t * self);
+// void SP_misc_banner (edict_t * self);
+// void SP_misc_satellite_dish (edict_t * self);
+// void SP_misc_deadsoldier (edict_t * self);
+// void SP_misc_viper (edict_t * self);
+// void SP_misc_viper_bomb (edict_t * self);
+// void SP_misc_bigviper (edict_t * self);
+// void SP_misc_strogg_ship (edict_t * self);
+// void SP_misc_teleporter (edict_t * self);
+// void SP_misc_teleporter_dest (edict_t * self);
+// void SP_misc_blackhole (edict_t * self);
 
 
 //zucc - item replacement function
-void CheckItem (edict_t * ent);
 int LoadFlagsFromFile (const char *mapname);
 void SVCmd_CheckSB_f(void); //rekkie -- silence ban
 extern void UnBan_TeamKillers(void);
 
-//AQ2:TNG - Slicer New location code
-int ml_count = 0;
-char ml_creator[101];
-//AQ2:TNG END
-placedata_t locationbase[MAX_LOCATIONS_IN_BASE];
-
-//AQ2:M
-static const spawn_t spawns[] = {
-  {"item_health", SP_item_health},
-  {"item_health_small", SP_item_health_small},
-  {"item_health_large", SP_item_health_large},
-  {"item_health_mega", SP_item_health_mega},
-  {"info_player_start", SP_info_player_start},
-  {"info_player_deathmatch", SP_info_player_deathmatch},
-  {"info_player_intermission", SP_info_player_intermission},
-  {"info_player_team1", SP_info_player_team1},
-  {"info_player_team2", SP_info_player_team2},
-  {"func_plat", SP_func_plat},
-  {"func_button", SP_func_button},
-  {"func_door", SP_func_door},
-  {"func_door_secret", SP_func_door_secret},
-  {"func_door_rotating", SP_func_door_rotating},
-  {"func_rotating", SP_func_rotating},
-  {"func_train", SP_func_train},
-  {"func_water", SP_func_water},
-  {"func_conveyor", SP_func_conveyor},
-  {"func_areaportal", SP_func_areaportal},
-  {"func_clock", SP_func_clock},
-  {"func_wall", SP_func_wall},
-  {"func_object", SP_func_object},
-  {"func_timer", SP_func_timer},
-  {"func_explosive", SP_func_explosive},
-  {"func_killbox", SP_func_killbox},
-  {"trigger_always", SP_trigger_always},
-  {"trigger_once", SP_trigger_once},
-  {"trigger_multiple", SP_trigger_multiple},
-  {"trigger_relay", SP_trigger_relay},
-  {"trigger_push", SP_trigger_push},
-  {"trigger_hurt", SP_trigger_hurt},
-  {"trigger_key", SP_trigger_key},
-  {"trigger_counter", SP_trigger_counter},
-  {"trigger_elevator", SP_trigger_elevator},
-  {"trigger_gravity", SP_trigger_gravity},
-  {"trigger_monsterjump", SP_trigger_monsterjump},
-  {"target_temp_entity", SP_target_temp_entity},
-  {"target_speaker", SP_target_speaker},
-  {"target_explosion", SP_target_explosion},
-  {"target_changelevel", SP_target_changelevel},
-  {"target_splash", SP_target_splash},
-  {"target_spawner", SP_target_spawner},
-  {"target_blaster", SP_target_blaster},
-  {"target_crosslevel_trigger", SP_target_crosslevel_trigger},
-  {"target_crosslevel_target", SP_target_crosslevel_target},
-  {"target_laser", SP_target_laser},
-  {"target_earthquake", SP_target_earthquake},
-  {"target_character", SP_target_character},
-  {"target_string", SP_target_string},
-  {"worldspawn", SP_worldspawn},
-  {"viewthing", SP_viewthing},
-  {"light_mine1", SP_light_mine1},
-  {"light_mine2", SP_light_mine2},
-  {"info_null", SP_info_null},
-  {"func_group", SP_info_null},
-  {"info_notnull", SP_info_notnull},
-  {"path_corner", SP_path_corner},
-  {"misc_banner", SP_misc_banner},
-  {"misc_ctf_banner", SP_misc_ctf_banner},
-  {"misc_ctf_small_banner", SP_misc_ctf_small_banner},
-  {"misc_satellite_dish", SP_misc_satellite_dish},
-  {"misc_viper", SP_misc_viper},
-  {"misc_viper_bomb", SP_misc_viper_bomb},
-  {"misc_bigviper", SP_misc_bigviper},
-  {"misc_strogg_ship", SP_misc_strogg_ship},
-  {"misc_teleporter", SP_misc_teleporter},
-  {"misc_teleporter_dest", SP_misc_teleporter_dest},
-  {"trigger_teleport", SP_trigger_teleport},
-  {"info_teleport_destination", SP_info_teleport_destination},
-  {"misc_blackhole", SP_misc_blackhole},
-
-  {NULL, NULL}
-};
-
-/*
-===============
-ED_CallSpawn
-
-Finds the spawn function for the entity and calls it
-===============
-*/
-void ED_CallSpawn (edict_t * ent)
-{
-	const spawn_t *s;
-	gitem_t *item;
-	int i;
-
-	if (!ent->classname) {
-		gi.Com_PrintFmt("ED_CallSpawn: NULL classname\n");
-		return;
-	}
-
-	// zucc - BD's item replacement idea
-	CheckItem(ent);
-
-	// check item spawn functions
-	for (i = 0, item = itemlist; i < game.num_items; i++, item++)
-	{
-		if (!item->classname)
-			continue;
-		if (!strcmp(item->classname, ent->classname))
-		{	// found it
-
-			//FIXME: We do same checks in SpawnItem, do we need these here? -M
-			if ((gameSettings & GS_TEAMPLAY) && g_spawn_items->value && !matchmode->value) // Force spawn ammo/items/weapons for teamplay, non-matchmode
-			{
-				SpawnItem(ent, item);
-			}
-			else if (gameSettings & GS_DEATHMATCH)
-			{
-				if ((gameSettings & GS_WEAPONCHOOSE) && g_spawn_items->value) // Force spawn ammo/items/weapons for DM modes
-					SpawnItem(ent, item);
-				else if (gameSettings & GS_WEAPONCHOOSE) // Traditional teamplay / dm_choose 1 mode
-					G_FreeEdict( ent );
-				else if (item->flags & (IT_AMMO|IT_WEAPON))
-					SpawnItem(ent, item);
-				else if ((item->flags & IT_ITEM) && item_respawnmode->value)
-					SpawnItem( ent, item );
-				else
-					G_FreeEdict(ent);
-			}
-			else if (ctf->value)
-			{
-				if(item->flags & IT_FLAG)
-					SpawnItem(ent, item);
-				else if(ctf->value == 2 && (item->flags & (IT_AMMO|IT_WEAPON|IT_ITEM|IT_POWERUP)))
-					SpawnItem(ent, item);
-				else
-					G_FreeEdict(ent);
-			}
-			else
-			{
-				G_FreeEdict(ent);
-			}
-
-			return;
-		}
-	}
-
-	// check normal spawn functions
-	for (s = spawns; s->name; s++)
-	{
-		if (!strcmp (s->name, ent->classname))
-		{			// found it
-			s->spawn (ent);
-			return;
-		}
-	}
-
-	/*if(strcmp (ent->classname, "freed") != 0) {
-		gi.Com_PrintFmt ("%s doesn't have a spawn function\n", ent->classname);
-	}*/
-
-	G_FreeEdict( ent );
-}
-
-// zucc BD's checkitem function
-//An 2D array of items to look for and replace with...
-//item[i][0] = the Q2 item to look for
-//item[i][1] = the NS2 item to actually spawn
-
-#define ITEM_SWITCH_COUNT 15
-
-static char *sp_item[ITEM_SWITCH_COUNT][2] = {
-  {"weapon_machinegun", "weapon_MP5"},
-  //{"weapon_supershotgun","weapon_HC"},
-  {"weapon_bfg", "weapon_M4"},
-  {"weapon_shotgun", "weapon_M3"},
-  //{"weapon_grenadelauncher","weapon_M203"},
-  {"weapon_chaingun", "weapon_Sniper"},
-  {"weapon_rocketlauncher", "weapon_HC"},
-  {"weapon_railgun", "weapon_Dual"},
-  {"ammo_bullets", "ammo_clip"},
-  {"ammo_rockets", "ammo_mag"},
-  {"ammo_cells", "ammo_m4"},
-  {"ammo_slugs", "ammo_sniper"},
-  {"ammo_shells", "ammo_m3"},
-  {"ammo_grenades", "weapon_Grenade"}
-  ,
-  {"ammo_box", "ammo_m3"},
-  {"weapon_cannon", "weapon_HC"},
-  {"weapon_sniper", "weapon_Sniper"}
-
-};
-
-void CheckItem (edict_t * ent)
-{
-	int i;
-
-	for (i = 0; i < ITEM_SWITCH_COUNT; i++)
-	{
-		//If it's a null entry, bypass it
-		if (!sp_item[i][0])
-			continue;
-		//Do the passed ent and our list match?
-		if (strcmp (ent->classname, sp_item[i][0]) == 0)
-		{
-			//Yep. Replace the Q2 entity with our own.
-			ent->classname = sp_item[i][1];
-			return;
-		}
-	}
-}
-
-
-/*
-=============
-ED_NewString
-=============
-*/
-char *ED_NewString (char *string)
-{
-	char *newb, *new_p;
-	int i, l;
-
-	l = strlen (string) + 1;
-
-	newb = gi.TagMalloc (l, TAG_LEVEL);
-
-	new_p = newb;
-
-	for (i = 0; i < l; i++)
-	{
-		if (string[i] == '\\' && i < l - 1)
-		{
-			i++;
-			if (string[i] == 'n')
-				*new_p++ = '\n';
-			else
-				*new_p++ = '\\';
-		}
-		else
-			*new_p++ = string[i];
-	}
-
-	return newb;
-}
-
-
-
-
-/*
-===============
-ED_ParseField
-
-Takes a key/value pair and sets the binary values
-in an edict
-===============
-*/
-void ED_ParseField (char *key, char *value, edict_t * ent)
-{
-	field_t *f;
-	byte *b;
-	float v;
-	vec3_t vec;
-
-	for (f = fields; f->name; f++)
-	{
-		// FFL_NOSPAWN check in the following added in 3.20.  Adding here.  -FB
-		if (!(f->flags & FFL_NOSPAWN) && !Q_stricmp (f->name, key))
-		{			// found it
-			if (f->flags & FFL_SPAWNTEMP)
-				b = (byte *)&st;
-			else
-				b = (byte *)ent;
-
-			switch (f->type)
-			{
-			case F_LSTRING:
-				*(char **) (b + f->ofs) = ED_NewString (value);
-				break;
-			case F_VECTOR:
-                if (sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]) != 3) {
-                    gi.Com_PrintFmt("ED_ParseField: couldn't parse '%s'\n", key);
-                    VectorClear(vec);
-                }
-				((float *) (b + f->ofs))[0] = vec[0];
-				((float *) (b + f->ofs))[1] = vec[1];
-				((float *) (b + f->ofs))[2] = vec[2];
-			break;
-			case F_INT:
-				*(int *) (b + f->ofs) = atoi (value);
-				break;
-			case F_FLOAT:
-				*(float *) (b + f->ofs) = atof (value);
-				break;
-			case F_ANGLEHACK:
-				v = atof (value);
-				((float *) (b + f->ofs))[0] = 0;
-				((float *) (b + f->ofs))[1] = v;
-				((float *) (b + f->ofs))[2] = 0;
-				break;
-			case F_IGNORE:
-				break;
-			default:
-				break;
-			}
-			return;
-		}
-	}
-	gi.Com_PrintFmt("ED_ParseField: %s is not a field\n", key);
-}
-
-/*
-====================
-ED_ParseEdict
-
-Parses an edict out of the given string, returning the new position
-ed should be a properly initialized empty edict.
-====================
-*/
-char *
-ED_ParseEdict (char *data, edict_t * ent)
-{
-  bool init;
-  char keyname[256];
-  char *com_token;
-
-  init = false;
-  memset (&st, 0, sizeof (st));
-
-// go through all the dictionary pairs
-  while (1)
-    {
-      // parse key
-      com_token = COM_Parse (&data);
-      if (com_token[0] == '}')
-	break;
-      if (!data)
-	gi.error ("ED_ParseEntity: EOF without closing brace");
-
-      Q_strncpyz(keyname, com_token, sizeof(keyname));
-
-      // parse value  
-      com_token = COM_Parse (&data);
-      if (!data)
-	gi.error ("ED_ParseEntity: EOF without closing brace");
-
-      if (com_token[0] == '}')
-	gi.error ("ED_ParseEntity: closing brace without data");
-
-      init = true;
-
-      // keynames with a leading underscore are used for utility comments,
-      // and are immediately discarded by quake
-      if (keyname[0] == '_')
-	continue;
-
-      ED_ParseField (keyname, com_token, ent);
-    }
-
-  if (!init)
-    memset (ent, 0, sizeof (*ent));
-
-  return data;
-}
-
-
-/*
-================
-G_FindTeams
-
-Chain together all entities with a matching team field.
-
-All but the first will have the FL_TEAMSLAVE flag set.
-All but the last will have the teamchain field set to the next one
-================
-*/
-void G_FindTeams (void)
-{
-	edict_t *e, *e2, *chain;
-	int i, j;
-	int c, c2;
-
-	c = 0;
-	c2 = 0;
-	for (i = 1, e = g_edicts + i; i < globals.num_edicts; i++, e++)
-	{
-		if (!e->inuse || !e->team)
-			continue;
-		if (e->flags & FL_TEAMSLAVE)
-			continue;
-		chain = e;
-		e->teammaster = e;
-		c++;
-		c2++;
-		for (j = i + 1, e2 = e + 1; j < globals.num_edicts; j++, e2++)
-		{
-			if (!e2->inuse || !e2->team)
-				continue;
-			if (e2->flags & FL_TEAMSLAVE)
-				continue;
-			if (!strcmp (e->team, e2->team))
-			{
-				c2++;
-				chain->teamchain = e2;
-				e2->teammaster = e;
-				chain = e2;
-				e2->flags |= FL_TEAMSLAVE;
-			}
-		}
-	}
-
-	gi.Com_PrintFmt ("%i teams with %i entities\n", c, c2);
-}
 
 //Precaches and enables download options for user sounds. All sounds
 //have to be listed within "sndlist.ini". called from g_spawn.c -> SP_worldspawn
 static void PrecacheUserSounds(void)
 {
 	int count = 0;
-	size_t lenght;
+	size_t length;
 	FILE *soundlist;
 	char buf[1024], fullpath[MAX_QPATH];
 
-	soundlist = fopen(GAMEVERSION "/sndlist.ini", "r");
+	soundlist = fopen(fmt::format("{}{}/sndlist.ini", GAMEVERSION, "/"), "r");
 	if (!soundlist) { // no "sndlist.ini" file...
 		gi.Com_PrintFmt("Cannot load %s, sound download is disabled.\n", GAMEVERSION "/sndlist.ini");
 		return;
@@ -526,13 +104,13 @@ static void PrecacheUserSounds(void)
 	// read the sndlist.ini file
 	while (fgets(buf, sizeof(buf), soundlist) != NULL)
 	{
-		lenght = strlen(buf);
+		length = strlen(buf);
 		//first remove trailing spaces
-		while (lenght > 0 && buf[lenght - 1] <= ' ')
-			buf[--lenght] = '\0';
+		while (length > 0 && buf[length - 1] <= ' ')
+			buf[--length] = '\0';
 
 		//Comments are marked with # or // at line start
-		if (lenght < 5 || buf[0] == '#' || !strncmp(buf, "//", 2))
+		if (length < 5 || buf[0] == '#' || !strncmp(buf, "//", 2))
 			continue;
 
 		Q_strncpyz(fullpath, PG_SNDPATH, sizeof(fullpath));
@@ -675,8 +253,6 @@ int Gamemode(void) // These are distinct game modes; you cannot have a teamdm to
 		gamemode = GM_TOURNEY;
 	} else if (teamplay->value) {
 		gamemode = GM_TEAMPLAY;
-	} else if (dom->value) {
-		gamemode = GM_DOMINATION;
 	} else if (deathmatch->value) {
 		gamemode = GM_DEATHMATCH;
 	}

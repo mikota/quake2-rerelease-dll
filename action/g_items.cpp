@@ -1261,7 +1261,7 @@ void P_ToggleFlashlight(edict_t *ent, bool state)
 	gi.sound(ent, CHAN_AUTO, gi.soundindex(ent->flags & FL_FLASHLIGHT ? "items/flashlight_on.wav" : "items/flashlight_off.wav"), 1.f, ATTN_STATIC, 0);
 }
 
-static void Use_Flashlight(edict_t *ent, gitem_t *inv)
+void Use_Flashlight(edict_t *ent, gitem_t *inv)
 {
 	P_ToggleFlashlight(ent, !(ent->flags & FL_FLASHLIGHT));
 }

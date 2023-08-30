@@ -8,6 +8,7 @@
 
 // Action
 #include "aq_shared.h"
+#include "a_esp.h"
 #include "a_team.h"
 #include "a_game.h"
 #include "a_menu.h"
@@ -1914,6 +1915,33 @@ constexpr spawnflags_t SPAWNFLAG_ITEM_TARGETS_USED = 0x00040000_spawnflag;
 extern gitem_t itemlist[IT_TOTAL];
 
 //
+// a_cmds.c
+//
+//zucc
+void LaserSightThink (edict_t * self);
+void SP_LaserSight (edict_t * self, gitem_t * item);
+void Cmd_Reload_f (edict_t * ent);
+void Cmd_New_Reload_f (edict_t * ent);
+void Cmd_New_Weapon_f (edict_t * ent);
+void Cmd_Weapon_f (edict_t * ent);
+void Cmd_OpenDoor_f (edict_t * ent);
+void Cmd_Bandage_f (edict_t * ent);
+void Cmd_ID_f (edict_t * ent);
+void Cmd_IR_f (edict_t * ent);
+int GetWeaponNumFromArg(const char *s);
+int GetItemNumFromArg(const char *s);
+void Cmd_Choose_f (edict_t * ent);
+void Cmd_TKOk (edict_t * ent);	// AQ:TNG - JBravo adding tkok
+void Cmd_FF_f( edict_t *ent );
+void Cmd_Time (edict_t * ent);	// AQ:TNG - JBravo adding time
+void Cmd_Roundtimeleft_f(edict_t *ent); // AQ:TNG - DW added roundtimeleft
+void Cmd_Noclip_f(edict_t *ent);
+void DropSpecialWeapon (edict_t * ent);
+void ReadySpecialWeapon (edict_t * ent);
+void DropSpecialItem (edict_t * ent);
+void Bandage (edict_t * ent);
+
+//
 // g_cmds.c
 //
 bool CheckFlood(edict_t *ent);
@@ -2997,6 +3025,7 @@ void SpawnItem(edict_t* ent, gitem_t* item);
 void Think_Weapon(edict_t* ent);
 bool Add_Ammo(edict_t* ent, gitem_t* item, int count);
 void Touch_Item(edict_t* ent, edict_t* other, cplane_t* plane, csurface_t* surf);
+void Use_Flashlight(edict_t *ent, gitem_t *inv);
 
 //
 // g_utils.c
@@ -3752,7 +3781,7 @@ struct gclient_t
 	int32_t			drop_knife;
 	int32_t			knife_sound;		// we attack several times when slashing but only want 1 sound
 
-	int32_t			punch_framenum;
+	int64_t			punch_framenum;
 	bool		punch_desired;	//controlled in ClientThink
 
 	int32_t			reload_attempts;

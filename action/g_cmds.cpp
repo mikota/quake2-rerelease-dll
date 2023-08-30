@@ -184,8 +184,6 @@ void Cmd_Give_f(edict_t *ent)
 
 	if (give_all || Q_strcasecmp(name, "ammo") == 0)
 	{
-		if (give_all)
-			SpawnAndGiveItem(ent, IT_ITEM_PACK);
 
 		for (i = 0; i < IT_TOTAL; i++)
 		{
@@ -196,24 +194,6 @@ void Cmd_Give_f(edict_t *ent)
 				continue;
 			Add_Ammo(ent, it, 1000);
 		}
-		if (!give_all)
-			return;
-	}
-
-	if (give_all || Q_strcasecmp(name, "armor") == 0)
-	{
-		ent->client->pers.inventory[IT_ARMOR_JACKET] = 0;
-		ent->client->pers.inventory[IT_ARMOR_COMBAT] = 0;
-		ent->client->pers.inventory[IT_ARMOR_BODY] = GetItemByIndex(IT_ARMOR_BODY)->armor_info->max_count;
-
-		if (!give_all)
-			return;
-	}
-
-	if (give_all)
-	{
-		SpawnAndGiveItem(ent, IT_ITEM_POWER_SHIELD);
-
 		if (!give_all)
 			return;
 	}
@@ -1110,6 +1090,178 @@ void Cmd_Kill_AI_f( edict_t * ent ) {
 	gi.LocClient_Print( ent, PRINT_HIGH, "Kill_AI: All AI Are Dead...\n" );
 }
 
+void Cmd_Choose_f(edict_t * ent)
+{
+	const char *s;
+	char *wpnText, *itmText;
+	int itemNum = 0;
+	gitem_t *item;
+	action_weapon_num_t weapNum;
+	action_item_num_t itemNum;
+	action_itemkit_num_t itemKitNum;
+
+
+	// only works in teamplay
+	if (!(gameSettings & GS_WEAPONCHOOSE))
+		return;
+
+	s = gi.args();
+	if (*s) {
+		itemNum = GetItemNumFromArg(s);
+		if (!itemNum)
+			itemNum = GetWeaponNumFromArg(s);
+	}
+
+	switch(weapNum) {
+	case DUAL_NUM:
+	case M3_NUM:
+	case HC_NUM:
+	case MP5_NUM:
+	case SNIPER_NUM:
+	case KNIFE_NUM:
+	case M4_NUM:
+		// TODO: Fix weapon bans
+		// if (!WPF_ALLOWED(itemNum)) {
+		// 	gi.Center_Print(ent, "Weapon disabled on this server.\n");
+		// 	return;
+		// }
+		ent->client->pers.chosenWeapon = GetItemByIndex(itemNum);
+		break;
+	}
+
+	switch(itemNum) {
+	case LASER_NUM:
+	case KEV_NUM:
+	case SLIP_NUM:
+	case SIL_NUM:
+	case HELM_NUM:
+	case BAND_NUM:
+		// TODO: Fix item bans
+		// if (!ITF_ALLOWED(itemNum)) {
+		// 	gi.Center_Print(ent, "Item disabled on this server.\n");
+		// 	return;
+		// }
+		ent->client->pers.chosenItem = GetItemByIndex(itemNum);
+		break;
+	}
+
+	switch(itemKitNum) {
+	case C_KIT_NUM:
+	case S_KIT_NUM:
+	case A_KIT_NUM:
+	default:
+		gi.Center_Print(ent, "Invalid weapon or item choice.\n");
+		return;
+	}
+
+	item = ent->client->pers.chosenWeapon;
+	wpnText = (item && item->pickup_name) ? item->pickup_name : "NONE";
+
+	item = ent->client->pers.chosenItem;
+	itmText = (item && item->pickup_name) ? item->pickup_name : "NONE";
+
+	if (item_kit_mode->value) {
+		if (itemNum == C_KIT_NUM){
+			itmText = "Commando Kit (Bandolier + Kevlar Helmet)";
+		} else if (itemNum == A_KIT_NUM){
+			itmText = "Assassin Kit (Laser Sight + Silencer)";
+		} else if (itemNum == S_KIT_NUM){
+			if (e_enhancedSlippers->value){
+				itmText = "Stealth Kit (Enhanced Stealth Slippers + Silencer)";
+			} else {
+				itmText = "Stealth Kit (Stealth Slippers + Silencer)";
+			}
+		} else {
+			// How did you pick a kit not on the list?
+			itmText = "NONE";
+		}
+		gi.LocClient_Print(ent, PRINT_HIGH, "Weapon selected: %s\nItem kit selected: %s\n", wpnText, itmText );
+	} else {
+		gi.LocClient_Print(ent, PRINT_HIGH, "Weapon selected: %s\nItem selected: %s\n", wpnText, itmText );
+	}
+}
+
+// AQ:TNG - JBravo adding tkok
+void Cmd_TKOk(edict_t * ent)
+{
+	if (!ent->enemy || !ent->enemy->inuse || !ent->enemy->client || (ent == ent->enemy)) {
+		gi.LocClient_Print(ent, PRINT_HIGH, "Nothing to forgive\n");
+	} else if (ent->client->resp.team == ent->enemy->client->resp.team) {
+		if (ent->enemy->client->resp.team_kills) {
+			gi.LocClient_Print(ent, PRINT_HIGH, "You forgave %s\n", ent->enemy->client->pers.netname);
+			gi.LocClient_Print(ent->enemy, PRINT_HIGH, "%s forgave you\n", ent->client->pers.netname);
+			ent->enemy->client->resp.team_kills--;
+			if (ent->enemy->client->resp.team_wounds)
+				ent->enemy->client->resp.team_wounds /= 2;
+		}
+	} else {
+		gi.LocClient_Print(ent, PRINT_HIGH, "That's very noble of you...\n");
+		gi.LocBroadcast_Print(PRINT_HIGH, "%s turned the other cheek\n", ent->client->pers.netname);
+	}
+	ent->enemy = NULL;
+	return;
+}
+
+static void Cmd_LockTeam_f (edict_t * ent) {
+	Cmd_TeamLock_f(ent, 1);
+}
+
+static void Cmd_UnlockTeam_f (edict_t * ent) {
+	Cmd_TeamLock_f(ent, 0);
+}
+
+static void Cmd_PrintStats_f (edict_t *ent) {
+	Cmd_Stats_f(ent, gi.argv(1));
+}
+
+void Cmd_FF_f( edict_t *ent )
+{
+	if( teamplay->value )
+		gi.LocClient_Print( ent, PRINT_MEDIUM, "Friendly Fire %s\n", g_friendly_fire->integer ? "OFF": "ON" );
+	else
+		gi.LocClient_Print( ent, PRINT_MEDIUM, "FF only applies to teamplay.\n" );
+}
+
+void Cmd_Time(edict_t * ent)
+{
+	int mins = 0, secs = 0, remaining = 0, rmins = 0, rsecs = 0, gametime = 0;
+
+	gametime = level.matchTime;
+
+	mins = gametime / 60;
+	secs = gametime % 60;
+	remaining = (timelimit->value * 60) - gametime;
+	if( remaining >= 0 )
+	{
+		rmins = remaining / 60;
+		rsecs = remaining % 60;
+	}
+
+	if( timelimit->value )
+		gi.LocClient_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d. Remaining time: %d:%02d\n", mins, secs, rmins, rsecs );
+	else
+		gi.LocClient_Print( ent, PRINT_HIGH, "Elapsed time: %d:%02d\n", mins, secs );
+}
+
+void Cmd_Roundtimeleft_f(edict_t * ent)
+{
+	int remaining;
+
+	if(!teamplay->value) {
+		gi.LocClient_Print(ent, PRINT_HIGH, "This command need teamplay to be enabled\n");
+		return;
+	}
+
+	if (!(gameSettings & GS_ROUNDBASED) || !team_round_going)
+		return;
+
+	if ((int)roundtimelimit->value <= 0)
+		return;
+
+	remaining = (roundtimelimit->value * 60) - (current_round_length/10);
+	gi.LocClient_Print(ent, PRINT_HIGH, "There is %d:%02i left in this round\n", remaining / 60, remaining % 60);
+}
+
 /*
 =================
 Cmd_Where_f
@@ -1156,6 +1308,10 @@ void Cmd_Clear_AI_Enemy_f( edict_t * ent ) {
 	gi.LocClient_Print( ent, PRINT_HIGH, "Cmd_Clear_AI_Enemy: Clear All AI Enemies...\n" );
 }
 
+static void Cmd_Streak_f (edict_t * ent) {
+	gi.LocClient_Print(ent, PRINT_HIGH, "Your Killing Streak is: %d\n", ent->client->resp.streakKills);
+}
+
 /*
 =================
 Cmd_PutAway_f
@@ -1166,8 +1322,6 @@ void Cmd_PutAway_f(edict_t *ent)
 	ent->client->showscores = false;
 	ent->client->showhelp = false;
 	ent->client->showinventory = false;
-
-	globals.server_flags &= ~SERVER_FLAG_SLOW_TIME;
 
 	// ZOID
 	if (ent->client->menu)
@@ -1307,7 +1461,7 @@ void Cmd_Wave_f(edict_t *ent)
 	const char *self_notify_msg = nullptr, *other_notify_msg = nullptr, *other_notify_none_msg = nullptr;
 
 	vec3_t start, dir;
-	P_ProjectSource(ent, ent->client->v_angle, { 0, 0, 0 }, start, dir);
+	P_ProjectSource(ent, ent->client->v_angle, { 0, 0(ent); start, dir);
 
 	// see who we're aiming at
 	edict_t *aiming_at = nullptr;
@@ -1695,7 +1849,16 @@ void Cmd_PlayerList_f(edict_t *ent)
 		if (!e2->inuse)
 			continue;
 
-		fmt::format_to(std::back_inserter(str), FMT_STRING("{:02}:{:02} {:4} {:3} {}{}\n"), (level.time - e2->client->resp.entertime).milliseconds() / 60000,
+		if(limchasecam->value)
+			fmt::format_to(std::back_inserter(str), FMT_STRING("{:02}:{:02} {:4} {:3} {}{}\n"), (level.time - e2->client->resp.entertime).milliseconds() / 60000,
+					((level.time - e2->client->resp.entertime).milliseconds() % 60000) / 1000, e2->client->ping,
+					e2->client->resp.score, e2->client->pers.netname);
+		else if (!teamplay->value || !noscore->value)
+			fmt::format_to(std::back_inserter(str), FMT_STRING("{:02}:{:02} {:4} {:3} {}{}\n"), (level.time - e2->client->resp.entertime).milliseconds() / 60000,
+					((level.time - e2->client->resp.entertime).milliseconds() % 60000) / 1000, e2->client->ping,
+					e2->client->resp.score, e2->client->pers.netname, (!IS_ALIVE(e2)) ? " (dead)" : "");
+		else
+			fmt::format_to(std::back_inserter(str), FMT_STRING("{:02}:{:02} {:4} {:3} {}{}\n"), (level.time - e2->client->resp.entertime).milliseconds() / 60000,
 					((level.time - e2->client->resp.entertime).milliseconds() % 60000) / 1000, e2->client->ping,
 					e2->client->resp.score, e2->client->pers.netname, e2->client->resp.spectator ? " (spectator)" : "");
 
@@ -1801,6 +1964,67 @@ void Cmd_Switchteam_f(edict_t* ent)
 		CTFOpenJoinMenu(ent);
 }
 
+static void Cmd_PrintSettings_f( edict_t * ent )
+{
+	char text[1024] = "\0";
+	size_t length = 0;
+
+	length = strlen( text );
+	Com_sprintf( text + length, sizeof( text ) - length, "\n"
+		"timelimit   %2d roundlimit  %2d roundtimelimit %2d\n"
+		"limchasecam %2d tgren\n",
+		(int)timelimit->value, (int)roundlimit->value, (int)roundtimelimit->value,
+		(int)limchasecam->value, (int)tgren->value);
+
+	gi.LocClient_Print( ent, PRINT_HIGH, text );
+}
+
+static void Cmd_Follow_f( edict_t *ent )
+{
+	edict_t *target = NULL;
+
+	if( (!IS_ALIVE(ent)) )
+	{
+		gi.LocClient_Print( ent, PRINT_HIGH, "Only spectators may follow!\n" );
+		return;
+	}
+
+	target = LookupPlayer( ent, gi.argv(1), true, true );
+	if( target == ent )
+	{
+		if( ! limchasecam->value )
+			SetChase( ent, NULL );
+	}
+	else if( target )
+	{
+		if( limchasecam->value && teamplay->value
+		&& (ent->client->resp.team != NOTEAM)
+		&& (ent->client->resp.team != target->client->resp.team) )
+		{
+			gi.LocClient_Print( ent, PRINT_HIGH, "You may not follow enemies!\n" );
+			return;
+		}
+
+		if( ! ent->client->chase_mode )
+			NextChaseMode( ent );
+		SetChase( ent, target );
+	}
+}
+
+static void Cmd_Ent_Count_f (edict_t * ent)
+{
+	int x = 0;
+	edict_t *e;
+
+	for (e = g_edicts; e < &g_edicts[globals.num_edicts]; e++)
+	{
+		if (e->inuse)
+			x++;
+	}
+
+	gi.LocClient_Print(ent, PRINT_HIGH, "%d entities counted\n", x);
+}
+
 static void Cmd_ListMonsters_f(edict_t *ent)
 {
 	if (!G_CheatCheck(ent))
@@ -1821,6 +2045,47 @@ static void Cmd_ListMonsters_f(edict_t *ent)
 
 		gi.Com_PrintFmt("{}\n", *e);
 	}
+}
+
+void Cmd_Volunteer_f(edict_t * ent)
+{
+	int teamNum;
+	edict_t *oldLeader;
+
+	// Ignore if not Espionage mode
+	if (!esp->value) {
+		gi.LocClient_Print(ent, PRINT_HIGH, "This command needs Espionage to be enabled\n");
+		return;
+	}
+
+	// Ignore entity if not on a team
+	teamNum = ent->client->resp.team;
+	if (teamNum == NOTEAM) {
+		gi.LocClient_Print(ent, PRINT_HIGH, "You need to be on a team for that...\n");
+		return;
+	}
+
+	// Ignore entity if they are a sub
+	if (ent->client->resp.subteam == teamNum) {
+		gi.LocClient_Print(ent, PRINT_HIGH, "Subs cannot be leaders...\n");
+		return;
+	}
+
+	// If the current leader is issuing this command again, remove them as leader
+	oldLeader = teams[teamNum].leader;
+	if (oldLeader == ent) {
+		EspSetLeader( teamNum, NULL );
+		return;
+	}
+
+	// If the team already has a leader, send this message to the ent volunteering
+	if (oldLeader) {
+		gi.LocClient_Print( ent, PRINT_HIGH, "Your team already has a leader (%s)\n",
+			teams[teamNum].leader->client->pers.netname );
+		return;
+	}
+
+	EspSetLeader( teamNum, ent );
 }
 
 /*
@@ -1976,6 +2241,135 @@ void ClientCommand(edict_t *ent)
 	// ZOID
 	else if (Q_strcasecmp(cmd, "switchteam") == 0)
 		Cmd_Switchteam_f(ent);
+	// Action add
+	else if (Q_strcasecmp(cmd, "streak") == 0)
+		Cmd_Streak_f(ent);
+	else if (Q_strcasecmp(cmd, "reload") == 0)
+		Cmd_New_Reload_f(ent);
+	else if (Q_strcasecmp(cmd, "weapon") == 0)
+		Cmd_New_Weapon_f(ent);
+	else if (Q_strcasecmp(cmd, "opendoor") == 0)
+		Cmd_OpenDoor_f(ent);
+	else if (Q_strcasecmp(cmd, "bandage") == 0)
+		Cmd_Bandage_f(ent);
+	else if (Q_strcasecmp(cmd, "irvision") == 0)
+		Cmd_IR_f(ent);
+	else if (Q_strcasecmp(cmd, "radio") == 0)
+		Cmd_Radio_f(ent);
+	else if (Q_strcasecmp(cmd, "radiogender") == 0)
+		Cmd_Radiogender_f(ent);
+	else if (Q_strcasecmp(cmd, "radio_power") == 0)
+		Cmd_Radio_power_f(ent);
+	else if (Q_strcasecmp(cmd, "radio_team") == 0)
+		Cmd_Radioteam_f(ent);
+	else if (Q_strcasecmp(cmd, "channel") == 0)
+		Cmd_Channel_f(ent);
+	else if (Q_strcasecmp(cmd, "motd") == 0)
+		PrintMOTD(ent);
+	else if (Q_strcasecmp(cmd, "deny") == 0)
+		Cmd_Deny_f(ent);
+	else if (Q_strcasecmp(cmd, "choose") == 0)
+		Cmd_Choose_f(ent);
+	else if (Q_strcasecmp(cmd, "tkok") == 0)
+		Cmd_TKOk(ent);
+	else if (Q_strcasecmp(cmd, "forgive") == 0)
+		Cmd_TKOk(ent);
+	else if (Q_strcasecmp(cmd, "ff") == 0)
+		Cmd_FF_f(ent);
+	else if (Q_strcasecmp(cmd, "time") == 0)
+		Cmd_Time(ent);
+	else if (Q_strcasecmp(cmd, "voice") == 0)
+		Cmd_Voice_f(ent);
+	else if (Q_strcasecmp(cmd, "whereami") == 0)
+		Cmd_WhereAmI_f(ent);
+	else if (Q_strcasecmp(cmd, "setflag1") == 0)
+		Cmd_SetFlag1_f(ent);
+	else if (Q_strcasecmp(cmd, "setflag2") == 0)
+		Cmd_SetFlag2_f(ent);
+	else if (Q_strcasecmp(cmd, "saveflags") == 0)
+		Cmd_SaveFlags_f(ent);
+	else if (Q_strcasecmp(cmd, "punch") == 0)
+		Cmd_Punch_f(ent);
+	else if (Q_strcasecmp(cmd, "menu") == 0)
+		Cmd_Menu_f(ent);
+	else if (Q_strcasecmp(cmd, "rules") == 0)
+		Cmd_Rules_f(ent);
+	else if (Q_strcasecmp(cmd, "lens") == 0)
+		Cmd_Lens_f(ent);
+	else if (Q_strcasecmp(cmd, "nextmap") == 0)
+		Cmd_NextMap_f(ent);
+	else if (Q_strcasecmp(cmd, "sub") == 0)
+		Cmd_Sub_f(ent);
+	else if (Q_strcasecmp(cmd, "captain") == 0)
+		Cmd_Captain_f(ent);
+	else if (Q_strcasecmp(cmd, "ready") == 0)
+		Cmd_Ready_f(ent);
+	else if (Q_strcasecmp(cmd, "teamname") == 0)
+		Cmd_Teamname_f(ent);
+	else if (Q_strcasecmp(cmd, "teamskin") == 0)
+		Cmd_Teamskin_f(ent);
+	else if (Q_strcasecmp(cmd, "lock") == 0)
+		Cmd_LockTeam_f(ent);
+	else if (Q_strcasecmp(cmd, "unlock") == 0)
+		Cmd_UnlockTeam_f(ent);
+	else if (Q_strcasecmp(cmd, "entcount") == 0)
+		Cmd_Ent_Count_f(ent);
+	else if (Q_strcasecmp(cmd, "stats") == 0)
+		Cmd_PrintStats_f(ent);
+	else if (Q_strcasecmp(cmd, "flashlight") == 0)
+		Use_Flashlight(ent);
+	else if (Q_strcasecmp(cmd, "matchadmin") == 0)
+		Cmd_SetAdmin_f(ent);
+	else if (Q_strcasecmp(cmd, "roundtimeleft") == 0)
+		Cmd_Roundtimeleft_f(ent);
+	else if (Q_strcasecmp(cmd, "autorecord") == 0)
+		Cmd_AutoRecord_f(ent);
+	else if (Q_strcasecmp(cmd, "stat_mode") == 0)
+		Cmd_Statmode_f(ent);
+	else if (Q_strcasecmp(cmd, "cmd_stat_mode") == 0)
+		Cmd_Statmode_f(ent);
+	else if (Q_strcasecmp(cmd, "ghost") == 0)
+		Cmd_Ghost_f(ent);
+	else if (Q_strcasecmp(cmd, "resetscores") == 0)
+		Cmd_ResetScores_f(ent);
+	else if (Q_strcasecmp(cmd, "gamesettings") == 0)
+		Cmd_PrintSettings_f(ent);
+	else if (Q_strcasecmp(cmd, "follow") == 0)
+		Cmd_Follow_f(ent);
+	//vote stuff
+	else if (Q_strcasecmp(cmd, "votemap") == 0)
+		Cmd_Votemap_f(ent);
+	else if (Q_strcasecmp(cmd, "maplist") == 0)
+		Cmd_Maplist_f(ent);
+	else if (Q_strcasecmp(cmd, "votekick") == 0)
+		Cmd_Votekick_f(ent);
+	else if (Q_strcasecmp(cmd, "votekicknum") == 0)
+		Cmd_Votekicknum_f(ent);
+	else if (Q_strcasecmp(cmd, "kicklist") == 0)
+		Cmd_Kicklist_f(ent);
+	else if (Q_strcasecmp(cmd, "ignore") == 0)
+		Cmd_Ignore_f(ent);
+	else if (Q_strcasecmp(cmd, "ignorenum") == 0)
+		Cmd_Ignorenum_f(ent);
+	else if (Q_strcasecmp(cmd, "ignorelist") == 0)
+		Cmd_Ignorelist_f(ent);
+	else if (Q_strcasecmp(cmd, "ignoreclear") == 0)
+		Cmd_Ignoreclear_f(ent);
+	else if (Q_strcasecmp(cmd, "ignorepart") == 0)
+		Cmd_IgnorePart_f(ent);
+	else if (Q_strcasecmp(cmd, "voteconfig") == 0)
+		Cmd_Voteconfig_f(ent);
+	else if (Q_strcasecmp(cmd, "configlist") == 0)
+		Cmd_Configlist_f(ent);
+	else if (Q_strcasecmp(cmd, "votescramble") == 0)
+		Cmd_Votescramble_f(ent);
+	// Espionage, aliased command so it's easy to remember
+	else if (Q_strcasecmp(cmd, "volunteer") == 0)
+		Cmd_Volunteer_f(ent);
+	else if (Q_strcasecmp(cmd, "leader") == 0)
+		Cmd_Volunteer_f(ent);
+	// End Action add
+
 #ifndef KEX_Q2_GAME
 	else // anything that doesn't match a command will be a chat
 		Cmd_Say_f(ent, true);

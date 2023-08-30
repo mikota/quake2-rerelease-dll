@@ -1,5 +1,6 @@
 #include "g_local.h"
 #include <time.h>
+#include "m_player.h"
 
 /*----------------------------------------
  * SP_LaserSight
@@ -1026,7 +1027,7 @@ void Cmd_Roundtimeleft_f(edict_t * ent)
 		return;
 
 	remaining = (roundtimelimit->value * 60) - (current_round_length/10);
-	gi.LocClient_Print(ent, "There is %d:%02i left in this round\n", remaining / 60, remaining % 60);
+	gi.LocCenter_Print(ent, "There is %d:%02i left in this round\n", remaining / 60, remaining % 60);
 }
 
 /*

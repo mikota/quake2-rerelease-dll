@@ -57,6 +57,8 @@ void Cmd_Menu_f (edict_t * self)
 //
 void Cmd_Punch_f (edict_t * self)
 {
+	float punch_delay = 0.5f;
+
 	if (!use_punch->value || !IS_ALIVE(self) || self->client->resp.sniper_mode != SNIPER_1X)
 		return;
 
@@ -66,8 +68,8 @@ void Cmd_Punch_f (edict_t * self)
 	// animation moved to punch_attack() in a_xgame.c
 	// punch_attack is now called in ClientThink after evaluation punch_desired
 	// for "no punch when firing" stuff - TempFile
-	if (level.framenum > self->client->punch_framenum + PUNCH_DELAY) {
-		self->client->punch_framenum = level.framenum;	// you aren't Bruce Lee! :)
+	if (level.time.milliseconds() > (self->client->punch_framenum + punch_delay)) {
+		self->client->punch_framenum = level.time.milliseconds();	// you aren't Bruce Lee! :)
 		self->client->punch_desired = true;
 	}
 }
@@ -75,13 +77,13 @@ void Cmd_Punch_f (edict_t * self)
 //Plays a sound file
 void Cmd_Voice_f (edict_t * self)
 {
-	char *s;
+	char const *s;
 	char fullpath[MAX_QPATH];
 
 	if (!use_voice->value)
 		return;
 
-	s = gi.args ();
+	s = gi.args();
 	//check if no sound is given
 	if (!*s)
 	{
@@ -331,7 +333,8 @@ char *ClientTeam (edict_t * ent)
 	if (!ent->client)
 		return value;
 
-	Q_strncpyz(value, Info_ValueForKey (ent->client->pers.userinfo, "skin"), sizeof(value));
+	gi.Info_ValueForKey(ent->client->pers.userinfo, "skin", value, sizeof(value));
+	//Q_strncpyz(value, Info_ValueForKey (ent->client->pers.userinfo, "skin"), sizeof(value));
 	p = strchr (value, '/');
 	if (!p)
 		return value;
@@ -375,284 +378,6 @@ bool OnSameTeam (edict_t * ent1, edict_t * ent2)
 //=================================================================================
 
 
-
-/*
-==================
-Cmd_Say_f
-==================
-*/
-void Cmd_Say_f (edict_t * ent, bool team, bool arg0, bool partner_msg)
-{
-	int j, offset_of_text;
-	edict_t *other;
-	char *args, text[256], *s;
-	int meing = 0, isadmin = 0;
-	bool show_info = false;
-
-	if (gi.argc() < 2 && !arg0)
-		return;
-	
-	args = gi.args();
-	if (!args)
-		return;
-
-	if (!sv_crlf->value)
-	{
-		if (strchr(args, '\r') || strchr(args, '\n'))
-		{
-			gi.LocClient_Print (ent, PRINT_HIGH, "No control characters in chat messages!\n");
-			return;
-		}
-	}
-
-	//TempFile - BEGIN
-	if (arg0)
-	{
-		if (!Q_stricmp("%me", gi.argv(0))) {
-			meing = 4;
-			if (!*args)
-				return;
-		}
-	}
-	else
-	{
-		if (!*args)
-			return;
-
-		if (!Q_strnicmp("%me", args, 3))
-			meing = 4;
-		else if (!Q_strnicmp("%me", args + 1, 3))
-			meing = 5;
-
-		if(meing)
-		{
-			if (!*(args+meing-1))
-				return;
-			if (*(args+meing-1) != ' ')
-				meing = 0;
-			else if(!*(args+meing))
-				return;
-		}
-	}
-	//TempFile - END
-
-	if (!teamplay->value)
-	{
-		//FIREBLADE
-		if (!DMFLAGS( (DF_MODELTEAMS | DF_SKINTEAMS) ))
-			team = false;
-	}
-	else if (matchmode->value)
-	{	
-		if (ent->client->pers.admin)
-			isadmin = 1;
-
-		if (mm_forceteamtalk->value == 1)
-		{
-			if (!IS_CAPTAIN(ent) && !partner_msg && !isadmin)
-				team = true;
-		}
-		else if (mm_forceteamtalk->value == 2)
-		{
-			if (!IS_CAPTAIN(ent) && !partner_msg && !isadmin &&
-				(TeamsReady() || team_round_going))
-				team = true;
-		}
-	}
-
-	if (team)
-	{
-		if (ent->client->resp.team == NOTEAM)
-		{
-			gi.LocClient_Print (ent, PRINT_HIGH, "You're not on a team.\n");
-			return;
-		}
-		if (!meing)		// TempFile
-			Com_sprintf (text, sizeof (text), "%s(%s): ",
-			(teamplay->value && !IS_ALIVE(ent)) ? "[DEAD] " : "",
-			ent->client->pers.netname);
-		//TempFile - BEGIN
-		else
-			Com_sprintf (text, sizeof (text), "(%s%s ",
-			(teamplay->value && !IS_ALIVE(ent)) ? "[DEAD] " : "",
-			ent->client->pers.netname);
-		//TempFile - END
-	}
-	else if (partner_msg)
-	{
-		if (ent->client->resp.radio.partner == NULL)
-		{
-			gi.LocClient_Print (ent, PRINT_HIGH, "You don't have a partner.\n");
-			return;
-		}
-		if (!meing)		//TempFile
-			Com_sprintf (text, sizeof (text), "[%sPARTNER] %s: ",
-			(teamplay->value && !IS_ALIVE(ent)) ? "DEAD " : "",
-			ent->client->pers.netname);
-		//TempFile - BEGIN
-		else
-			Com_sprintf (text, sizeof (text), "%s partner %s ",
-			(teamplay->value && !IS_ALIVE(ent)) ? "[DEAD] " : "",
-			ent->client->pers.netname);
-		//TempFile - END
-	}
-	else
-	{
-		if (!meing)		//TempFile
-		{
-			if (isadmin)
-				Com_sprintf (text, sizeof (text), "[ADMIN] %s: ",
-				ent->client->pers.netname);
-			else
-				Com_sprintf (text, sizeof (text), "%s%s: ",
-				(teamplay->value && !IS_ALIVE(ent)) ? "[DEAD] " : "",
-				ent->client->pers.netname);
-		}
-		else
-			Com_sprintf (text, sizeof (text), "%s%s ",
-			(teamplay->value && !IS_ALIVE(ent)) ? "[DEAD] " : "",
-			ent->client->pers.netname);
-	}
-	//TempFile - END
-	
-	offset_of_text = strlen (text);	//FB 5/31/99
-	if (!meing)		//TempFile
-	{
-		if (arg0)
-		{
-			Q_strncatz(text, gi.argv (0), sizeof(text));
-			if(*args) {
-				Q_strncatz(text, " ", sizeof(text));
-				Q_strncatz(text, args, sizeof(text));
-			}
-		}
-		else
-		{	
-			if (*args == '"') {
-				args++;
-				args[strlen(args) - 1] = 0;
-			}
-			Q_strncatz(text, args, sizeof(text));
-		}
-	}
-	else			// if meing
-	{
-		if (arg0)
-		{
-			//this one is easy: gi.args() cuts /me off for us!
-			Q_strncatz(text, args, sizeof(text));
-		}
-		else
-		{
-			// we have to cut off "%me ".
-			args += meing;
-			if (args[strlen(args) - 1] == '"')
-				args[strlen(args) - 1] = 0;
-			Q_strncatz(text, args, sizeof(text));
-		}
-		
-		if (team)
-			Q_strncatz(text, ")", sizeof(text));
-	}
-	//TempFile - END
-	// don't let text be too long for malicious reasons
-	if (strlen(text) >= 254)
-		text[254] = 0;
-
-	show_info = ! strncmp( text + offset_of_text, "!actionversion", 14 );
-
-	//if( IS_ALIVE(ent) )  // Disabled so we parse dead chat too.
-	{
-		s = strchr(text + offset_of_text, '%');
-		if(s) {
-			// this will parse the % variables,
-			ParseSayText (ent, s, sizeof(text) - (s - text+1) - 2);
-		}
-	}
-
-	Q_strncatz(text, "\n", sizeof(text));
-
-	if (FloodCheck(ent))
-		return;
-	
-	if (dedicated->value) {
-		gi.LocClient_Print (NULL, PRINT_CHAT, "%s", text);
-		if ((!team) && (!partner_msg)) {
-		}
-	}
-	
-	for (j = 1; j <= game.maxclients; j++)
-	{
-		other = &g_edicts[j];
-		if (!other->inuse || !other->client)
-			continue;
-
-		if (other != ent)
-		{
-			if (team)
-			{
-				// if we are the adminent... we might want to hear (if hearall is set)
-				if (!matchmode->value || !hearall->value || !other->client->pers.admin)	// hearall isn't set and we aren't adminent
-					if (!OnSameTeam(ent, other))
-						continue;
-			}
-
-			if (partner_msg && other != ent->client->resp.radio.partner)
-				continue;
-
-			if (team_round_going && (gameSettings & GS_ROUNDBASED))
-			{
-				if (!deadtalk->value && !IS_ALIVE(ent) && IS_ALIVE(other))
-					continue;
-			}
-
-			if (IsInIgnoreList(other, ent))
-				continue;
-		}
-
-		gi.LocClient_Print(other, PRINT_CHAT, "%s", text);
-
-		if( show_info )
-			gi.LocClient_Print( other, PRINT_CHAT, "console: AQ2:TNG %s (%i fps)\n", VERSION, game.framerate );
-	}
-
-}
-
-static void Cmd_PlayerList_f (edict_t * ent)
-{
-	int i;
-	char st[64];
-	char text[1024] = { 0 };
-	edict_t *e2;
-
-	// connect time, ping, score, name
-
-	// Set the lines:
-	for (i = 0, e2 = g_edicts + 1; i < game.maxclients; i++, e2++)
-	{
-		int seconds = ((level.framenum - e2->client->resp.enterframe) / HZ) % 60;
-		int minutes = ((level.framenum - e2->client->resp.enterframe) / HZ) / 60;
-
-		if (!e2->inuse || !e2->client || e2->client->pers.mvdspec)
-			continue;
-
-		if(limchasecam->value)
-			Com_sprintf (st, sizeof (st), "%02d:%02d %4d %3d %s\n", minutes, seconds, e2->client->ping, e2->client->resp.team, e2->client->pers.netname); // This shouldn't show player's being 'spectators' during games with limchasecam set and/or during matchmode
-		else if (!teamplay->value || !noscore->value)
-			Com_sprintf (st, sizeof (st), "%02d:%02d %4d %3d %s%s\n", minutes, seconds, e2->client->ping, e2->client->resp.score, e2->client->pers.netname, (e2->solid == SOLID_NOT && e2->deadflag != DEAD_DEAD) ? " (dead)" : ""); // replaced 'spectator' with 'dead'
-		else
-			Com_sprintf (st, sizeof (st), "%02d:%02d %4d %s%s\n", minutes, seconds, e2->client->ping, e2->client->pers.netname, (e2->solid == SOLID_NOT && e2->deadflag != DEAD_DEAD) ? " (dead)" : ""); // replaced 'spectator' with 'dead'
-
-		if (strlen(text) + strlen(st) > sizeof(text) - 6)
-		{
-			strcat(text, "...\n");
-			break;
-		}
-		strcat (text, st);
-	}
-	gi.LocClient_Print(ent, PRINT_HIGH, "%s", text);
-}
-
 //SLICER
 static void Cmd_Ent_Count_f (edict_t * ent)
 {
@@ -668,109 +393,66 @@ static void Cmd_Ent_Count_f (edict_t * ent)
 	gi.LocClient_Print(ent, PRINT_HIGH, "%d entities counted\n", x);
 }
 
-//SLICER END
-static void dmflagsSettings( char *s, size_t size, int flags )
-{
-	if (!flags) {
-		Q_strncatz( s, "NONE", size );
-		return;
-	}
-	if (flags & DF_NO_HEALTH)
-		Q_strncatz( s, "1 = no health ", size );
-	if (flags & DF_NO_ITEMS)
-		Q_strncatz( s, "2 = no items ", size );
-	if (flags & DF_WEAPONS_STAY)
-		Q_strncatz( s, "4 = weapons stay ", size );
-	if (flags & DF_NO_FALLING)
-		Q_strncatz( s, "8 = no fall damage ", size );
-	if (flags & DF_INSTANT_ITEMS)
-		Q_strncatz( s, "16 = instant items ", size );
-	if (flags & DF_SAME_LEVEL)
-		Q_strncatz( s, "32 = same level ", size );
-	if (flags & DF_SKINTEAMS)
-		Q_strncatz( s, "64 = skinteams ", size );
-	if (flags & DF_MODELTEAMS)
-		Q_strncatz( s, "128 = modelteams ", size );
-	if (flags & DF_NO_FRIENDLY_FIRE)
-		Q_strncatz( s, "256 = no ff ", size );
-	if (flags & DF_SPAWN_FARTHEST)
-		Q_strncatz( s, "512 = spawn farthest ", size );
-	if (flags & DF_FORCE_RESPAWN)
-		Q_strncatz( s, "1024 = force respawn ", size );
-	//if(flags & DF_NO_ARMOR)
-	//	Q_strncatz(s, "2048 = no armor ", size);
-	if (flags & DF_ALLOW_EXIT)
-		Q_strncatz( s, "4096 = allow exit ", size );
-	if (flags & DF_INFINITE_AMMO)
-		Q_strncatz( s, "8192 = infinite ammo ", size );
-	if (flags & DF_QUAD_DROP)
-		Q_strncatz( s, "16384 = quad drop ", size );
-	if (flags & DF_FIXED_FOV)
-		Q_strncatz( s, "32768 = fixed fov ", size );
-
-	if (flags & DF_WEAPON_RESPAWN)
-		Q_strncatz( s, "65536 = weapon respawn ", size );
-}
-
 extern char *menu_itemnames[ITEM_MAX_NUM];
 
-static void wpflagsSettings( char *s, size_t size, int flags )
-{
-	int i, num;
+// TODO: Work with weapon / item bans in new Q2R engine
+// static void wpflagsSettings( char *s, size_t size, int flags )
+// {
+// 	int i, num;
 
-	if (!(flags & WPF_MASK)) {
-		Q_strncatz( s, "No weapons", size );
-		return;
-	}
-	if ((flags & WPF_MASK) == WPF_MASK) {
-		Q_strncatz( s, "All weapons", size );
-		return;
-	}
+// 	if (!(flags & WPF_MASK)) {
+// 		Q_strncatz( s, "No weapons", size );
+// 		return;
+// 	}
+// 	if ((flags & WPF_MASK) == WPF_MASK) {
+// 		Q_strncatz( s, "All weapons", size );
+// 		return;
+// 	}
 
-	for (i = 0; i<WEAPON_COUNT; i++) {
-		num = WEAPON_FIRST + i;
-		if (flags == items[WEAPON_FIRST + i].flag) {
-			Q_strncatz( s, va("%s only", menu_itemnames[num]), size );
-			return;
-		}
-	}
+// 	for (i = 0; i<WEAPON_COUNT; i++) {
+// 		num = WEAPON_FIRST + i;
+// 		if (flags == items[WEAPON_FIRST + i].flag) {
+// 			Q_strncatz( s, va("%s only", menu_itemnames[num]), size );
+// 			return;
+// 		}
+// 	}
 
-	for (i = 0; i<WEAPON_COUNT; i++) {
-		num = WEAPON_FIRST + i;
-		if (flags & items[num].flag) {
-			Q_strncatz( s, va("%d = %s ", items[num].flag, menu_itemnames[num]), size );
-		}
-	}
-}
+// 	for (i = 0; i<WEAPON_COUNT; i++) {
+// 		num = WEAPON_FIRST + i;
+// 		if (flags & items[num].flag) {
+// 			Q_strncatz( s, va("%d = %s ", items[num].flag, menu_itemnames[num]), size );
+// 		}
+// 	}
+// }
 
-static void itmflagsSettings( char *s, size_t size, int flags )
-{
-	int i, num;
+// static void itmflagsSettings( char *s, size_t size, int flags )
+// {
+// 	int i, num;
 
-	if (!(flags & ITF_MASK)) {
-		Q_strncatz( s, "No items", size );
-		return;
-	}
-	if ((flags & ITF_MASK) == ITF_MASK) {
-		Q_strncatz( s, "All items", size );
-		return;
-	}
+// 	if (!(flags & ITF_MASK)) {
+// 		Q_strncatz( s, "No items", size );
+// 		return;
+// 	}
+// 	if ((flags & ITF_MASK) == ITF_MASK) {
+// 		Q_strncatz( s, "All items", size );
+// 		return;
+// 	}
 
-	for (i = 0; i<ITEM_COUNT; i++) {
-		num = ITEM_FIRST + i;
-		if (flags == items[num].flag) {
-			Q_strncatz( s, va("%s only", menu_itemnames[num]), size );
-			return;
-		}
-	}
+// 	for (i = 0; i<ITEM_COUNT; i++) {
+// 		num = ITEM_FIRST + i;
+// 		if (flags == items[num].flag) {
+// 			Q_strncatz( s, va("%s only", menu_itemnames[num]), size );
+// 			return;
+// 		}
+// 	}
 
-	for (i = 0; i<ITEM_COUNT; i++) {
-		num = ITEM_FIRST + i;
-		if (flags & items[num].flag) {
-			Q_strncatz( s, va("%d = %s ", items[num].flag, menu_itemnames[num]), size );
-		}
-	}
-}
+// 	for (i = 0; i<ITEM_COUNT; i++) {
+// 		num = ITEM_FIRST + i;
+// 		if (flags & items[num].flag) {
+// 			Q_strncatz( s, va("%d = %s ", items[num].flag, menu_itemnames[num]), size );
+// 		}
+// 	}
+// }
 
 //Print current match settings
 static void Cmd_PrintSettings_f( edict_t * ent )
@@ -778,33 +460,12 @@ static void Cmd_PrintSettings_f( edict_t * ent )
 	char text[1024] = "\0";
 	size_t length = 0;
 
-	if (game.serverfeatures & GMF_VARIABLE_FPS) {
-		Com_sprintf( text, sizeof( text ), "Server fps = %d\n", game.framerate );
-		length = strlen( text );
-	}
-
-	Com_sprintf( text + length, sizeof( text ) - length, "sv_antilag = %d\n", (int)sv_antilag->value );
-	length = strlen( text );
-	
-	Com_sprintf( text + length, sizeof( text ) - length, "dmflags %i: ", (int)dmflags->value );
-	dmflagsSettings( text, sizeof( text ), (int)dmflags->value );
-
-	length = strlen( text );
-	Com_sprintf( text + length, sizeof( text ) - length, "\nwp_flags %i: ", (int)wp_flags->value );
-	wpflagsSettings( text, sizeof( text ), (int)wp_flags->value );
-
-	length = strlen( text );
-	Com_sprintf( text + length, sizeof( text ) - length, "\nitm_flags %i: ", (int)itm_flags->value );
-	itmflagsSettings( text, sizeof( text ), (int)itm_flags->value );
-
 	length = strlen( text );
 	Com_sprintf( text + length, sizeof( text ) - length, "\n"
 		"timelimit   %2d roundlimit  %2d roundtimelimit %2d\n"
-		"limchasecam %2d tgren       %2d antilag_interp %2d\n"
-		"llsound     %2d\n",
+		"limchasecam %2d tgren\n",
 		(int)timelimit->value, (int)roundlimit->value, (int)roundtimelimit->value,
-		(int)limchasecam->value, (int)tgren->value, (int)sv_antilag_interp->value,
-		(int)llsound->value );
+		(int)limchasecam->value, (int)tgren->value);
 
 	gi.LocClient_Print( ent, PRINT_HIGH, text );
 }
@@ -813,7 +474,7 @@ static void Cmd_Follow_f( edict_t *ent )
 {
 	edict_t *target = NULL;
 
-	if( (ent->solid != SOLID_NOT) || (ent->deadflag == DEAD_DEAD) )
+	if( (!IS_ALIVE(ent)) )
 	{
 		gi.LocClient_Print( ent, PRINT_HIGH, "Only spectators may follow!\n" );
 		return;
@@ -882,44 +543,19 @@ static void Cmd_InvPrev_f (edict_t *ent) {
 }
 
 static void Cmd_InvNextw_f (edict_t *ent) {
-	SelectNextItem(ent, IT_WEAPON);
+	SelectNextItem(ent, IF_WEAPON);
 }
 
 static void Cmd_InvPrevw_f (edict_t *ent) {
-	SelectPrevItem(ent, IT_WEAPON);
+	SelectPrevItem(ent, IF_WEAPON);
 }
 
 static void Cmd_InvNextp_f (edict_t *ent) {
-	SelectNextItem(ent, IT_POWERUP);
+	SelectNextItem(ent, IF_POWERUP);
 }
 
 static void Cmd_InvPrevp_f (edict_t *ent) {
-	SelectPrevItem(ent, IT_POWERUP);
-}
-
- // AQ2:TNG - Slicer : Video Check
-static void Cmd_VidRef_f (edict_t * ent)
-{
-	if (video_check->value || video_check_lockpvs->value)
-	{
-		Q_strncpyz(ent->client->resp.vidref, gi.argv(1), sizeof(ent->client->resp.vidref));
-	}
-
-}
-
-static void Cmd_CPSI_f (edict_t * ent)
-{
-	if (video_check->value || video_check_lockpvs->value || video_check_glclear->value || darkmatch->value)
-	{
-		ent->client->resp.glmodulate = atoi(gi.argv(1));
-		ent->client->resp.gllockpvs = atoi(gi.argv(2));
-		ent->client->resp.glclear = atoi(gi.argv(3));
-		ent->client->resp.gldynamic = atoi(gi.argv(4));
-		ent->client->resp.glbrightness = atoi(gi.argv(5));
-		Q_strncpyz(ent->client->resp.gldriver, gi.argv (6), sizeof(ent->client->resp.gldriver));
-		//      strncpy(ent->client->resp.vidref,gi.argv(4),sizeof(ent->client->resp.vidref-1));
-		//      ent->client->resp.vidref[15] = 0;
-	}
+	SelectPrevItem(ent, IF_POWERUP);
 }
 
 #define CMDF_CHEAT	1 //Need cheat to be enabled
@@ -1075,42 +711,4 @@ void InitCommandList( void )
 	}
 }
 
-/*
-=================
-ClientCommand
-=================
-*/
-void ClientCommand (edict_t * ent)
-{
-	char		*text;
-	cmdList_t	*cmd;
-	size_t		hash;
-
-	if (!ent->client)
-		return;			// not fully in game yet
-
-	// if (level.intermission_framenum)
-	// return;
-
-	text = gi.argv(0);
-
-	hash = Cmd_HashValue( text ) & (MAX_COMMAND_HASH - 1);
-	for (cmd = commandHash[hash]; cmd; cmd = cmd->hashNext) {
-		if (!Q_stricmp( text, cmd->name )) {
-			if ((cmd->flags & CMDF_CHEAT) && !sv_cheats->value) {
-				gi.LocClient_Print(ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
-				return;
-			}
-
-			if ((cmd->flags & CMDF_PAUSE) && level.pauseFrames)
-				return;
-
-			cmd->function( ent );
-			return;
-		}
-	}
-
-	// anything that doesn't match a command will be a chat
-	Cmd_Say_f(ent, false, true, false);
-}
 
