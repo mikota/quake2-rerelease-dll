@@ -20,15 +20,15 @@
 #include "a_xmenu.h"
 #include "a_vote.h"
 #include "a_match.h"
-#include "tng_ini.h"
-#include "tng_stats.h"  // Adding TNG Stats File
-#include "tng_balancer.h"
-#include "tng_jump.h"
+#include "a_ini.h"
+#include "a_stats.h"
+#include "a_balancer.h"
 #include "g_grapple.h"
 
 // End Action
 
 // the "gameversion" client command will print this plus compile date
+#define		getEnt(entnum)	(edict_t *)((char *)globals.edicts + (globals.edict_size * entnum))	//AQ:TNG Slicer - This was missing
 constexpr const char *GAMEVERSION = "action";
 
 //==================================================================
@@ -3425,6 +3425,7 @@ struct client_persistant_t
 	uint8_t n64_crouch_warn_times;
 	gtime_t n64_crouch_warning;
 
+	bool	silence_banned;  //rekkie -- silence ban
 	// action
 	int32_t admin;
 	int32_t firing_style;
