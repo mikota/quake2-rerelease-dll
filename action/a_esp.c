@@ -878,7 +878,7 @@ void EspScoreBonuses(edict_t * targ, edict_t * inflictor, edict_t * attacker)
 	// find the flag
 	flag = NULL;
 	// while ((flag = G_Find(flag, FOFS(classname), flag_item->classname)) != NULL) {
-	// 	if (!(flag->spawnflags & DROPPED_ITEM))
+	// 	if (!(flag->spawnflags & SPAWNFLAG_ITEM_DROPPED)
 	// 		break;
 	// }
 

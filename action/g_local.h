@@ -1973,6 +1973,13 @@ void	  droptofloor(edict_t *ent);
 void      P_ToggleFlashlight(edict_t *ent, bool state);
 bool      Entity_IsVisibleToPlayer(edict_t* ent, edict_t* player);
 void      Compass_Update(edict_t *ent, bool first);
+void 	  AddItem(edict_t *ent, gitem_t *item);
+gitem_t*  FindItemByNum(int num);
+#define ITEM_INDEX(x) ((x)-itemlist)
+#define INV_AMMO(ent, num) ((ent)->client->inventory[items[(num)].index])
+#define GetItemByIndex(num) (&itemlist[items[(num)].index])
+void 	  PrecacheItems(void);
+void 	  Use_Flashlight(edict_t *ent, gitem_t *inv);
 
 //
 // g_utils.c
@@ -2412,6 +2419,7 @@ void Throw_Generic(edict_t *ent, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int F
 byte P_DamageModifier(edict_t *ent);
 bool G_CheckInfiniteAmmo(gitem_t *item);
 void Weapon_PowerupSound(edict_t *ent);
+void DropExtraSpecial(edict_t* ent);
 
 constexpr gtime_t GRENADE_TIMER = 3_sec;
 constexpr float GRENADE_MINSPEED = 400.f;
@@ -2995,6 +3003,15 @@ extern cvar_t* gm; // Gamemode
 extern cvar_t* gmf; // Gamemodeflags
 extern cvar_t* sv_idleremove; // Remove idlers
 
+//
+// a_items.c
+//
+// spec functions
+void SetupSpecSpawn (void);
+void RespawnSpec (edict_t * ent);
+void Drop_Spec (edict_t * ent, gitem_t * item);
+void SpecThink (edict_t * spec);
+void DeadDropSpec (edict_t * ent);
 
 //
 // g_cmds.c
@@ -3004,28 +3021,6 @@ void Cmd_Help_f(edict_t* ent);
 void Cmd_Score_f(edict_t* ent);
 void Cmd_Inven_f(edict_t* ent);
 edict_t* LookupPlayer(edict_t* ent, const char* text, bool checkNUM, bool checkNick);
-
-//
-// g_items.c
-//
-void PrecacheItem(gitem_t* it);
-void InitItems(void);
-void SetItemNames(void);
-gitem_t* FindItem(char* pickup_name);
-gitem_t* FindItemByClassname(char* classname);
-gitem_t* FindItemByNum(int num);
-#define ITEM_INDEX(x) ((x)-itemlist)
-#define INV_AMMO(ent, num) ((ent)->client->inventory[items[(num)].index])
-#define GetItemByIndex(num) (&itemlist[items[(num)].index])
-edict_t* Drop_Item(edict_t* ent, gitem_t* item);
-void SetRespawn(edict_t* ent, float delay);
-void ChangeWeapon(edict_t* ent);
-void PrecacheItems(void);
-void SpawnItem(edict_t* ent, gitem_t* item);
-void Think_Weapon(edict_t* ent);
-bool Add_Ammo(edict_t* ent, gitem_t* item, int count);
-void Touch_Item(edict_t* ent, edict_t* other, cplane_t* plane, csurface_t* surf);
-void Use_Flashlight(edict_t *ent, gitem_t *inv);
 
 //
 // g_utils.c

@@ -1266,7 +1266,7 @@ void TossItemsOnDeath(edict_t * ent)
 	// don't bother dropping stuff when allweapons/items is active
 	if (allitem->value) {
 		// remove the lasersight because then the observer might have it
-		item = GET_ITEM(LASER_NUM);
+		item = GetItemByIndex(LASER_NUM);
 		ent->client->inventory[ITEM_INDEX(item)] = 0;
 	} else {
 		DeadDropSpec(ent);
@@ -1280,21 +1280,21 @@ void TossItemsOnDeath(edict_t * ent)
 
 	if (WPF_ALLOWED(MK23_NUM) && WPF_ALLOWED(DUAL_NUM)) {
 		// give the player a dual pistol so they can be sure to drop one
-		item = GET_ITEM(DUAL_NUM);
+		item = GetItemByIndex(DUAL_NUM);
 		ent->client->inventory[ITEM_INDEX(item)]++;
 		EjectItem(ent, item);
 	}
 
 	// check for every item we want to drop when a player dies
 	for (i = MP5_NUM; i < DUAL_NUM; i++) {
-		item = GET_ITEM( i );
+		item = GetItemByIndex( i );
 		while (ent->client->inventory[ITEM_INDEX( item )] > 0) {
 			ent->client->inventory[ITEM_INDEX( item )]--;
 			EjectWeapon( ent, item );
 		}
 	}
 
-	item = GET_ITEM(KNIFE_NUM);
+	item = GetItemByIndex(KNIFE_NUM);
 	if (ent->client->inventory[ITEM_INDEX(item)] > 0) {
 		EjectItem(ent, item);
 	}
@@ -1977,7 +1977,7 @@ void EquipClient(edict_t * ent)
 			band = 1;
 			if (tgren->value > 0)	// team grenades is turned on
 			{
-				item = GET_ITEM(GRENADE_NUM);
+				item = GetItemByIndex(GRENADE_NUM);
 				client->inventory[ITEM_INDEX(item)] = tgren->value;
 			}
 		}
@@ -1985,7 +1985,7 @@ void EquipClient(edict_t * ent)
 
 	// set them up with initial pistol ammo
 	if (WPF_ALLOWED(MK23_ANUM)) {
-		item = GET_ITEM(MK23_ANUM);
+		item = GetItemByIndex(MK23_ANUM);
 		if (band)
 			client->inventory[ITEM_INDEX(item)] = 2;
 		else
@@ -1996,13 +1996,13 @@ void EquipClient(edict_t * ent)
 
 	switch (itemNum) {
 	case MP5_NUM:
-		item = GET_ITEM(MP5_NUM);
+		item = GetItemByIndex(MP5_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
 		client->curr_weap = MP5_NUM;
 		client->unique_weapon_total = 1;
-		item = GET_ITEM(MP5_ANUM);
+		item = GetItemByIndex(MP5_ANUM);
 		if (band)
 			client->inventory[ITEM_INDEX(item)] = 2;
 		else
@@ -2010,13 +2010,13 @@ void EquipClient(edict_t * ent)
 		client->mp5_rds = client->mp5_max;
 		break;
 	case M4_NUM:
-		item = GET_ITEM(M4_NUM);
+		item = GetItemByIndex(M4_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
 		client->curr_weap = M4_NUM;
 		client->unique_weapon_total = 1;
-		item = GET_ITEM(M4_ANUM);
+		item = GetItemByIndex(M4_ANUM);
 		if (band)
 			client->inventory[ITEM_INDEX(item)] = 2;
 		else
@@ -2024,13 +2024,13 @@ void EquipClient(edict_t * ent)
 		client->m4_rds = client->m4_max;
 		break;
 	case M3_NUM:
-		item = GET_ITEM(M3_NUM);
+		item = GetItemByIndex(M3_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
 		client->curr_weap = M3_NUM;
 		client->unique_weapon_total = 1;
-		item = GET_ITEM(SHELL_ANUM);
+		item = GetItemByIndex(SHELL_ANUM);
 		if (band)
 			client->inventory[ITEM_INDEX(item)] = 14;
 		else
@@ -2038,13 +2038,13 @@ void EquipClient(edict_t * ent)
 		client->shot_rds = client->shot_max;
 		break;
 	case HC_NUM:
-		item = GET_ITEM(HC_NUM);
+		item = GetItemByIndex(HC_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
 		client->curr_weap = HC_NUM;
 		client->unique_weapon_total = 1;
-		item = GET_ITEM(SHELL_ANUM);
+		item = GetItemByIndex(SHELL_ANUM);
 		if (band)
 			client->inventory[ITEM_INDEX(item)] = 24;
 		else
@@ -2052,13 +2052,13 @@ void EquipClient(edict_t * ent)
 		client->cannon_rds = client->cannon_max;
 		break;
 	case SNIPER_NUM:
-		item = GET_ITEM(SNIPER_NUM);
+		item = GetItemByIndex(SNIPER_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[ITEM_INDEX(item)] = 1;
 		client->weapon = item;
 		client->curr_weap = SNIPER_NUM;
 		client->unique_weapon_total = 1;
-		item = GET_ITEM(SNIPER_ANUM);
+		item = GetItemByIndex(SNIPER_ANUM);
 		if (band)
 			client->inventory[ITEM_INDEX(item)] = 20;
 		else
@@ -2066,12 +2066,12 @@ void EquipClient(edict_t * ent)
 		client->sniper_rds = client->sniper_max;
 		break;
 	case DUAL_NUM:
-		item = GET_ITEM(DUAL_NUM);
+		item = GetItemByIndex(DUAL_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
 		client->curr_weap = DUAL_NUM;
-		item = GET_ITEM(MK23_ANUM);
+		item = GetItemByIndex(MK23_ANUM);
 		if (band)
 			client->inventory[ITEM_INDEX(item)] = 4;
 		else
@@ -2079,7 +2079,7 @@ void EquipClient(edict_t * ent)
 		client->dual_rds = client->dual_max;
 		break;
 	case KNIFE_NUM:
-		item = GET_ITEM(KNIFE_NUM);
+		item = GetItemByIndex(KNIFE_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		if (band)
 			client->inventory[client->selected_item] = 20;
@@ -2117,7 +2117,7 @@ void EquipClientDM(edict_t * ent)
 	case MK23_NUM:
 		return;
 	case MP5_NUM:
-		item = GET_ITEM(MP5_NUM);
+		item = GetItemByIndex(MP5_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
@@ -2126,11 +2126,11 @@ void EquipClientDM(edict_t * ent)
 		if (!allweapon->value) {
 			client->unique_weapon_total = 1;
 		}
-		item = GET_ITEM(MP5_ANUM);
+		item = GetItemByIndex(MP5_ANUM);
 		client->inventory[ITEM_INDEX(item)] = 1;
 		break;
 	case M4_NUM:
-		item = GET_ITEM(M4_NUM);
+		item = GetItemByIndex(M4_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
@@ -2139,11 +2139,11 @@ void EquipClientDM(edict_t * ent)
 		if (!allweapon->value) {
 			client->unique_weapon_total = 1;
 		}
-		item = GET_ITEM(M4_ANUM);
+		item = GetItemByIndex(M4_ANUM);
 		client->inventory[ITEM_INDEX(item)] = 1;
 		break;
 	case M3_NUM:
-		item = GET_ITEM(M3_NUM);
+		item = GetItemByIndex(M3_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
@@ -2152,11 +2152,11 @@ void EquipClientDM(edict_t * ent)
 		if (!allweapon->value) {
 			client->unique_weapon_total = 1;
 		}
-		item = GET_ITEM(SHELL_ANUM);
+		item = GetItemByIndex(SHELL_ANUM);
 		client->inventory[ITEM_INDEX(item)] = 7;
 		break;
 	case HC_NUM:
-		item = GET_ITEM(HC_NUM);
+		item = GetItemByIndex(HC_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
@@ -2166,11 +2166,11 @@ void EquipClientDM(edict_t * ent)
 		if (!allweapon->value) {
 			client->unique_weapon_total = 1;
 		}
-		item = GET_ITEM(SHELL_ANUM);
+		item = GetItemByIndex(SHELL_ANUM);
 		client->inventory[ITEM_INDEX(item)] = 12;
 		break;
 	case SNIPER_NUM:
-		item = GET_ITEM(SNIPER_NUM);
+		item = GetItemByIndex(SNIPER_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
@@ -2179,29 +2179,29 @@ void EquipClientDM(edict_t * ent)
 		if (!allweapon->value) {
 			client->unique_weapon_total = 1;
 		}
-		item = GET_ITEM(SNIPER_ANUM);;
+		item = GetItemByIndex(SNIPER_ANUM);;
 		client->inventory[ITEM_INDEX(item)] = 10;
 		break;
 	case DUAL_NUM:
-		item = GET_ITEM(DUAL_NUM);
+		item = GetItemByIndex(DUAL_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 1;
 		client->weapon = item;
 		client->dual_rds = client->dual_max;
 		client->mk23_rds = client->mk23_max;
 		client->curr_weap = DUAL_NUM;
-		item = GET_ITEM(MK23_ANUM);
+		item = GetItemByIndex(MK23_ANUM);
 		client->inventory[ITEM_INDEX(item)] = 2;
 		break;
 	case GRENADE_NUM:
-		item = GET_ITEM(GRENADE_NUM);
+		item = GetItemByIndex(GRENADE_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = tgren->value;
 		client->weapon = item;
 		client->curr_weap = GRENADE_NUM;
 		break;
 	case KNIFE_NUM:
-		item = GET_ITEM(KNIFE_NUM);
+		item = GetItemByIndex(KNIFE_NUM);
 		client->selected_item = ITEM_INDEX(item);
 		client->inventory[client->selected_item] = 10;
 		client->weapon = item;
@@ -2317,7 +2317,7 @@ void PutClientInServer(edict_t * ent)
 
 	//zucc give some ammo
 	// changed to mk23
-	item = GET_ITEM( MK23_NUM );
+	item = GetItemByIndex( MK23_NUM );
 	client->selected_item = ITEM_INDEX( item );
 	client->inventory[client->selected_item] = 1;
 
@@ -2325,7 +2325,7 @@ void PutClientInServer(edict_t * ent)
 	client->lastweapon = item;
 
 	if (WPF_ALLOWED( KNIFE_NUM )) {
-		item = GET_ITEM( KNIFE_NUM );
+		item = GetItemByIndex( KNIFE_NUM );
 		client->inventory[ITEM_INDEX( item )] = 1;
 		if (!WPF_ALLOWED( MK23_NUM )) {
 			client->selected_item = ITEM_INDEX( item );
@@ -2523,19 +2523,19 @@ void ClientBeginDeathmatch(edict_t * ent)
 	if (!dm_choose->value && !warmup->value) {
 		if (!ent->client->pers.chosenWeapon) {
 			if (WPF_ALLOWED(MP5_NUM))
-				ent->client->pers.chosenWeapon = GET_ITEM(MP5_NUM);
+				ent->client->pers.chosenWeapon = GetItemByIndex(MP5_NUM);
 			else if (WPF_ALLOWED(MK23_NUM))
-				ent->client->pers.chosenWeapon = GET_ITEM(MK23_NUM);
+				ent->client->pers.chosenWeapon = GetItemByIndex(MK23_NUM);
 			else if (WPF_ALLOWED(KNIFE_NUM))
-				ent->client->pers.chosenWeapon = GET_ITEM(KNIFE_NUM);
+				ent->client->pers.chosenWeapon = GetItemByIndex(KNIFE_NUM);
 			else
-				ent->client->pers.chosenWeapon = GET_ITEM(MK23_NUM);
+				ent->client->pers.chosenWeapon = GetItemByIndex(MK23_NUM);
 		}
 		if (!ent->client->pers.chosenItem)
-			ent->client->pers.chosenItem = GET_ITEM(KEV_NUM);
+			ent->client->pers.chosenItem = GetItemByIndex(KEV_NUM);
 	} else {
 		if (wp_flags->value < 2 && !ent->client->pers.chosenWeapon)
-			ent->client->pers.chosenWeapon = GET_ITEM(MK23_NUM);
+			ent->client->pers.chosenWeapon = GetItemByIndex(MK23_NUM);
 	}
 
 

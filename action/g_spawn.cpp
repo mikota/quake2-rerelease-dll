@@ -2114,7 +2114,7 @@ void SP_worldspawn(edict_t *ent)
 	level.pic_sniper_mode[3] = gi.imageindex("scope6x");
 
 	for (i = 1; i < AMMO_MAX; i++) {
-		picname = GET_ITEM(i)->icon;
+		picname = GetItemByIndex(i)->icon;
 		if (picname)
 			level.pic_items[i] = gi.imageindex( picname );
 	}

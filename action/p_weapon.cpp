@@ -264,7 +264,8 @@ void Drop_Special (edict_t * ent, gitem_t * item)
 	int count;
 
 	ent->client->unique_item_total--;
-	if (item->typeNum == BAND_NUM && INV_AMMO(ent, BAND_NUM) <= 1)
+
+	if (item->id == BAND_NUM && INV_AMMO(ent, BAND_NUM) <= 1)
 	{
 		if (gameSettings & GS_DEATHMATCH)
 			count = 2;
@@ -328,7 +329,7 @@ void Drop_Special (edict_t * ent, gitem_t * item)
 		if (ent->client->unique_weapon_total > unique_weapons->value && !allweapon->value)
 		{
 			DropExtraSpecial (ent);
-			gi.LocCenter_Print(ent, PRINT_HIGH, "One of your guns is dropped with the bandolier.\n");
+			gi.LocClient_Print(ent, PRINT_HIGH, "One of your guns is dropped with the bandolier.\n");
 		}
 	}
 	Drop_Spec(ent, item);
@@ -378,27 +379,28 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 
 	bool is_new = !other->client->pers.inventory[index];
 
-	switch (ent->item->typeNum) {
+	switch (ent->item->id) {
 	case MK23_NUM:
-		if (!WPF_ALLOWED(MK23_NUM))
-			return false;
+		// TODO: Work in weapon bans
+		// if (!WPF_ALLOWED(MK23_NUM))
+		// 	return false;
 
 		if (other->client->inventory[index])	// already has one
 		{
-			if (!(ent->spawnflags & DROPPED_ITEM))
+			if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED))
 			{
 				ammo = FindItem(ent->item->ammo);
 				addAmmo = Add_Ammo(other, ammo, ammo->quantity);
-				if (addAmmo && !(ent->spawnflags & DROPPED_PLAYER_ITEM))
+				if (addAmmo && !(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED_PLAYER))
 					SetRespawn(ent, weapon_respawn->value);
 
 				return addAmmo;
 			}
 		}
 		other->client->inventory[index]++;
-		if (!(ent->spawnflags & DROPPED_ITEM)) {
+		if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED) {
 			other->client->mk23_rds = other->client->mk23_max;
-			if (!(ent->spawnflags & DROPPED_PLAYER_ITEM))
+			if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED_PLAYER)
 				SetRespawn(ent, weapon_respawn->value);
 		}
 		return true;
@@ -411,11 +413,11 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 
 		other->client->inventory[index]++;
 		other->client->unique_weapon_total++;
-		if (!(ent->spawnflags & DROPPED_ITEM)) {
+		if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED) {
 			other->client->mp5_rds = other->client->mp5_max;
 		}
 		special = 1;
-		gi.cprintf(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
+		gi.LocClient_Print(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
 		break;
 
 	case M4_NUM:
@@ -426,11 +428,11 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 
 		other->client->inventory[index]++;
 		other->client->unique_weapon_total++;
-		if (!(ent->spawnflags & DROPPED_ITEM)) {
+		if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED)) {
 			other->client->m4_rds = other->client->m4_max;
 		}
 		special = 1;
-		gi.cprintf(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
+		gi.LocClient_Print(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
 		break;
 
 	case M3_NUM:
@@ -441,7 +443,7 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 
 		other->client->inventory[index]++;
 		other->client->unique_weapon_total++;
-		if (!(ent->spawnflags & DROPPED_ITEM))
+		if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED))
 		{
 			// any weapon that doesn't completely fill up each reload can 
 			//end up in a state where it has a full weapon and pending reload(s)
@@ -459,7 +461,7 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 			}
 		}
 		special = 1;
-		gi.cprintf(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
+		gi.LocClient_Print(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
 		break;
 
 	case HC_NUM:
@@ -470,7 +472,7 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 
 		other->client->inventory[index]++;
 		other->client->unique_weapon_total++;
-		if (!(ent->spawnflags & DROPPED_ITEM))
+		if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED))
 		{
 			other->client->cannon_rds = other->client->cannon_max;
 			index2 = ITEM_INDEX(FindItem(ent->item->ammo));
@@ -479,7 +481,7 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 			else
 				other->client->inventory[index2] += 5;
 		}
-		gi.cprintf(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
+		gi.LocClient_Print(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
 		special = 1;
 		break;
 
@@ -491,7 +493,7 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 
 		other->client->inventory[index]++;
 		other->client->unique_weapon_total++;
-		if (!(ent->spawnflags & DROPPED_ITEM))
+		if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED))
 		{
 			if (other->client->weaponstate == WEAPON_RELOADING &&
 				other->client->curr_weap == SNIPER_NUM)
@@ -507,7 +509,7 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 			}
 		}
 		special = 1;
-		gi.cprintf(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
+		gi.LocClient_Print(other, PRINT_HIGH, "%s - Unique Weapon\n", ent->item->pickup_name);
 		break;
 
 	case DUAL_NUM:
@@ -516,23 +518,23 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 
 		if (other->client->inventory[index])	// already has one
 		{
-			if (!(ent->spawnflags & DROPPED_ITEM))
+			if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED))
 			{
 				ammo = FindItem(ent->item->ammo);
 				addAmmo = Add_Ammo(other, ammo, ammo->quantity);
-				if (addAmmo && !(ent->spawnflags & DROPPED_PLAYER_ITEM))
+				if (addAmmo && !(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED_PLAYER))
 					SetRespawn(ent, weapon_respawn->value);
 
 				return addAmmo;
 			}
 		}
 		other->client->inventory[index]++;
-		if (!(ent->spawnflags & DROPPED_ITEM))
+		if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED))
 		{
 			other->client->dual_rds += other->client->mk23_max;
 			// assume the player uses the new (full) pistol
 			other->client->mk23_rds = other->client->mk23_max;
-			if (!(ent->spawnflags & DROPPED_PLAYER_ITEM))
+			if (!(ent->spawnflags & SPAWNFLAG_ITEM_DROPPED_PLAYER))
 				SetRespawn(ent, weapon_respawn->value);
 		}
 		return true;
@@ -554,7 +556,7 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 			return false;
 
 		other->client->inventory[index]++;
-		if (!(ent->spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM)))
+		if (!(ent->spawnflags & (DROPPED_ITEM | SPAWNFLAG_ITEM_DROPPED_PLAYER)))
 		{
 			if (DMFLAGS(DF_WEAPONS_STAY))
 				ent->flags |= FL_RESPAWN;
@@ -594,7 +596,7 @@ bool Pickup_Weapon(edict_t *ent, edict_t *other)
 			}
 		}
 
-	if (!(ent->spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM))
+	if (!(ent->spawnflags & (DROPPED_ITEM | SPAWNFLAG_ITEM_DROPPED_PLAYER)))
 		&& (SPEC_WEAPON_RESPAWN) && special)
 	{
 		if (DMFLAGS(DF_WEAPON_RESPAWN) && ((gameSettings & GS_DEATHMATCH) || ctf->value == 2))
@@ -697,7 +699,7 @@ void ChangeWeapon(edict_t *ent)
 	}
 
 	if (INV_AMMO(ent, LASER_NUM))
-		SP_LaserSight(ent, GET_ITEM(LASER_NUM));	//item->use(ent, item);
+		SP_LaserSight(ent, GetItemByIndex(LASER_NUM));	//item->use(ent, item);
 
 	// for instantweap, run think immediately
 	// to set up correct start frame
@@ -1071,7 +1073,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 	if (ent->client->weaponstate == WEAPON_BANDAGING ||
 		ent->client->bandaging == 1 || ent->client->bandage_stopped == 1)
 	{
-		gi.cprintf(ent, PRINT_HIGH,
+		gi.LocClient_Print(ent, PRINT_HIGH,
 			"You are too busy bandaging right now...\n");
 		return;
 	}
@@ -1084,7 +1086,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 	//zucc special cases for dropping       
 	if (item->typeNum == MK23_NUM)
 	{
-		gi.cprintf(ent, PRINT_HIGH, "Can't drop the %s.\n", MK23_NAME);
+		gi.LocClient_Print(ent, PRINT_HIGH, "Can't drop the %s.\n", MK23_NAME);
 		return;
 	}
 	else if (item->typeNum == MP5_NUM)
@@ -1092,7 +1094,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 
 		if (ent->client->weapon == item && ent->client->inventory[index] == 1)
 		{
-			replacement = GET_ITEM(MK23_NUM);	// back to the pistol then
+			replacement = GetItemByIndex(MK23_NUM);	// back to the pistol then
 			ent->client->newweapon = replacement;
 			ent->client->weaponstate = WEAPON_DROPPING;
 			ent->client->ps.gunframe = 51;
@@ -1109,7 +1111,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 
 		if (ent->client->weapon == item && ent->client->inventory[index] == 1)
 		{
-			replacement = GET_ITEM(MK23_NUM);	// back to the pistol then
+			replacement = GetItemByIndex(MK23_NUM);	// back to the pistol then
 			ent->client->newweapon = replacement;
 			ent->client->weaponstate = WEAPON_DROPPING;
 			ent->client->ps.gunframe = 44;
@@ -1126,7 +1128,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 
 		if (ent->client->weapon == item && ent->client->inventory[index] == 1)
 		{
-			replacement = GET_ITEM(MK23_NUM);	// back to the pistol then
+			replacement = GetItemByIndex(MK23_NUM);	// back to the pistol then
 			ent->client->newweapon = replacement;
 			ent->client->weaponstate = WEAPON_DROPPING;
 			ent->client->ps.gunframe = 41;
@@ -1141,7 +1143,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 	{
 		if (ent->client->weapon == item && ent->client->inventory[index] == 1)
 		{
-			replacement = GET_ITEM(MK23_NUM);	// back to the pistol then
+			replacement = GetItemByIndex(MK23_NUM);	// back to the pistol then
 			ent->client->newweapon = replacement;
 			ent->client->weaponstate = WEAPON_DROPPING;
 			ent->client->ps.gunframe = 61;
@@ -1159,7 +1161,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 			// in case they are zoomed in
 			ent->client->ps.fov = 90;
 			ent->client->desired_fov = 90;
-			replacement = GET_ITEM(MK23_NUM);	// back to the pistol then
+			replacement = GetItemByIndex(MK23_NUM);	// back to the pistol then
 			ent->client->newweapon = replacement;
 			ent->client->weaponstate = WEAPON_DROPPING;
 			ent->client->ps.gunframe = 50;
@@ -1174,7 +1176,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 	{
 		if (ent->client->weapon == item)
 		{
-			replacement = GET_ITEM(MK23_NUM);	// back to the pistol then
+			replacement = GetItemByIndex(MK23_NUM);	// back to the pistol then
 			ent->client->newweapon = replacement;
 			ent->client->weaponstate = WEAPON_DROPPING;
 			ent->client->ps.gunframe = 40;
@@ -1184,11 +1186,11 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 	}
 	else if (item->typeNum == KNIFE_NUM)
 	{
-		//gi.cprintf(ent, PRINT_HIGH, "Before checking knife inven frames = %d\n", ent->client->ps.gunframe);
+		//gi.LocClient_Print(ent, PRINT_HIGH, "Before checking knife inven frames = %d\n", ent->client->ps.gunframe);
 
 		if (ent->client->weapon == item && ent->client->inventory[index] == 1)
 		{
-			replacement = GET_ITEM(MK23_NUM);	// back to the pistol then
+			replacement = GetItemByIndex(MK23_NUM);	// back to the pistol then
 			ent->client->newweapon = replacement;
 			if (ent->client->pers.knife_mode)	// hack to avoid an error
 			{
@@ -1197,7 +1199,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 			}
 			else
 				ChangeWeapon(ent);
-			//      gi.cprintf(ent, PRINT_HIGH, "After change weap from knife drop frames = %d\n", ent->client->ps.gunframe);
+			//      gi.LocClient_Print(ent, PRINT_HIGH, "After change weap from knife drop frames = %d\n", ent->client->ps.gunframe);
 		}
 	}
 	else if (item->typeNum == GRENADE_NUM)
@@ -1225,13 +1227,13 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 				fire_grenade2(ent, ent->s.origin, vec3_origin, damage, 0, 2 * HZ, damage * 2, false);
 
 				INV_AMMO(ent, GRENADE_NUM)--;
-				ent->client->newweapon = GET_ITEM(MK23_NUM);
+				ent->client->newweapon = GetItemByIndex(MK23_NUM);
 				ent->client->weaponstate = WEAPON_DROPPING;
 				ent->client->ps.gunframe = 0;
 				return;
 			}
 
-			replacement = GET_ITEM(MK23_NUM);	// back to the pistol then
+			replacement = GetItemByIndex(MK23_NUM);	// back to the pistol then
 			ent->client->newweapon = replacement;
 			ent->client->weaponstate = WEAPON_DROPPING;
 			ent->client->ps.gunframe = 0;
@@ -1241,7 +1243,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 	else if ((item == ent->client->weapon || item == ent->client->newweapon)
 		&& ent->client->inventory[index] == 1)
 	{
-		gi.cprintf(ent, PRINT_HIGH, "Can't drop current weapon\n");
+		gi.LocClient_Print(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		return;
 	}
 
@@ -1261,24 +1263,24 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
 //zucc drop special weapon (only 1 of them)
 void DropSpecialWeapon(edict_t* ent)
 {
-	int itemNum = ent->client->weapon ? ent->client->weapon->typeNum : 0;
+	int itemNum = ent->client->weapon ? ent->client->weapon->id : 0;
 
 	// first check if their current weapon is a special weapon, if so, drop it.
 	if (itemNum >= MP5_NUM && itemNum <= SNIPER_NUM)
 		Drop_Weapon(ent, ent->client->weapon);
 	else if (INV_AMMO(ent, SNIPER_NUM) > 0)
-		Drop_Weapon(ent, GET_ITEM(SNIPER_NUM));
+		Drop_Weapon(ent, GetItemByIndex(SNIPER_NUM));
 	else if (INV_AMMO(ent, HC_NUM) > 0)
-		Drop_Weapon(ent, GET_ITEM(HC_NUM));
+		Drop_Weapon(ent, GetItemByIndex(HC_NUM));
 	else if (INV_AMMO(ent, M3_NUM) > 0)
-		Drop_Weapon(ent, GET_ITEM(M3_NUM));
+		Drop_Weapon(ent, GetItemByIndex(M3_NUM));
 	else if (INV_AMMO(ent, MP5_NUM) > 0)
-		Drop_Weapon(ent, GET_ITEM(MP5_NUM));
+		Drop_Weapon(ent, GetItemByIndex(MP5_NUM));
 	else if (INV_AMMO(ent, M4_NUM) > 0)
-		Drop_Weapon(ent, GET_ITEM(M4_NUM));
+		Drop_Weapon(ent, GetItemByIndex(M4_NUM));
 	// special case, aq does this, guess I can support it
 	else if (itemNum == DUAL_NUM)
-		ent->client->newweapon = GET_ITEM(MK23_NUM);
+		ent->client->newweapon = GetItemByIndex(MK23_NUM);
 
 }
 
@@ -1288,7 +1290,7 @@ void DropExtraSpecial(edict_t* ent)
 {
 	int itemNum;
 
-	itemNum = ent->client->weapon ? ent->client->weapon->typeNum : 0;
+	itemNum = ent->client->weapon ? ent->client->weapon->id : 0;
 	if (itemNum >= MP5_NUM && itemNum <= SNIPER_NUM)
 	{
 		// if they have more than 1 then they are willing to drop one           
@@ -1299,15 +1301,15 @@ void DropExtraSpecial(edict_t* ent)
 	}
 	// otherwise drop some weapon they aren't using
 	if (INV_AMMO(ent, SNIPER_NUM) > 0 && SNIPER_NUM != itemNum)
-		Drop_Weapon(ent, GET_ITEM(SNIPER_NUM));
+		Drop_Weapon(ent, GetItemByIndex(SNIPER_NUM));
 	else if (INV_AMMO(ent, HC_NUM) > 0 && HC_NUM != itemNum)
-		Drop_Weapon(ent, GET_ITEM(HC_NUM));
+		Drop_Weapon(ent, GetItemByIndex(HC_NUM));
 	else if (INV_AMMO(ent, M3_NUM) > 0 && M3_NUM != itemNum)
-		Drop_Weapon(ent, GET_ITEM(M3_NUM));
+		Drop_Weapon(ent, GetItemByIndex(M3_NUM));
 	else if (INV_AMMO(ent, MP5_NUM) > 0 && MP5_NUM != itemNum)
-		Drop_Weapon(ent, GET_ITEM(MP5_NUM));
+		Drop_Weapon(ent, GetItemByIndex(MP5_NUM));
 	else if (INV_AMMO(ent, M4_NUM) > 0 && M4_NUM != itemNum)
-		Drop_Weapon(ent, GET_ITEM(M4_NUM));
+		Drop_Weapon(ent, GetItemByIndex(M4_NUM));
 	else
 		gi.dprintf("Couldn't find the appropriate weapon to drop.\n");
 }
@@ -1343,7 +1345,7 @@ void ReadySpecialWeapon(edict_t* ent)
 	{
 		if (INV_AMMO(ent, weapons[i % 5]))
 		{
-			ent->client->newweapon = GET_ITEM(weapons[i % 5]);
+			ent->client->newweapon = GetItemByIndex(weapons[i % 5]);
 			return;
 		}
 	}
@@ -1647,10 +1649,10 @@ inline bool Weapon_HandleActivating(edict_t *ent, int FRAME_ACTIVATE_LAST, int F
 			{
 			case MK23_NUM:
 			{
-				//      gi.cprintf (ent, PRINT_HIGH, "Calling ammo check %d\n", ent->client->mk23_rds);
+				//      gi.LocClient_Print (ent, PRINT_HIGH, "Calling ammo check %d\n", ent->client->mk23_rds);
 				if (ent->client->mk23_rds > 0)
 				{
-					//              gi.cprintf(ent, PRINT_HIGH, "Entered fire selection\n");
+					//              gi.LocClient_Print(ent, PRINT_HIGH, "Entered fire selection\n");
 					if (ent->client->pers.mk23_mode != 0
 						&& ent->client->fired == 0)
 					{
@@ -1809,7 +1811,7 @@ inline bool Weapon_HandleActivating(edict_t *ent, int FRAME_ACTIVATE_LAST, int F
 
 			default:
 			{
-				gi.cprintf(ent, PRINT_HIGH,
+				gi.LocClient_Print(ent, PRINT_HIGH,
 					"Calling non specific ammo code\n");
 				if ((!ent->client->ammo_index)
 					|| (ent->client->inventory[ent->client->ammo_index] >=
@@ -1915,7 +1917,7 @@ inline bool Weapon_HandleActivating(edict_t *ent, int FRAME_ACTIVATE_LAST, int F
 						gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage3.wav"),
 							1, ATTN_NORM, 0);
 					{
-						//                      gi.cprintf (ent, PRINT_HIGH, "Calling fire code, frame = %d.\n", ent->client->ps.gunframe);
+						//                      gi.LocClient_Print (ent, PRINT_HIGH, "Calling fire code, frame = %d.\n", ent->client->ps.gunframe);
 						fire(ent);
 					}
 					break;
@@ -1925,7 +1927,7 @@ inline bool Weapon_HandleActivating(edict_t *ent, int FRAME_ACTIVATE_LAST, int F
 			if (!fire_frames[n])
 				ent->client->ps.gunframe++;
 
-			//gi.cprintf (ent, PRINT_HIGH, "Calling Q_stricmp, frame = %d.\n", ent->client->ps.gunframe);
+			//gi.LocClient_Print (ent, PRINT_HIGH, "Calling Q_stricmp, frame = %d.\n", ent->client->ps.gunframe);
 
 
 			if (ent->client->ps.gunframe == FRAME_IDLE_FIRST + 1)
@@ -1938,7 +1940,7 @@ inline bool Weapon_HandleActivating(edict_t *ent, int FRAME_ACTIVATE_LAST, int F
 					ent->client->weaponstate = WEAPON_READY;
 					ent->client->ps.gunframe = FRAME_IDLE_FIRST + 1;
 				}
-				//      gi.cprintf (ent, PRINT_HIGH, "Succes Q_stricmp now: frame = %d.\n", ent->client->ps.gunframe);
+				//      gi.LocClient_Print (ent, PRINT_HIGH, "Succes Q_stricmp now: frame = %d.\n", ent->client->ps.gunframe);
 
 			}
 			if (ent->client->curr_weap == M4_NUM)
@@ -1948,7 +1950,7 @@ inline bool Weapon_HandleActivating(edict_t *ent, int FRAME_ACTIVATE_LAST, int F
 					ent->client->weaponstate = WEAPON_READY;
 					ent->client->ps.gunframe = FRAME_IDLE_FIRST + 1;
 				}
-				//      gi.cprintf (ent, PRINT_HIGH, "Succes Q_stricmp now: frame = %d.\n", ent->client->ps.gunframe);
+				//      gi.LocClient_Print (ent, PRINT_HIGH, "Succes Q_stricmp now: frame = %d.\n", ent->client->ps.gunframe);
 
 			}
 

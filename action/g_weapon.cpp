@@ -1296,7 +1296,7 @@ void knife_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 		}
 
 		dropped = G_Spawn();
-		item = GET_ITEM(KNIFE_NUM);
+		item = GetItemByIndex(KNIFE_NUM);
 
 		dropped->classname = item->classname;
 		dropped->typeNum = item->typeNum;
