@@ -4181,8 +4181,15 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
 				pm.cmd.sidemove /= client->leghits + 1;
 			}
 			*/
-			pm.cmd.forwardmove = 0;
-			pm.cmd.sidemove = 0;
+			const int64_t limping_period = level.time.milliseconds() % 600;
+			if (limping_period <= 200) {
+				pm.cmd.forwardmove = 0;
+				pm.cmd.sidemove = 0;
+			}
+			else if (limping_period < 300) {
+				pm.cmd.forwardmove /= client->leghits + 1;
+				pm.cmd.sidemove /= client->leghits + 1;
+			}
 			// Prevent jumping with leg damage.
 			pm.s.pm_flags |= PMF_JUMP_HELD;
 		}
