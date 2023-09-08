@@ -2793,6 +2793,7 @@ void PrintDeathMessage(char *msg, edict_t * gibee);
 // ACTION
 void CL_FixUpGender(edict_t *ent, const char *userinfo);
 void ClientFixLegs(edict_t *ent);
+void ClientLegDamage(edict_t *ent);
 void PrintDeathMessage(char *msg, edict_t * gibee);
 bool Pickup_Special (edict_t * ent, edict_t * other);
 edict_t *FindEdictByClassnum (const char *classname, int classnum);

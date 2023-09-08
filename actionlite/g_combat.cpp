@@ -533,6 +533,12 @@ void T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, const vec3_t
 			// 	damage = 0;
 		}
 	}
+	
+	//ACTION
+	if (mod.id == mod_id_t::MOD_FALLING) {
+		ClientLegDamage(targ);
+		//this does get called, doesn't seem to do anything yet
+	}
 
 	// ROGUE
 	//  allow the deathmatch game to change values
