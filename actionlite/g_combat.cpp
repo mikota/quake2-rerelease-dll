@@ -518,6 +518,12 @@ void T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, const vec3_t
 
 	sphere_notified = false; // PGM
 
+	//ACTION
+	if (mod.id == mod_id_t::MOD_FALLING) {
+		ClientLegDamage(targ);
+		//this does get called, doesn't seem to do anything yet
+	}
+	
 	// friendly fire avoidance
 	// if enabled you can't hurt teammates (but you can hurt yourself)
 	// knockback still occurs
