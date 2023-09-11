@@ -4168,21 +4168,18 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
 		bool has_enhanced_slippers = e_enhancedSlippers->value && INV_AMMO(ent, SLIP_NUM);
 		if (client->leg_damage && ent->groundentity && !has_enhanced_slippers)
 		{
-			/* Classic AQ2 Stumbling, will get to it later
-			int frame_mod_6 = (level.frameNum / game.framediv) % 6;
-			if (frame_mod_6 <= 2)
-			{
+			int limping_period = level.time.milliseconds()/100;
+			limping_period %= 6;
+			pm.s.pm_flags |= ~PMF_ACTION_LIMPING;
+			if (limping_period <= 2) {
 				pm.cmd.forwardmove = 0;
 				pm.cmd.sidemove = 0;
 			}
-			else if (frame_mod_6 == 3)
-			{
+			else if (limping_period == 3) {
 				pm.cmd.forwardmove /= client->leghits + 1;
 				pm.cmd.sidemove /= client->leghits + 1;
 			}
-			*/
-			pm.cmd.forwardmove = 0;
-			pm.cmd.sidemove = 0;
+
 			// Prevent jumping with leg damage.
 			pm.s.pm_flags |= PMF_JUMP_HELD;
 		}
@@ -4774,6 +4771,7 @@ void RemoveAttackingPainDaemons(edict_t *self)
 
 // Action Add
 void ClientLegDamage(edict_t* ent) {
+	ent->client->ps.pmove.pm_flags |= PMF_ACTION_LIMPING;
 	ent->client->leg_noise = 1;
 	ent->client->leg_damage = 1;
 	ent->client->leg_dam_count++;

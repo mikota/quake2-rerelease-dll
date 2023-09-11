@@ -380,17 +380,18 @@ enum pmtype_t
 enum pmflags_t : uint16_t
 {
     PMF_NONE = 0,
-	PMF_DUCKED = bit_v<0>,
-	PMF_JUMP_HELD = bit_v<1>,
-	PMF_ON_GROUND = bit_v<2>,
-	PMF_TIME_WATERJUMP = bit_v<3>, // pm_time is waterjump
-	PMF_TIME_LAND = bit_v<4>,		// pm_time is time before rejump
-	PMF_TIME_TELEPORT = bit_v<5>, // pm_time is non-moving time
-	PMF_NO_POSITIONAL_PREDICTION = bit_v<6>,	// temporarily disables positional prediction (used for grappling hook)
+    PMF_DUCKED = bit_v<0>,
+    PMF_JUMP_HELD = bit_v<1>,
+    PMF_ON_GROUND = bit_v<2>,
+    PMF_TIME_WATERJUMP = bit_v<3>, // pm_time is waterjump
+    PMF_TIME_LAND = bit_v<4>,		// pm_time is time before rejump
+    PMF_TIME_TELEPORT = bit_v<5>, // pm_time is non-moving time
+    PMF_NO_POSITIONAL_PREDICTION = bit_v<6>,	// temporarily disables positional prediction (used for grappling hook)
     PMF_ON_LADDER = bit_v<7>,    // signal to game that we are on a ladder
     PMF_NO_ANGULAR_PREDICTION = bit_v<8>, // temporary disables angular prediction
     PMF_IGNORE_PLAYER_COLLISION = bit_v<9>, // don't collide with other players
     PMF_TIME_TRICK = bit_v<10>, // pm_time is trick jump time
+    PMF_ACTION_LIMPING = bit_v<11>
 };
 
 MAKE_ENUM_BITFLAGS(pmflags_t);
@@ -412,6 +413,8 @@ struct pmove_state_t
 	gvec3_t                delta_angles; // add to command angles to get view direction
 										 // changed by spawns, rotating objects, and teleporters
     int8_t                 viewheight; // view height, added to origin[2] + viewoffset[2], for crouching
+    uint16_t               pm_timestamp;
+
 };
 
 //

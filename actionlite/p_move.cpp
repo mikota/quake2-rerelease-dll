@@ -1627,6 +1627,23 @@ void Pmove(pmove_t *pmove)
 	if (pm->s.pm_type == PM_DEAD)
 		PM_DeadMove();
 
+	pm->s.pm_timestamp += pm->cmd.msec;
+	pm->s.pm_timestamp %= 60000;
+	
+	if (pm->s.pm_flags & PMF_ACTION_LIMPING) {
+		int limping_period = pm->s.pm_timestamp / 100;
+		limping_period %= 6;
+		if (limping_period <= 2) {
+			pm->cmd.forwardmove = 0;
+			pm->cmd.sidemove = 0;
+		}
+		else if (limping_period == 3) {
+			pm->cmd.forwardmove /= 2;
+			pm->cmd.sidemove /= 2; //todo:replace with client.leghits
+		}
+		pm->s.pm_flags |= PMF_JUMP_HELD;
+	}
+
 	PM_CheckSpecialMovement();
 
 	// drop timing counter
