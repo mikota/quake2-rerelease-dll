@@ -1602,88 +1602,120 @@ void InitClientPersistant(edict_t *ent, gclient_t *client)
 	memset(&client->pers, 0, sizeof(client->pers));
 	ClientUserinfoChanged(ent, userinfo);
 
+	// Commenting out Q2R stuff, may splice it back in at some point
+
+	// don't give us weapons if we shouldn't have any
+	// if ((G_TeamplayEnabled() && client->resp.ctf_team != CTF_NOTEAM) ||
+	// 	(!G_TeamplayEnabled() && !client->resp.spectator))
+	// {
+	// 	// in coop, if there's already a player in the game and we're new,
+	// 	// steal their loadout. this would fix a potential softlock where a new
+	// 	// player may not have weapons at all.
+	// 	bool taken_loadout = false;
+
+	// 	if (coop->integer)
+	// 	{
+	// 		for (auto player : active_players())
+	// 		{
+	// 			if (player == ent || !player->client->pers.spawned ||
+	// 				player->client->resp.spectator || player->movetype == MOVETYPE_NOCLIP)
+	// 				continue;
+
+	// 			client->pers.inventory = player->client->pers.inventory;
+	// 			client->pers.max_ammo = player->client->pers.max_ammo;
+	// 			client->pers.power_cubes = player->client->pers.power_cubes;
+	// 			taken_loadout = true;
+	// 			break;
+	// 		}
+	// 	}
+
+	// 	if (!taken_loadout)
+	// 	{
+	// 		// fill with 50s, since it's our most common value
+	// 		client->pers.max_ammo.fill(50);
+	// 		client->pers.max_ammo[AMMO_BULLETS] = 200;
+	// 		client->pers.max_ammo[AMMO_SHELLS] = 100;
+	// 		client->pers.max_ammo[AMMO_CELLS] = 200;
+
+
+	// 		if (!g_instagib->integer)
+	// 			client->pers.inventory[IT_WEAPON_MK23] = 1;
+
+	// 		// [Kex]
+	// 		// start items!
+	// 		if (*g_start_items->string)
+	// 			Player_GiveStartItems(ent, g_start_items->string);
+	// 		// else if (g_instagib->integer)
+	// 		// {
+	// 		// 	client->pers.inventory[IT_WEAPON_RAILGUN] = 1;
+	// 		// 	client->pers.inventory[IT_AMMO_SLUGS] = 99;
+	// 		// }
+
+	// 		if (level.start_items && *level.start_items)
+	// 			Player_GiveStartItems(ent, level.start_items);
+
+	// 		// if (!deathmatch->integer)
+	// 		// 	client->pers.inventory[IT_ITEM_COMPASS] = 1;
+
+	// 		// ZOID
+	// 		bool give_grapple = (!strcmp(g_allow_grapple->string, "auto")) ?
+	// 			(ctf->integer ? !level.no_grapple : 0) :
+	// 			g_allow_grapple->integer;
+
+	// 		if (give_grapple)
+	// 			client->pers.inventory[IT_WEAPON_GRAPPLE] = 1;
+	// 		// ZOID
+	// 	}
+
+	// 	NoAmmoWeaponChange(ent, false);
+
+	// 	client->pers.weapon = client->newweapon;
+	// 	if (client->newweapon)
+	// 		client->pers.selected_item = client->newweapon->id;
+	// 	client->newweapon = nullptr;
+	// 	// ZOID
+	// 	client->pers.lastweapon = client->pers.weapon;
+	// 	// ZOID
+	// }
+
+	// if (coop->value && g_coop_enable_lives->integer)
+	// 	client->pers.lives = g_coop_num_lives->integer + 1;
+
+	// if (ent->client->pers.autoshield >= AUTO_SHIELD_AUTO)
+	// 	ent->flags |= FL_WANTS_POWER_ARMOR;
+
 	client->pers.health = 100;
 	client->pers.max_health = 100;
 
-	// don't give us weapons if we shouldn't have any
-	if ((G_TeamplayEnabled() && client->resp.ctf_team != CTF_NOTEAM) ||
-		(!G_TeamplayEnabled() && !client->resp.spectator))
-	{
-		// in coop, if there's already a player in the game and we're new,
-		// steal their loadout. this would fix a potential softlock where a new
-		// player may not have weapons at all.
-		bool taken_loadout = false;
+	// Action Add
 
-		if (coop->integer)
-		{
-			for (auto player : active_players())
-			{
-				if (player == ent || !player->client->pers.spawned ||
-					player->client->resp.spectator || player->movetype == MOVETYPE_NOCLIP)
-					continue;
+	// Set max ammo and mag counts
+	// This is not how many you _start_ with
+	client->max_pistolmags = 2;
+	client->max_shells = 14;
+	client->max_mp5mags = 2;
+	client->max_m4mags = 1;
+	client->max_sniper_rnds = 20;
 
-				client->pers.inventory = player->client->pers.inventory;
-				client->pers.max_ammo = player->client->pers.max_ammo;
-				client->pers.power_cubes = player->client->pers.power_cubes;
-				taken_loadout = true;
-				break;
-			}
-		}
+	// Max ammo per weapon
+	client->knife_max = 10;
+	client->grenade_max = 2;
+	client->mk23_max = 12;
+	client->mp5_max = 30;
+	client->m4_max = 24;
+	client->shot_max = 7;
+	client->sniper_max = 6;
+	client->cannon_max = 2;
+	client->dual_max = 24;
 
-		if (!taken_loadout)
-		{
-			// fill with 50s, since it's our most common value
-			client->pers.max_ammo.fill(50);
-			client->pers.max_ammo[AMMO_BULLETS] = 200;
-			client->pers.max_ammo[AMMO_SHELLS] = 100;
-			client->pers.max_ammo[AMMO_CELLS] = 200;
+	// Initial ammo, set FOV
+	client->mk23_rds = client->mk23_max;
+	client->dual_rds = client->mk23_max;
+	client->knife_max = 10;
+	client->grenade_max = 2;
+	client->desired_fov = 90;
 
-
-			// if (!g_instagib->integer)
-			// 	client->pers.inventory[IT_WEAPON_BLASTER] = 1;
-
-			// [Kex]
-			// start items!
-			if (*g_start_items->string)
-				Player_GiveStartItems(ent, g_start_items->string);
-			// else if (g_instagib->integer)
-			// {
-			// 	client->pers.inventory[IT_WEAPON_RAILGUN] = 1;
-			// 	client->pers.inventory[IT_AMMO_SLUGS] = 99;
-			// }
-
-			if (level.start_items && *level.start_items)
-				Player_GiveStartItems(ent, level.start_items);
-
-			// if (!deathmatch->integer)
-			// 	client->pers.inventory[IT_ITEM_COMPASS] = 1;
-
-			// ZOID
-			bool give_grapple = (!strcmp(g_allow_grapple->string, "auto")) ?
-				(ctf->integer ? !level.no_grapple : 0) :
-				g_allow_grapple->integer;
-
-			if (give_grapple)
-				client->pers.inventory[IT_WEAPON_GRAPPLE] = 1;
-			// ZOID
-		}
-
-		NoAmmoWeaponChange(ent, false);
-
-		client->pers.weapon = client->newweapon;
-		if (client->newweapon)
-			client->pers.selected_item = client->newweapon->id;
-		client->newweapon = nullptr;
-		// ZOID
-		client->pers.lastweapon = client->pers.weapon;
-		// ZOID
-	}
-
-	if (coop->value && g_coop_enable_lives->integer)
-		client->pers.lives = g_coop_num_lives->integer + 1;
-
-	if (ent->client->pers.autoshield >= AUTO_SHIELD_AUTO)
-		ent->flags |= FL_WANTS_POWER_ARMOR;
+	ent->client->medkit = 0;
 
 	client->pers.connected = true;
 	client->pers.spawned = true;
@@ -2503,6 +2535,442 @@ void spectator_respawn(edict_t *ent)
 
 //==============================================================
 
+void AllWeapons(edict_t * ent)
+{
+	int i;
+	gitem_t *it;
+
+
+	// for (i = 0; i < IT_TOTAL; i++)
+	// 	{
+	// 		it = itemlist + i;
+	// 		if (!it->pickup)
+	// 			continue;
+	// 		if (!(it->flags & IF_WEAPON))
+	// 			continue;
+	// 		ent->client->pers.inventory[i] += 1;
+	// 	}
+
+	// Provide ammo for all of the weapons they were just given
+	// ent->client->mk23_rds = ent->client->mk23_max;
+	// ent->client->mp5_rds = ent->client->mp5_max;
+	// ent->client->m4_rds = ent->client->m4_max;	    
+	// ent->client->shot_rds = ent->client->shot_max;
+	// ent->client->cannon_rds = ent->client->cannon_max;
+	// ent->client->sniper_rds = ent->client->sniper_max;
+	// ent->client->dual_rds = ent->client->dual_max;
+	// ent->client->inventory[KNIFE_NUM] = 10;
+	// ent->client->inventory[GRENADE_NUM] = tgren->value;
+
+	// for (i = 0; i < game.num_items; i++) {
+	// 	it = itemlist + i;
+	// 	if (!it->pickup)
+	// 		continue;
+	// 	if (!(it->flags & IF_AMMO))
+	// 		continue;
+	// 	Add_Ammo(ent, it, 1000);
+	// }
+
+
+	for (i = 0; i < game.num_items; i++) {
+		it = itemlist + i;
+		if (!it->pickup)
+			continue;
+		if (!(it->flags & IF_WEAPON))
+			continue;
+
+		switch(it->id) {
+		case IT_WEAPON_MK23:
+			ent->client->inventory[i] = 1;
+			ent->client->mk23_rds = ent->client->mk23_max;
+			break;
+		case IT_WEAPON_MP5:
+			ent->client->inventory[i] = 1;
+			ent->client->mp5_rds = ent->client->mp5_max;
+			break;
+		case IT_WEAPON_M4:
+			ent->client->inventory[i] = 1;
+			ent->client->m4_rds = ent->client->m4_max;	    
+			break;
+		case IT_WEAPON_M3:
+			ent->client->inventory[i] = 1;
+			ent->client->shot_rds = ent->client->shot_max;
+			break;
+		case IT_WEAPON_HANDCANNON:
+			ent->client->inventory[i] = 1;
+			ent->client->cannon_rds = ent->client->cannon_max;
+			ent->client->shot_rds = ent->client->shot_max;
+			break;
+		case IT_WEAPON_SNIPER:
+			ent->client->inventory[i] = 1;
+			ent->client->sniper_rds = ent->client->sniper_max;
+			break;
+		case IT_WEAPON_DUALMK23:
+			ent->client->inventory[i] = 1;
+			ent->client->dual_rds = ent->client->dual_max;
+			break;
+		case IT_WEAPON_KNIFE:
+			ent->client->inventory[i] = 10;
+			break;
+		case IT_WEAPON_GRENADES:
+			ent->client->inventory[i] = tgren->value;
+			break;
+		}
+	}
+	
+	for (i = 0; i < game.num_items; i++) {
+		it = itemlist + i;
+		if (!it->pickup)
+			continue;
+		if (!(it->flags & IF_AMMO))
+			continue;
+		Add_Ammo(ent, it, 1000);
+	}
+}
+
+void AllItems(edict_t * ent)
+{
+	int i;
+	gitem_t *it;
+
+	for (i = 0; i < game.num_items; i++) {
+		it = itemlist + i;
+		if (!it->pickup)
+			continue;
+		if (!(it->flags & IF_POWERUP)) // Items are Powerups
+			continue;
+		ent->client->pers.inventory[i] += 1;
+
+		if (ent->client->unique_item_total >= unique_items->value)
+			ent->client->unique_item_total = unique_items->value - 1;
+	}
+}
+
+// equips a client with item/weapon in teamplay
+
+void EquipClient(edict_t * ent)
+{
+	gclient_t *client;
+	gitem_t *item;
+	int band = 0, itemNum = 0;
+
+	client = ent->client;
+
+	// if(use_grapple->value)
+	// 	client->inventory[ITEM_INDEX(FindItem("Grapple"))] = 1;
+
+	// Honor changes to wp_flags and itm_flags.
+	// if( client->pers.chosenWeapon && ! WPF_ALLOWED(client->pers.chosenWeapon->typeNum) )
+	// 	client->pers.chosenWeapon = NULL;
+	// if( client->pers.chosenItem && ! ITF_ALLOWED(client->pers.chosenItem->typeNum) )
+	// 	client->pers.chosenItem = NULL;
+
+	if (client->pers.chosenItem) {
+		if (client->pers.chosenItem->id == IT_ITEM_BANDOLIER) {
+			band = 1;
+			if (tgren->value > 0)	// team grenades is turned on
+			{
+				item = GET_ITEM(GRENADE_NUM);
+				client->inventory[ITEM_INDEX(item)] = tgren->value;
+			}
+		}
+		ent->client->pers.inventory[client->pers.chosenItem->id] += 1;
+	}
+
+	// set them up with initial pistol ammo
+	//if (WPF_ALLOWED(MK23_ANUM)) {
+	item = GET_ITEM(MK23_ANUM);
+	if (band)
+		client->inventory[ITEM_INDEX(item)] = 2;
+	else
+		client->inventory[ITEM_INDEX(item)] = 1;
+	//}
+
+	itemNum = client->pers.chosenWeapon ? client->pers.chosenWeapon->id : 0;
+
+	switch (itemNum) {
+	case MP5_NUM:
+		item = GET_ITEM(MP5_NUM);
+		//client->selected_item = ITEM_INDEX(item);
+		client->selected_item.id = IT_WEAPON_MP5;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->curr_weap = MP5_NUM;
+		client->unique_weapon_total = 1;
+		item = GET_ITEM(MP5_ANUM);
+		if (band)
+			client->inventory[ITEM_INDEX(item)] = 2;
+		else
+			client->inventory[ITEM_INDEX(item)] = 1;
+		client->mp5_rds = client->mp5_max;
+		break;
+	case M4_NUM:
+		item = GET_ITEM(M4_NUM);
+		client->selected_item.id = IT_WEAPON_M4;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->curr_weap = M4_NUM;
+		client->unique_weapon_total = 1;
+		item = GET_ITEM(M4_ANUM);
+		if (band)
+			client->inventory[ITEM_INDEX(item)] = 2;
+		else
+			client->inventory[ITEM_INDEX(item)] = 1;
+		client->m4_rds = client->m4_max;
+		break;
+	case M3_NUM:
+		item = GET_ITEM(M3_NUM);
+		client->selected_item.id = IT_WEAPON_M3;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->curr_weap = M3_NUM;
+		client->unique_weapon_total = 1;
+		item = GET_ITEM(SHELL_ANUM);
+		if (band)
+			client->inventory[ITEM_INDEX(item)] = 14;
+		else
+			client->inventory[ITEM_INDEX(item)] = 7;
+		client->shot_rds = client->shot_max;
+		break;
+	case HC_NUM:
+		item = GET_ITEM(HC_NUM);
+		client->selected_item.id = IT_WEAPON_HANDCANNON;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->curr_weap = HC_NUM;
+		client->unique_weapon_total = 1;
+		item = GET_ITEM(SHELL_ANUM);
+		if (band)
+			client->inventory[ITEM_INDEX(item)] = 24;
+		else
+			client->inventory[ITEM_INDEX(item)] = 12;
+		client->cannon_rds = client->cannon_max;
+		break;
+	case SNIPER_NUM:
+		item = GET_ITEM(SNIPER_NUM);
+		client->selected_item.id = IT_WEAPON_SNIPER;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->curr_weap = SNIPER_NUM;
+		client->unique_weapon_total = 1;
+		item = GET_ITEM(SNIPER_ANUM);
+		if (band)
+			client->inventory[ent->client->selected_item.id] = 20;
+		else
+			client->inventory[ent->client->selected_item.id] = 10;
+		client->sniper_rds = client->sniper_max;
+		break;
+	case DUAL_NUM:
+		item = GET_ITEM(DUAL_NUM);
+		client->selected_item.id = IT_WEAPON_DUALMK23;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->curr_weap = DUAL_NUM;
+		item = GET_ITEM(MK23_ANUM);
+		if (band)
+			client->inventory[ent->client->selected_item.id] = 4;
+		else
+			client->inventory[ent->client->selected_item.id] = 2;
+		client->dual_rds = client->dual_max;
+		break;
+	case KNIFE_NUM:
+		item = GET_ITEM(KNIFE_NUM);
+		client->selected_item.id = IT_WEAPON_KNIFE;
+		if (band)
+			client->inventory[ent->client->selected_item.id] = 20;
+		else
+			client->inventory[ent->client->selected_item.id] = 10;
+		client->pers.weapon = item;
+		client->curr_weap = KNIFE_NUM;
+		break;
+	}
+
+	// memset(&etemp, 0, sizeof(etemp));
+	// if (client->pers.chosenItem) {
+	// 	etemp.item = client->pers.chosenItem;
+	// 	Pickup_Special(&etemp, ent);
+	// }
+}
+
+// Igor[Rock] start
+void EquipClientDM(edict_t * ent)
+{
+	gclient_t *client;
+	gitem_t *item;
+	int itemNum = 0;
+
+	client = ent->client;
+
+	// if(use_grapple->value)
+	// 	client->inventory[ITEM_INDEX(FindItem("Grapple"))] = 1;
+
+	// TODO: Work with strtwpn
+	// if (*strtwpn->string)
+	// 	itemNum = GetWeaponNumFromArg(strtwpn->string);
+
+	// Give some ammo for the weapon
+	switch (itemNum) {
+	case MK23_NUM:
+		return;
+	case MP5_NUM:
+		item = GET_ITEM(MP5_NUM);
+		client->selected_item.id = IT_WEAPON_MP5;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->mp5_rds = client->mp5_max;
+		client->curr_weap = MP5_NUM;
+		if (!allweapon->value) {
+			client->unique_weapon_total = 1;
+		}
+		item = GET_ITEM(MP5_ANUM);
+		client->inventory[ITEM_INDEX(item)] = 1;
+		break;
+	case M4_NUM:
+		item = GET_ITEM(M4_NUM);
+		client->selected_item.id = IT_WEAPON_M4;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->m4_rds = client->m4_max;
+		client->curr_weap = M4_NUM;
+		if (!allweapon->value) {
+			client->unique_weapon_total = 1;
+		}
+		item = GET_ITEM(M4_ANUM);
+		client->inventory[ITEM_INDEX(item)] = 1;
+		break;
+	case M3_NUM:
+		item = GET_ITEM(M3_NUM);
+		client->selected_item.id = IT_WEAPON_M3;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->shot_rds = client->shot_max;
+		client->curr_weap = M3_NUM;
+		if (!allweapon->value) {
+			client->unique_weapon_total = 1;
+		}
+		item = GET_ITEM(SHELL_ANUM);
+		client->inventory[ITEM_INDEX(item)] = 7;
+		break;
+	case HC_NUM:
+		item = GET_ITEM(HC_NUM);
+		client->selected_item.id = IT_WEAPON_HANDCANNON;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->cannon_rds = client->cannon_max;
+		client->shot_rds = client->shot_max;
+		client->curr_weap = HC_NUM;
+		if (!allweapon->value) {
+			client->unique_weapon_total = 1;
+		}
+		item = GET_ITEM(SHELL_ANUM);
+		client->inventory[ITEM_INDEX(item)] = 12;
+		break;
+	case SNIPER_NUM:
+		item = GET_ITEM(SNIPER_NUM);
+		client->selected_item.id = IT_WEAPON_SNIPER;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->sniper_rds = client->sniper_max;
+		client->curr_weap = SNIPER_NUM;
+		if (!allweapon->value) {
+			client->unique_weapon_total = 1;
+		}
+		item = GET_ITEM(SNIPER_ANUM);;
+		client->inventory[ITEM_INDEX(item)] = 10;
+		break;
+	case DUAL_NUM:
+		item = GET_ITEM(DUAL_NUM);
+		client->selected_item.id = IT_WEAPON_DUALMK23;
+		client->inventory[ent->client->selected_item.id] = 1;
+		client->pers.weapon = item;
+		client->dual_rds = client->dual_max;
+		client->mk23_rds = client->mk23_max;
+		client->curr_weap = DUAL_NUM;
+		item = GET_ITEM(MK23_ANUM);
+		client->inventory[ITEM_INDEX(item)] = 2;
+		break;
+	case GRENADE_NUM:
+		item = GET_ITEM(GRENADE_NUM);
+		client->selected_item.id = IT_WEAPON_GRENADES;
+		client->inventory[ent->client->selected_item.id] = tgren->value;
+		client->pers.weapon = item;
+		client->curr_weap = GRENADE_NUM;
+		break;
+	case KNIFE_NUM:
+		item = GET_ITEM(KNIFE_NUM);
+		client->selected_item.id = IT_WEAPON_KNIFE;
+		client->inventory[ent->client->selected_item.id] = 10;
+		client->pers.weapon = item;
+		client->curr_weap = KNIFE_NUM;
+		break;
+	}
+}
+
+// Igor[Rock] ende
+
+
+/*
+===========
+ClientLegDamage
+
+Called when a player takes leg damage
+============
+*/
+
+// TODO: Re-enable this
+// void ClientLegDamage(edict_t *ent)
+// {
+// 	ent->client->leg_damage = 1;
+// 	ent->client->leghits++;
+
+// 	// Reki: limp_nopred behavior
+// 	switch (ent->client->pers.limp_nopred & 255)
+// 	{
+// 		case 0:
+// 			break;
+// 		case 2:
+// 			if (sv_limp_highping->value <= 0)
+// 				break;
+// 			// if the 256 bit flag is set, we have to be cautious to only deactivate if ping swung significantly
+// 			// so each leg break doesn't flipflop between behavior if client ping is fluctuating
+// 			if (ent->client->pers.limp_nopred & 256)
+// 			{
+// 				if (ent->client->ping < (int)sv_limp_highping->value - 15)
+// 				{
+// 					ent->client->pers.limp_nopred &= ~256;
+// 					break;
+// 				}
+// 			}
+// 			else if (ent->client->ping < (int)sv_limp_highping->value)
+// 				break;
+// 			ent->client->pers.limp_nopred |= 256;
+// 		case 1:
+// 			if (e_enhancedSlippers->value && INV_AMMO(ent, SLIP_NUM)) // we don't limp with enhanced slippers, so just ignore this leg damage.
+// 				break;
+
+// 			ent->client->ps.pmove.pm_flags |= PMF_NO_POSITIONAL_PREDICTION;
+// 			break;
+// 	}
+// 	//
+
+// }
+
+void ClientFixLegs(edict_t *ent)
+{
+	if (ent->client->leg_damage && ent->client->ctf_grapplestate <= CTF_GRAPPLE_STATE_FLY)
+	{
+		ent->client->ps.pmove.pm_flags &= ~PMF_NO_POSITIONAL_PREDICTION;
+	}
+
+	ent->client->leg_noise = 0;
+	ent->client->leg_damage = 0;
+	ent->client->leghits = 0;
+	ent->client->leg_dam_count = 0;
+}
+
+
+//==============================================================
+
 // [Paril-KEX]
 // skinnum was historically used to pack data
 // so we're going to build onto that.
@@ -2747,7 +3215,7 @@ a deathmatch.
 */
 void PutClientInServer(edict_t *ent)
 {
-	int					index;
+	int					index, going_observer;
 	vec3_t				spawn_origin, spawn_angles;
 	gclient_t		  *client;
 	client_persistant_t saved;
@@ -2771,16 +3239,16 @@ void PutClientInServer(edict_t *ent)
 	bool force_spawn = client->awaiting_respawn && level.time > client->respawn_timeout;
 	bool is_landmark = false;
 
-	if (use_squad_respawn)
-	{
-		spawn_origin = squad_respawn_position;
-		spawn_angles = squad_respawn_angles;
-		valid_spawn = true;
-	}
+	// if (use_squad_respawn)
+	// {
+	// 	spawn_origin = squad_respawn_position;
+	// 	spawn_angles = squad_respawn_angles;
+	// 	valid_spawn = true;
+	// }
 	// else if (gamerules->integer && DMGame.SelectSpawnPoint) // PGM
 	// 	valid_spawn = DMGame.SelectSpawnPoint(ent, spawn_origin, spawn_angles, force_spawn); // PGM
-	else										  // PGM
-		valid_spawn = SelectSpawnPoint(ent, spawn_origin, spawn_angles, force_spawn, is_landmark);
+	//else										  // PGM
+	valid_spawn = SelectSpawnPoint(ent, spawn_origin, spawn_angles, force_spawn, is_landmark);
 
 	// [Paril-KEX] if we didn't get a valid spawn, hold us in
 	// limbo for a while until we do get one
@@ -2860,41 +3328,44 @@ void PutClientInServer(edict_t *ent)
 		client->pers.health = 0;
 		resp = client->resp;
 	}
-	else
-	{
-		// [Kex] Maintain user info in singleplayer to keep the player skin. 
-		char userinfo[MAX_INFO_STRING];
-		memcpy(userinfo, client->pers.userinfo, sizeof(userinfo));
 
-		if (coop->integer)
-		{
-			resp = client->resp;
 
-			if (!P_UseCoopInstancedItems())
-			{
-				resp.coop_respawn.game_help1changed = client->pers.game_help1changed;
-				resp.coop_respawn.game_help2changed = client->pers.game_help2changed;
-				resp.coop_respawn.helpchanged = client->pers.helpchanged;
-				client->pers = resp.coop_respawn;
-			}
-			else
-			{
-				// fix weapon
-				if (!client->pers.weapon)
-					client->pers.weapon = client->pers.lastweapon;
-			}
-		}
+	// No Coop in Action (yet?)
+	// else
+	// {
+	// 	// [Kex] Maintain user info in singleplayer to keep the player skin. 
+	// 	char userinfo[MAX_INFO_STRING];
+	// 	memcpy(userinfo, client->pers.userinfo, sizeof(userinfo));
 
-		ClientUserinfoChanged(ent, userinfo);
+	// 	if (coop->integer)
+	// 	{
+	// 		resp = client->resp;
 
-		if (coop->integer)
-		{
-			if (resp.score > client->pers.score)
-				client->pers.score = resp.score;
-		}
-		else
-			memset(&resp, 0, sizeof(resp));
-	}
+	// 		if (!P_UseCoopInstancedItems())
+	// 		{
+	// 			resp.coop_respawn.game_help1changed = client->pers.game_help1changed;
+	// 			resp.coop_respawn.game_help2changed = client->pers.game_help2changed;
+	// 			resp.coop_respawn.helpchanged = client->pers.helpchanged;
+	// 			client->pers = resp.coop_respawn;
+	// 		}
+	// 		else
+	// 		{
+	// 			// fix weapon
+	// 			if (!client->pers.weapon)
+	// 				client->pers.weapon = client->pers.lastweapon;
+	// 		}
+	// 	}
+
+	// 	ClientUserinfoChanged(ent, userinfo);
+
+	// 	if (coop->integer)
+	// 	{
+	// 		if (resp.score > client->pers.score)
+	// 			client->pers.score = resp.score;
+	// 	}
+	// 	else
+	// 		memset(&resp, 0, sizeof(resp));
+	// }
 
 	// clear everything but the persistant data
 	saved = client->pers;
@@ -2999,6 +3470,22 @@ void PutClientInServer(edict_t *ent)
 		return;
 	// ZOID
 
+	if (teamplay->value) {
+		going_observer = (!ent->client->resp.team || ent->client->resp.subteam);
+	}
+	else {
+		going_observer = ent->client->pers.spectator;
+		if (dm_choose->value && !ent->client->pers.dm_selected)
+			going_observer = 1;
+	}
+
+	if (going_observer || level.level_intermission_set) {
+		ent->movetype = MOVETYPE_NOCLIP;
+		ent->solid = SOLID_NOT;
+		ent->svflags |= SVF_NOCLIENT;
+		ent->client->ps.gunindex = 0;
+	}
+
 	// spawn a spectator
 	if (client->pers.spectator)
 	{
@@ -3040,21 +3527,38 @@ void PutClientInServer(edict_t *ent)
 		ent->client->landmark_free_fall = true;
 	}
 
+	if (!teamplay->value) {	// this handles telefrags...
+		KillBox(ent, true, MOD_TELEFRAG_SPAWN);
+	} else {
+		ent->solid = SOLID_TRIGGER;
+	}
+
 	gi.linkentity(ent);
 
 	if (!KillBox(ent, true, MOD_TELEFRAG_SPAWN))
 	{ // could't spawn in?
 	}
 
-	// my tribute to cash's level-specific hacks. I hope I live
-	// up to his trailblazing cheese.
-	if (Q_strcasecmp(level.mapname, "rboss") == 0)
-	{
-		// if you get on to rboss in single player or coop, ensure
-		// the player has the nuke key. (not in DM)
-		// if (!deathmatch->integer)
-		// 	client->pers.inventory[IT_KEY_NUKE] = 1;
+	if ((int)uvtime->value > 0) {
+		if (teamplay->value && ! in_warmup) {
+			if (!(gameSettings & GS_ROUNDBASED) && team_round_going && !lights_camera_action) {
+				client->uvTime = uvtime->value;
+			}
+		} else if (dm_shield->value) {
+			client->uvTime = uvtime->value;
+		}
 	}
+
+	if (allitem->value)
+		AllItems(ent);
+
+	if (gameSettings & GS_WEAPONCHOOSE)
+		EquipClient(ent);
+	else
+		EquipClientDM(ent);
+
+	if (allweapon->value)
+		AllWeapons(ent);
 
 	// force the current weapon up
 	client->newweapon = client->pers.weapon;
@@ -4285,6 +4789,15 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
 
 		gi.linkentity(ent);
 
+		// stop manipulating doors
+		client->doortoggle = 0;
+
+		if( client->jumping && (ent->solid != SOLID_NOT) && ! lights_camera_action && ! client->uvTime )
+		{
+			kick_attack( ent );
+			client->punch_desired = false;
+		}
+
 		// PGM trigger_gravity support
 		ent->gravity = 1.0;
 		// PGM
@@ -4668,6 +5181,40 @@ static bool G_CoopRespawn(edict_t *ent)
 	return true;
 }
 
+// Raptor007: Allow weapon actions to start happening on any frame.
+static void ClientThinkWeaponIfReady( edict_t *ent, bool update_idle )
+{
+	int old_weaponstate, old_gunframe;
+
+	// If they just spawned, sync up the weapon animation with that.
+	if( ! ent->client->weapon_last_activity )
+		ent->client->weapon_last_activity = level.time.seconds();
+
+	// If it's too soon since the last non-idle think, keep waiting.
+	else if( level.time.frames() < ent->client->weapon_last_activity + FRAMEDIV )
+		return;
+
+	// Clear weapon kicks.
+	VectorClear( ent->client->kick_origin );
+	VectorClear( ent->client->kick_angles );
+
+	old_weaponstate = ent->client->weaponstate;
+	old_gunframe = ent->client->ps.gunframe;
+
+	Think_Weapon( ent );
+
+	// If the weapon is or was in any state other than ready, wait before thinking again.
+	if( (ent->client->weaponstate != WEAPON_READY) || (old_weaponstate != WEAPON_READY) )
+	{
+		ent->client->weapon_last_activity = level.time.milliseconds();
+		ent->client->anim_started = ent->client->weapon_last_activity;
+	}
+
+	// Only allow the idle animation to update if it's been enough time.
+	else if( ! update_idle || level.time.frames() % FRAMEDIV != ent->client->weapon_last_activity % FRAMEDIV )
+		ent->client->ps.gunframe = old_gunframe;
+}
+
 /*
 ==============
 ClientBeginServerFrame
@@ -4679,7 +5226,7 @@ any other entities in the world.
 void ClientBeginServerFrame(edict_t *ent)
 {
 	gclient_t *client;
-	int		   buttonMask;
+	int		   buttonMask, going_observer, randomValue = 0;
 
 	if (gi.ServerFrame() != ent->client->step_frame)
 		ent->s.renderfx &= ~RF_STAIR_STEP;
@@ -4700,6 +5247,112 @@ void ClientBeginServerFrame(edict_t *ent)
 		Bot_BeginFrame( ent );
 	}
 
+	// TODO: MOTD stuff
+	// if( team_round_going && !IS_ALIVE(ent) )
+	// 	client->resp.motd_refreshes = motd_time->value;  // Stop showing motd if we're playing.
+	// else if( lights_camera_action )
+	// 	client->resp.last_motd_refresh = level.time.seconds();  // Don't interrupt LCA with motd.
+	// else if ((int)motd_time->value > client->resp.motd_refreshes * 2 && ent->client->layout != LAYOUT_MENU) {
+	// 	// TODO: Check the timing here
+	// 	if (client->resp.last_motd_refresh + 2 < level.time.seconds()) {
+	// 		client->resp.last_motd_refresh = level.time.seconds();
+	// 		client->resp.motd_refreshes++;
+	// 		PrintMOTD( ent );
+	// 	}
+	// }
+
+	// TODO: auto_menu
+	// show team or weapon menu immediately when connected
+	// if (auto_menu->value && ent->client->layout != LAYOUT_MENU && !client->pers.menu_shown && (teamplay->value || dm_choose->value)) {
+	// 	Cmd_Inven_f( ent );
+	// }
+
+	// if (!teamplay->value)
+	// {
+	// 	// force spawn when weapon and item selected in dm
+	// 	if (!ent->client->pers.spectator && dm_choose->value && !client->pers.dm_selected) {
+	// 		if (client->pers.chosenWeapon && client->pers.chosenItem) {
+	// 			client->pers.dm_selected = 1;
+
+	// 			gi.LocBroadcast_Print(PRINT_HIGH, "%s joined the game\n", client->pers.netname);
+
+	// 			respawn(ent);
+
+	// 			if (!(ent->svflags & SVF_NOCLIENT)) { // send effect
+	// 				gi.WriteByte(svc_muzzleflash);
+	// 				gi.WriteShort(ent - g_edicts);
+	// 				gi.WriteByte(MZ_LOGIN);
+	// 				gi.multicast(ent->s.origin, MULTICAST_PVS, false);
+	// 			}
+	// 		}
+	// 		return;
+	// 	}
+
+	// 	if (level.time.seconds() > client->respawn_framenum && (!IS_ALIVE(ent)) != ent->client->pers.spectator)
+	// 	{
+	// 		if (ent->client->pers.spectator){
+	// 			killPlayer(ent, false);
+	// 		} else {
+	// 			gi.LocBroadcast_Print(PRINT_HIGH, "%s rejoined the game\n", ent->client->pers.netname);
+	// 			respawn(ent);
+	// 		}
+	// 	}
+	// }
+
+	// // run weapon animations if it hasn't been done by a ucmd_t
+	// ClientThinkWeaponIfReady( ent, true );
+	// PlayWeaponSound( ent );
+
+	// if (ent->solid != SOLID_NOT)
+	// {
+	// 	int idleframes = client->resp.idletime ? (level.time.seconds() - client->resp.idletime) : 0;
+
+	// 	if( client->punch_desired && ! client->jumping && ! lights_camera_action && ! client->uvTime )
+	// 		punch_attack( ent );
+	// 	client->punch_desired = false;
+
+	// 	if( (ppl_idletime->value > 0) && idleframes && (idleframes % (int)(ppl_idletime->value * level.time.seconds()) == 0) )
+	// 		//plays a random sound/insane sound, insane1-9.wav
+	// 		//gi.sound( ent, CHAN_VOICE, gi.soundindex(va( "insane/insane%i.wav", rand() % 9 + 1 )), 1, ATTN_NORM, 0 );
+
+	// 		// ChatGPT'd: "plays a random sound/insane sound, insane1-9.wav"
+	// 		int randomValue = std::rand() % 9 + 1;
+	// 		// Format the string using fmt::format
+	// 		std::string soundPath = fmt::format("insane/insane{}.wav", randomValue);
+	// 		// Get the sound index using gi.soundindex
+	// 		int soundIndex = gi.soundindex(soundPath.c_str());
+	// 		gi.sound(ent, CHAN_VOICE, soundIndex, 1, ATTN_NORM, 0);
+			
+	// 	if( (sv_idleremove->value > 0) && (idleframes > (sv_idleremove->value * level.time.seconds())) && client->resp.team )
+	// 	{
+	// 		// Removes member from team once sv_idleremove value in seconds has been reached
+	// 		int idler_team = client->resp.team;
+	// 		if( teamplay->value )
+	// 			LeaveTeam( ent );
+	// 		client->resp.idletime = 0;
+	// 		gi.Com_PrintFmt( "%s has been removed from play due to reaching the sv_idleremove timer of %i seconds\n",
+	// 			client->pers.netname, (int) sv_idleremove->value );
+	// 	}
+
+	// 	if (client->autoreloading && (client->weaponstate == WEAPON_END_MAG)
+	// 		&& (client->curr_weap == MK23_NUM)) {
+	// 		client->autoreloading = false;
+	// 		Cmd_New_Reload_f( ent );
+	// 	}
+
+	if (ent->solid != SOLID_NOT)
+	{
+		if (client->uvTime && FRAMESYNC) {
+			client->uvTime--;
+			if (!client->uvTime && team_round_going)
+					gi.Center_Print(ent, "ACTION!");
+		}
+		else if (client->uvTime % 40 == 0)
+		{
+			gi.LocClient_Print(ent, PRINT_CENTER, "Shield {}", client->uvTime / 10);
+		}
+	}
+
 	if (deathmatch->integer && !G_TeamplayEnabled() &&
 		client->pers.spectator != client->resp.spectator &&
 		(level.time - client->respawn_time) >= 5_sec)
@@ -4716,9 +5369,15 @@ void ClientBeginServerFrame(edict_t *ent)
 
 	if (ent->deadflag)
 	{
+		//going_observer = ent->client->pers.spectator;
 		// don't respawn if level is waiting to restart
 		if (level.time > client->respawn_time && !level.coop_level_restart_time)
 		{
+			if (teamplay->value && !in_warmup && limchasecam->value) {
+					ent->client->chase_mode = 0;
+					// TODO: Add chase modes at some point
+					//NextChaseMode( ent );
+			}
 			// check for coop handling
 			if (!G_CoopRespawn(ent))
 			{
@@ -4736,6 +5395,7 @@ void ClientBeginServerFrame(edict_t *ent)
 				}
 			}
 		}
+		
 		return;
 	}
 
@@ -4768,6 +5428,7 @@ void RemoveAttackingPainDaemons(edict_t *self)
 	if (self->client)
 		self->client->tracker_pain_time = 0_ms;
 }
+<<<<<<< HEAD
 
 // Action Add
 void ClientLegDamage(edict_t* ent) {
@@ -4786,3 +5447,5 @@ void ClientFixLegs(edict_t *ent)
 	ent->client->leghits = 0;
 	ent->client->leg_dam_count = 0;
 }
+=======
+>>>>>>> c2b8e9a8285d3c33c9d319c60e75392098586b5e
